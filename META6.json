@@ -1,1 +1,33 @@
-
+{
+    "perl"        : "6.*",
+    "name"        : "Draw2D::Furniture",
+    "version"     : "1.0.0",
+    "description" : "Provides number base transform functions",
+    "auth"        : "github:tbrowder",
+    "author"      : "github:tbrowder",
+    "authors"     : [ "Tom Browder <tom.browder@gmail.com>" ],
+    "license"     : "Artistic-2.0",
+    "source-url"  : "https://github.com/tbrowder/Draw2D-Furniture-Raku.git",
+    "support"     : {
+        "bugtracker" : "https://github.com/tbrowder/Draw2D-Furniture-Raku/issues"
+    },
+    "provides"    : {
+        "Draw2D::Furniture" : "lib/Draw2D/Furniture.rakumod",
+        "make-furn-figs"    : "bin/make-furn-figs"
+    },
+    "test-depends" : [
+	"Test::META"
+    ],
+    "depends" : [
+        "Text::Utils"
+    ],
+    "resources" : [
+    ],
+    "tags" : [
+	"drawing",
+	"design",
+        "furniture",
+	"house/office planning",
+	"PostScript"
+    ]
+}
