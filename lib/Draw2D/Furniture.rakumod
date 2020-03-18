@@ -19,7 +19,7 @@ class Furniture {...};
 sub write-drawings($fbase, # file name base, no suffix
                    @rooms,
                    @ofils,
-                   :$debug
+                   :$debug,
                    :$ofilD, # basename
                   ) is export {
 
