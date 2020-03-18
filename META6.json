@@ -19,6 +19,7 @@
 	"Test::META"
     ],
     "depends" : [
+        "Inline::Perl5",
         "Text::Utils"
     ],
     "resources" : [
