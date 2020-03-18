@@ -296,18 +296,33 @@ sub read-data-file($ifil, @rooms, :$debug) is export {
 
             next LINE;
         }
+
+        # not yet implemented
         if $line ~~ /^ \s* 'title:' (.*) $/ {
+            my $title = normalize-string ~$0;
             next LINE;
         }
         if $line ~~ /^ \s* 'date:' (.*) $/ {
+            my $date = normalize-string ~$0;
             next LINE;
         }
         if $line ~~ /^ \s* 'author:' (.*) $/ {
+            my $author = normalize-string ~$0;
             next LINE;
         }
         if $line ~~ /^ \s* 'address:' (.*) $/ {
+            my $address = normalize-string ~$0;
             next LINE;
         }
+        if $line ~~ /^ \s* 'address2:' (.*) $/ {
+            my $address2 = normalize-string ~$0;
+            next LINE;
+        }
+        if $line ~~ /^ \s* 'address3:' (.*) $/ {
+            my $address3 = normalize-string ~$0;
+            next LINE;
+        }
+        # END not yet implemented
 
         if $line ~~ /^ \s* 'scale:' \s* (\S*) \s* $/ {
             $in-per-ft = ~$0;
