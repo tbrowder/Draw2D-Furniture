@@ -7,6 +7,7 @@ use Text::Utils :strip-comment, :normalize-string;
 # or in the drives program
 our $in-per-ft is export = 0.25;
 
+# default values settable in the input data file
 my $ofilL = 'furniture-list';
 my $ofilD = 'furniture-drawings';
 
@@ -307,8 +308,17 @@ sub read-data-file($ifil, @rooms, :$debug) is export {
         if $line ~~ /^ \s* 'address:' (.*) $/ {
             next LINE;
         }
-        if $line ~~ /^ \s* 'scale:' (.*) $/ {
-            die "WARNING: user scale NYI";
+
+        if $line ~~ /^ \s* 'scale:' \s* (\S*) \s* $/ {
+            $in-per-ft = ~$0;
+            next LINE;
+        }
+        if $line ~~ /^ \s* 'list-file:' \s* (\S*) \s* $/ {
+            $ofilL = ~$0;
+            next LINE;
+        }
+        if $line ~~ /^ \s* 'drawings-file:' \s* (\S*) $/ {
+            $ofilD = ~$0;
             next LINE;
         }
 
