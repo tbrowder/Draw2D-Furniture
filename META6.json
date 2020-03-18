@@ -13,13 +13,12 @@
     },
     "provides"    : {
         "Draw2D::Furniture" : "lib/Draw2D/Furniture.rakumod",
-        "make-furn-figs"    : "bin/make-furn-figs"
+        "draw2d-output"     : "bin/draw2d-output"
     },
     "test-depends" : [
 	"Test::META"
     ],
     "depends" : [
-        "Inline::Perl5",
         "Text::Utils"
     ],
     "resources" : [

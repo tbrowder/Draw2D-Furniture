@@ -5,4 +5,4 @@ use Test::META;
 
 plan 1;
 
-meta-ok;
+meta-ok :relaxed-name;
