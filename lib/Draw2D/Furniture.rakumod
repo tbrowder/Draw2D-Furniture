@@ -133,8 +133,8 @@ sub text-to-pdf($txtfil,
                ) is export {
 
     my $fbase = $ofilL; # file name base, no suffix
-    my $psf = $fbase ~ '.ps';
-    my $pdf = $fbase ~ '.pdf';
+    my $psf   = $fbase ~ '.ps';
+    my $pdf   = $fbase ~ '.pdf';
 
     # write the ps file
     # start a doc, add options here
@@ -195,21 +195,21 @@ sub text-to-pdf($txtfil,
             $ps.newpage;
         }
         # write the line
-        #$ps.
+        $ps.pstr: $line:
     }
 
     # produce the pdf
-    die "FATAL: File $ps not found" if !$ps.IO.f;
+    die "FATAL: File $psf not found" if !$psf.IO.f;
     $cmd  = "ps2pdf";
-    $args = "$ps $pdf";
+    $args = "$psf $pdf";
     run $cmd, $args.words;
 
     die "FATAL: File $pdf not found" if !$pdf.IO.f;
     @ofils.append: $pdf;
-    unlink $txt unless $debug;
-    unlink $ps unless $debug;
+    unlink $txtfil unless 1 or $debug;
+    unlink $psf unless 1 or $debug;
 
-}
+} # end sub text-to-pdf
 
 sub write-list(@rooms,
                @ofils,
