@@ -112,7 +112,7 @@ sub write-drawings(@rooms,
 
         $y -= $r.max-height + $space;
     }
-
+    # close and ouput the file
     $ps.output;
 
     # produce the pdf
@@ -179,7 +179,7 @@ sub text-to-pdf($txtfil,
     sub check-bottom($y --> Bool) {
         # given a text row and its instance and its y start
         # point, can it fit on # the current row?
-        my $ybot = $y - $lspacemax-height;
+        my $ybot = $y - $lspace;
         return $ybot >= $ybottom;
     }
 
@@ -187,7 +187,7 @@ sub text-to-pdf($txtfil,
     # keep track of:
     #   last baseline
     reset-page-vars;
-    for $psf.IO.lines -> $line {
+    for $txtfil.IO.lines -> $line {
         reset-row-var;
         if !check-bottom($y) {
             # need a new page
@@ -195,13 +195,15 @@ sub text-to-pdf($txtfil,
             $ps.newpage;
         }
         # write the line
-        $ps.pstr: $line:
+        $ps.pstr: $line;
     }
+    # close and ouput the file
+    $ps.output;
 
     # produce the pdf
     die "FATAL: File $psf not found" if !$psf.IO.f;
-    $cmd  = "ps2pdf";
-    $args = "$psf $pdf";
+    my $cmd  = "ps2pdf";
+    my $args = "$psf $pdf";
     run $cmd, $args.words;
 
     die "FATAL: File $pdf not found" if !$pdf.IO.f;
@@ -242,6 +244,7 @@ sub write-list(@rooms,
     if $address3 {
         $fh.say: "Address3: $address3";
     }
+    $fh.say: "";
 
     for @rooms -> $r {
         =begin comment
