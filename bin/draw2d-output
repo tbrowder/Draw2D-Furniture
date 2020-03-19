@@ -4,11 +4,11 @@ use Draw2D::Furniture;
 
 # this file is in the basic format to be used
 # by this program:
-my $ifil = "furniture-input.txt"; # default
+my $ifil = '';
 
 if !@*ARGS {
     say qq:to/HERE/;
-    Usage: $*PROGRAM.basename go | <formatted input file> [scale=X]
+    Usage: {$*PROGRAM.basename} <formatted input file> [scale=X][debug]
 
     The optional scale is a number representing page inches per
     real feet. The default is 0.25 (i.e., 1/4 inch per foot, a
@@ -29,7 +29,6 @@ if !@*ARGS {
 }
 
 my $debug = 0;
-# scale of real feet to inches on paper:
 
 for @*ARGS {
     when /^ g/ { ;  }
@@ -46,12 +45,10 @@ if !$ifil.IO.f {
 
 my @ofils; # list of output files generated
 my @rooms; # list of room objects containing furniture objects
-read-data-file @rooms;
+read-data-file $ifil, @rooms, :$debug;
 
-my $ofil = 'furniture-list'; # basename
-write-list $@rooms, @ofils, :$debug;
+write-list @rooms, @ofils, :$debug;
 
-my $ofil2 = 'furniture-drawings'; # basename
 write-drawings @rooms, @ofils, :$debug;
 
 say "Normal end.";

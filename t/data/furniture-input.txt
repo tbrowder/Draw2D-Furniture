@@ -15,6 +15,9 @@ address: 113 Canterbury Circle
 #   X d   # diameter
 #   X r   # radius
 
+# note that a line consisting of only equal signs is ignored
+# a line with only <ff> results in a form feed 
+
 room: Master bedroom
 ==============
 

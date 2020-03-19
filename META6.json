@@ -13,12 +13,14 @@
     },
     "provides"    : {
         "Draw2D::Furniture" : "lib/Draw2D/Furniture.rakumod",
+        "Draw2D::Vars"      : "lib/Draw2D/Vars.rakumod",
         "draw2d-output"     : "bin/draw2d-output"
     },
     "test-depends" : [
 	"Test::META"
     ],
     "depends" : [
+        "Inline::Perl5",
         "Text::Utils"
     ],
     "resources" : [

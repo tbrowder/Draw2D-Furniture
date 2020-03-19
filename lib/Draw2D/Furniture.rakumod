@@ -3,6 +3,8 @@ unit module Draw2D::Furniture;
 use PostScript::File:from<Perl5>;
 use Text::Utils :strip-comment, :normalize-string;
 
+use Draw2D::Vars;
+
 # default values settable in the input data file
 # or in the drives program
 our $in-per-ft is export = 0.25;
@@ -10,6 +12,12 @@ our $in-per-ft is export = 0.25;
 # default values settable in the input data file
 my $ofilL = 'furniture-list';
 my $ofilD = 'furniture-drawings';
+my $ftitle   = '';
+my $author   = '';
+my $date     = '';
+my $address  = '';
+my $address2 = '';
+my $address3 = '';
 
 # forward decls
 class Row {...};
@@ -17,12 +25,12 @@ class Room {...};
 class Furniture {...};
 
 #==============================================================
-sub write-drawings($fbase, # file name base, no suffix
-                   @rooms,
+sub write-drawings(@rooms,
                    @ofils,
                    :$debug,
-                   :$ofilD, # basename
                   ) is export {
+
+    my $fbase = $ofilD; # file name base, no suffix
 
     my $psf = $fbase ~ '.ps';
     my $pdf = $fbase ~ '.pdf';
@@ -35,118 +43,11 @@ sub write-drawings($fbase, # file name base, no suffix
 
     # setup any prolog such as my
     # procs: box, circle, puttext, clip, fonts
-    $ps.add_procset: "MyFunctions", q:to/HERE/;
-    %% my procs
-    % local definitions:
-    /Times-Roman 8 selectfont
-    2 setlinewidth % we'll clip the drawings so we just see the inside half
-    /bd{bind def} bind def
-    /a{add}bd
-    /cl{currentlinewidth}bd
-    /cpt{currentpoint}bd
-    /cp{closepath}bd
-    /dv{div}bd
-    /d{def}bd
-    /ex{exch}bd
-    /gr{grestore}bd
-    /gs{gsave}bd
-    /lto{lineto}bd
-    /mt{moveto}bd
-    /m{mul}bd
-    /n{neg}bd
-    /np{newpath}bd
-    /rl{rlineto}bd
-    /rm{rmoveto}bd
-    /rot{rotate}bd
-    /sg{setgray}bd
-    /sh{show}bd
-    /sl{setlinewidth}bd
-    /st{stroke}bd
-    /s{sub}bd
-    /tr{translate}bd
-    /i2p{72 m}bd % convert inches to points
-    /puttextdict 50 dict def
-    /puttext { % Stack: string location_code
-               % (position to place--relative to the current point [cp],
-               %   an integer: 0-11);
-               % note: must have defined a current and correct font
-      puttextdict begin
-      /code ex d
-      /stname ex d
-      gs
-      cpt tr np
-      0 0 mt stname false charpath flattenpath pathbbox
-      /ury ex d
-      /urx ex d
-      /lly ex d
-      /llx ex d
-      /mx urx llx a .5 m d
-      /my ury lly a .5 m d
-
-      0 code eq {/ox 0 mx  s d /oy 0 my  s d} if %               center of text bbox positioned at the cp
-      1 code eq {/ox 0 llx s d /oy 0 my  s d} if %  center of left edge of text bbox positioned at the cp
-      2 code eq {/ox 0 llx s d /oy 0 lly s d} if %    lower left corner of text bbox positioned at the cp
-      3 code eq {/ox 0 mx  s d /oy 0 lly s d} if % center of lower edge of text bbox positioned at the cp
-      4 code eq {/ox 0 urx s d /oy 0 lly s d} if %   lower right corner of text bbox positioned at the cp
-      5 code eq {/ox 0 urx s d /oy 0 my  s d} if % center of right edge of text bbox positioned at the cp
-      6 code eq {/ox 0 urx s d /oy 0 ury s d} if %   upper right corner of text bbox positioned at the cp
-      7 code eq {/ox 0 mx  s d /oy 0 ury s d} if % center of upper edge of text bbox positioned at the cp
-      8 code eq {/ox 0 llx s d /oy 0 ury s d} if %    upper left corner of text bbox positioned at the cp
-      9 code eq {/ox 0 llx s d /oy 0       d} if % on base line (y of cp), left-justified on cp
-     10 code eq {/ox 0 mx  s d /oy 0       d} if % on base line (y of cp), centered horizontally
-     11 code eq {/ox 0 urx s d /oy 0       d} if % on base line (y of cp), right-justified on cp
-      % use an easier to remember code instead of 9, 10, 11
-    /blj 9 def /bc 10 def /brj 11 def
-    blj code eq {/ox 0 llx s d /oy 0       d} if % on base line (y of cp), left-justified on
-     bc code eq {/ox 0 mx  s d /oy 0       d} if % on base line (y of cp), centered horizontally
-    brj code eq {/ox 0 urx s d /oy 0       d} if % on base line (y of cp), right-justified on cp
-
-      ox oy tr
-
-      gs
-      0 sg
-      np 0 0 mt stname sh
-      gr
-
-      gr
-      end % required to pop the dict
-    }bd % puttext
-    % circle
-    /circledict 50 dict def
-    /circle { % Stack: cx cy rad
-      circledict begin
-      /rad ex d
-      /cy ex d
-      /cx ex d
-      gs
-      np cx cy rad 0 360 arc clip st
-      gr
-      end % required to pop the dict
-    }bd % circle
-    % box
-    /boxdict 50 dict def
-    /box { % Stack: ulx uly width height
-      boxdict begin
-      /height ex d
-      /width ex d
-      /uly ex d
-      /ulx ex d
-      gs
-      np ulx uly mt
-      0 height neg rlineto
-      width 0 rlineto
-      0 height rlineto
-      closepath clip st
-      gr
-      end % required to pop the dict
-    }bd % box
-
-    % various font defs
-    HERE
+    $ps.add_procset: "MyFunctions", $procset;
 
     # page constants
     # page margins
-    my $marg = 0.4; # inches
+    my $marg    =  0.4; # inches
     my $space   =  0.2 * 72; # vert and horiz space between figures
     my $xleft   =  $marg * 72;
     my $xright  =  (8.5 - $marg) * 72;
@@ -222,25 +123,133 @@ sub write-drawings($fbase, # file name base, no suffix
 
     die "FATAL: File $pdf not found" if !$pdf.IO.f;
     @ofils.append: $pdf;
-    unlink $psf unless 1 or $debug;
+    unlink $psf unless  $debug;
 
-} # end sub write-diags
+} # end sub write-drawings
 
-sub write-list($fbase, # file name base, no suffix
-               @rooms,
+sub text-to-pdf($txtfil,
+                @ofils,
+                :$debug
+               ) is export {
+
+    my $fbase = $ofilL; # file name base, no suffix
+    my $psf = $fbase ~ '.ps';
+    my $pdf = $fbase ~ '.pdf';
+
+    # write the ps file
+    # start a doc, add options here
+    #   enable clipping
+    my $ps = PostScript::File.new: :paper<Letter>,
+               :clipping(1), :clip_command<stroke>,
+               :landscape(0), :file($psf) :file_ext("");
+
+    # setup any prolog such as my
+    # procs: box, circle, puttext, clip, fonts
+    $ps.add_procset: "MyFunctions", $procset;
+
+    # page constants
+    # page margins
+    my $marg    =  0.4; # inches
+    my $space   =  0.2 * 72; # vert and horiz space between figures
+    my $xleft   =  $marg * 72;
+    my $xright  =  (8.5 - $marg) * 72;
+    my $ytop    =  (11 - $marg) * 72;
+    my $ybottom =  $marg * 72;
+
+    # font variables
+    my $font   = 'Times-Roman';
+    my $fsize  = 12;
+    my $lspace = $fsize * 1.4; # baseline to baseline distance
+    my $ytopbaseline = $ytop - $lspace;
+
+    # page variables
+    my ($x, $y);
+
+    # start a page
+    sub reset-page-vars {
+        # resets to upper left of the page
+        $x = $xleft;
+        $y = $ytopbaseline;
+    }
+    # start a row
+    sub reset-row-var {
+        # resets to left of the page
+        $x = $xleft;
+    }
+    sub check-bottom($y --> Bool) {
+        # given a text row and its instance and its y start
+        # point, can it fit on # the current row?
+        my $ybot = $y - $lspacemax-height;
+        return $ybot >= $ybottom;
+    }
+
+    # step through all rows of text
+    # keep track of:
+    #   last baseline
+    reset-page-vars;
+    for $psf.IO.lines -> $line {
+        reset-row-var;
+        if !check-bottom($y) {
+            # need a new page
+            reset-page-vars;
+            $ps.newpage;
+        }
+        # write the line
+        #$ps.
+    }
+
+    # produce the pdf
+    die "FATAL: File $ps not found" if !$ps.IO.f;
+    $cmd  = "ps2pdf";
+    $args = "$ps $pdf";
+    run $cmd, $args.words;
+
+    die "FATAL: File $pdf not found" if !$pdf.IO.f;
+    @ofils.append: $pdf;
+    unlink $txt unless $debug;
+    unlink $ps unless $debug;
+
+}
+
+sub write-list(@rooms,
                @ofils,
                :$debug
-               ) is export {
+              ) is export {
+
+    my $fbase = $ofilL; # file name base, no suffix
 
     # write the raw text file
     my $nitems = 0;
     my $txt = $fbase ~ '.txt';
     my $fh = open $txt, :w;
+
+    # title, etc.
+    if $ftitle {
+        $fh.say: "Title: $ftitle";
+    }
+    if $author {
+        $fh.say: "Author: $author";
+    }
+    if $date {
+        $fh.say: "Date: $date";
+    }
+    if $address {
+        $fh.say: "Address:  $address";
+    }
+    if $address2 {
+        $fh.say: "Address2: $address2";
+    }
+    if $address3 {
+        $fh.say: "Address3: $address3";
+    }
+
     for @rooms -> $r {
+        =begin comment
         if $r.number == 8 {
-            # kludge to get  rom name on second page
+            # kludge to get room name on second page
             $fh.say: "";
         }
+        =end comment
         $fh.say: "  Room {$r.number}: {$r.title}";
         for $r.furniture -> $f {
             ++$nitems; # cumulative number
@@ -251,6 +260,12 @@ sub write-list($fbase, # file name base, no suffix
     $fh.say: "\nTotal number items: $nitems";
     $fh.close;
 
+    # we now have a text file to convert to ps and then pdf
+    text-to-pdf $txt, @ofils, :$debug;
+
+
+    return;
+    # the original way:
     my $ps  = $fbase ~ '.ps';
     my $pdf = $fbase ~ '.pdf';
 
@@ -279,16 +294,19 @@ sub read-data-file($ifil, @rooms, :$debug) is export {
     my $rnum = 0;
     my $lnum = 0;
     my $fnum = 0;
+
     LINE: for $ifil.IO.lines -> $line is copy {
+        say "DEBUG line: '$line'" if $debug;
         $line = strip-comment $line;
         next LINE if $line !~~ /\S/;
-        next LINE if $line ~~ /^'='+$/;
-        say "DEBUG line: '$line'" if 0 && $debug;
+        next LINE if $line ~~ /^ \s* '='+ \s* $/;
+        say "DEBUG2 line: '$line'" if $debug;
 
-        if $line ~~ /^ \s* 'room:' (.*) $/ {
+        if $line ~~ /^ \s* 'room:' \s* (.*) \s* $/ {
             # a new room
             ++$rnum;
-            $curr-room = Room.new: :number($rnum), :title(normalize-string(~$0));
+            my $title = normalize-string ~$0;
+            $curr-room = Room.new: :number($rnum), :$title;
             @rooms.append: $curr-room;
 
             # reset furniture numbering
@@ -297,33 +315,30 @@ sub read-data-file($ifil, @rooms, :$debug) is export {
             next LINE;
         }
 
-        # not yet implemented
-        if $line ~~ /^ \s* 'title:' (.*) $/ {
-            my $title = normalize-string ~$0;
+        if $line ~~ /^ \s* 'title:' \s* (.*) \s* $/ {
+            $ftitle = normalize-string ~$0;
             next LINE;
         }
-        if $line ~~ /^ \s* 'date:' (.*) $/ {
-            my $date = normalize-string ~$0;
+        if $line ~~ /^ \s* 'date:' \s* (.*) $/ {
+            $date = normalize-string ~$0;
             next LINE;
         }
         if $line ~~ /^ \s* 'author:' (.*) $/ {
-            my $author = normalize-string ~$0;
+            $author = normalize-string ~$0;
             next LINE;
         }
         if $line ~~ /^ \s* 'address:' (.*) $/ {
-            my $address = normalize-string ~$0;
+            $address = normalize-string ~$0;
             next LINE;
         }
         if $line ~~ /^ \s* 'address2:' (.*) $/ {
-            my $address2 = normalize-string ~$0;
+            $address2 = normalize-string ~$0;
             next LINE;
         }
         if $line ~~ /^ \s* 'address3:' (.*) $/ {
-            my $address3 = normalize-string ~$0;
+            $address3 = normalize-string ~$0;
             next LINE;
         }
-        # END not yet implemented
-
         if $line ~~ /^ \s* 'scale:' \s* (\S*) \s* $/ {
             $in-per-ft = ~$0;
             next LINE;
@@ -337,7 +352,14 @@ sub read-data-file($ifil, @rooms, :$debug) is export {
             next LINE;
         }
 
-        # it must be a piece of furniture
+        # it must be a piece of furniture (or a form feed!)
+        if $line ~~ /^ \s* '<ff>' \s* $/ {
+            my $furn = Furniture.new: :title<ff>;
+            # handle the furniture
+            $curr-room.furniture.append: $furn;
+            next LINE;
+        }
+
         ++$fnum;
         # its display number will be: {$rnum}.{$fnum}
         my $furn = Furniture.new: :scale($in-per-ft), :number("{$rnum}.{$fnum}");
@@ -377,9 +399,9 @@ sub read-data-file($ifil, @rooms, :$debug) is export {
             say "FATAL on line $lnum: '$line'";
             die "  Unknown format";
         }
+
         # INIT FURNITURE - CRITICAL
         $furn.init; # CRITICAL!!
-
         # handle the furniture
         $curr-room.furniture.append: $furn;
     }
