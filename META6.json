@@ -2,7 +2,7 @@
     "perl"        : "6.*",
     "name"        : "Draw2D::Furniture",
     "version"     : "1.0.0",
-    "description" : "Provides number base transform functions",
+    "description" : "Provides custom, scaled furniture outlines for home and office planning",
     "auth"        : "github:tbrowder",
     "author"      : "github:tbrowder",
     "authors"     : [ "Tom Browder <tom.browder@gmail.com>" ],
