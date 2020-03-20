@@ -55,11 +55,8 @@ class Furniture is export {
     # a 1 foot desk = 12 inches
     # 12 inches scales to 0.25 inches on paper: 1/48
     # 1 inch = 72 points
-    # 0.25 inches = 16 points
     # so what do we multiply model inches by to get it correct on paper?
     # scale = 48/72
-    #my $scale = 48/72; # <== 48 / 72 <== 12 / 0.25 / 72 # where 0.25 = $in-per-ft
-    #my $scale = 12 / $in-per-ft / 72; # where 0.25 = $in-per-ft
     method ps-draw($ps, :$ulx, :$uly) {
         my $cx = $ulx + 0.5 * $.w;
         my $cy = $uly - 0.5 * $.h;

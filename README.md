@@ -48,7 +48,7 @@ See output files:
 You can run `make doc2` to run the program with the debug flags on if
 you wish.
 
-In either case, run `make clean` to remove the creaated files.
+In either case, run `make clean` to remove the created files.
 
 ## Contributing
 

@@ -408,6 +408,7 @@ sub read-data-file($ifil, @rooms, :$debug) is export {
 
         # it must be a piece of furniture (or a form feed!)
         if $line ~~ /^:i \s* '<ff>' \s* $/ {
+            # a form feed
             my $furn = Furniture.new: :title('<ff>');
             # handle the furniture
             $curr-room.furniture.append: $furn;
