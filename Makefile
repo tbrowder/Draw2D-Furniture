@@ -7,7 +7,7 @@ DEBUG := MyMODULE_DEBUG=0
 # set below to 0 for no effect, 1 to die on first failure
 EARLYFAIL := PERL6_TEST_DIE_ON_FAIL=0
 
-.PHONY: test bad good
+.PHONY: test bad good clean
 
 default: test
 
@@ -33,3 +33,9 @@ good:
 
 doc:
 	PERL6LIB=$(LIBPATH) $(RAKU) -Ilib bin/draw2d-output t/data/furniture-input.txt
+
+doc2:
+	PERL6LIB=$(LIBPATH) $(RAKU) -Ilib bin/draw2d-output t/data/furniture-input.txt debug
+
+clean:
+	@rm furniture-drawings.pdf  furniture-list.pdf furniture-list.txt furniture-list.ps

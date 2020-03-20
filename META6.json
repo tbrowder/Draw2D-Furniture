@@ -12,9 +12,10 @@
         "bugtracker" : "https://github.com/tbrowder/Draw2D-Furniture-Raku/issues"
     },
     "provides"    : {
-        "Draw2D::Furniture" : "lib/Draw2D/Furniture.rakumod",
-        "Draw2D::Vars"      : "lib/Draw2D/Vars.rakumod",
-        "draw2d-output"     : "bin/draw2d-output"
+        "Draw2D::Furniture"          : "lib/Draw2D/Furniture.rakumod",
+        "Draw2D::Furniture::Classes" : "lib/Draw2D/Furniture/Classes.rakumod",
+        "Draw2D::Furniture::Vars"    : "lib/Draw2D/Furniture/Vars.rakumod",
+        "draw2d-output"              : "bin/draw2d-output"
     },
     "test-depends" : [
 	"Test::META"

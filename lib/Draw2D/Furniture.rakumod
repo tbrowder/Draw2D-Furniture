@@ -3,7 +3,8 @@ unit module Draw2D::Furniture;
 use PostScript::File:from<Perl5>;
 use Text::Utils :strip-comment, :normalize-string;
 
-use Draw2D::Vars;
+use Draw2D::Furniture::Vars;
+use Draw2D::Furniture::Classes;
 
 # default values settable in the input data file
 # or in the drives program
@@ -19,12 +20,9 @@ my $address  = '';
 my $address2 = '';
 my $address3 = '';
 
-# forward decls
-class Row {...};
-class Room {...};
-class Furniture {...};
-
 #==============================================================
+#| Data from the input data file are used to create scaled
+#| drawings of the furniture items.
 sub write-drawings(@rooms,
                    @ofils,
                    :$debug,
@@ -136,6 +134,8 @@ sub write-drawings(@rooms,
 
 } # end sub write-drawings
 
+#| A function to convert a text file into PostScript and that PS file
+#| to PDF.
 sub text-to-pdf($txtfil,
                 @ofils,
                 :$debug
@@ -264,7 +264,7 @@ sub text-to-pdf($txtfil,
         HERE
     }
 
-    # close and ouput the file
+    # close and output the file
     $ps.output;
 
     # produce the pdf
@@ -275,11 +275,17 @@ sub text-to-pdf($txtfil,
 
     die "FATAL: File $pdf not found" if !$pdf.IO.f;
     @ofils.append: $pdf;
-    unlink $txtfil unless 1 or $debug;
-    unlink $psf unless 1 or $debug;
+    unlink $txtfil unless $debug;
+    unlink $psf unless $debug;
 
 } # end sub text-to-pdf
 
+#| Given a list of Room objects (with their Furniture object
+#| children), create a text file of all items including a unique
+#| reference number for each.
+#|
+#| This sub then calls another sub to convert the text file to
+#| PostScript and that PS file to PDF.
 sub write-list(@rooms,
                @ofils,
                :$debug
@@ -314,12 +320,6 @@ sub write-list(@rooms,
     $fh.say: "";
 
     for @rooms -> $r {
-        =begin comment
-        if $r.number == 8 {
-            # kludge to get room name on second page
-            $fh.say: "";
-        }
-        =end comment
         $fh.say: "  Room {$r.number}: {$r.title}";
         for $r.furniture -> $f {
             my $s = $f.title;
@@ -338,32 +338,11 @@ sub write-list(@rooms,
     # we now have a text file to convert to ps and then pdf
     text-to-pdf $txtfil, @ofils, :$debug;
 
-
-    return;
-    # the original way:
-    my $ps  = $fbase ~ '.ps';
-    my $pdf = $fbase ~ '.pdf';
-
-    my ($cmd, $args);
-    $cmd  = "a2ps";
-    $args = "--portrait --columns=1 -o $ps $txtfil";
-    # note a2ps always writes to stderr even with no problems
-    # turn stderr on if problems are noted in the output
-    run $cmd, $args.words, :err;
-
-    # produce the pdf
-    die "FATAL: File $ps not found" if !$ps.IO.f;
-    $cmd  = "ps2pdf";
-    $args = "$ps $pdf";
-    run $cmd, $args.words;
-
-    die "FATAL: File $pdf not found" if !$pdf.IO.f;
-    @ofils.append: $pdf;
-    unlink $txtfil unless $debug;
-    unlink $ps unless $debug;
-
 } # end sub write-list
 
+#| Given a specially formatted text file, read the file and convert
+#| the data into a list of Room objects and their Furniture object
+#| children.
 sub read-data-file($ifil, @rooms, :$debug) is export {
     my $curr-room = 0;
     my $rnum = 0;
@@ -483,97 +462,10 @@ sub read-data-file($ifil, @rooms, :$debug) is export {
 
 } # end sub read-data-file
 
-class Row {
-    has $.max-height is rw = 0; # PS points
-    has @.furniture is rw;
-}
-
-class Room {
-    has $.number    is rw ;
-    has $.title     is rw = "";
-    has @.furniture is rw ;
-}
-
-class Furniture {
-    has $.number    is rw;
-    has $.title     is rw = "";
-    # input dimensions are inches
-    has $.width     is rw = 0;
-    has $.length    is rw = 0;
-    has $.diameter  is rw = 0;
-    has $.radius    is rw = 0;
-    has $.dims      is rw = ''; # for printing
-    has $.dims2     is rw = ''; # for printing
-    # input scale is in page inches per real foot
-    has $.scale; # must be input when created
-    # internal bbox values in properly-scaled PS points
-    has $.w is rw;
-    has $.h is rw;
-    has $.sf is rw; # scale factor
-
-    method init() {
-        # must have required inputs
-        die "FATAL: incomplete inputs" if !($.width || $.radius);
-        $.sf = 72 / (12 / $.scale);
-        if $.radius {
-            # apply scale
-            $.w = $.radius * 2 * $.sf;
-            $.h = $.w;
-        }
-        else {
-            # apply scale
-            $.h = $.width * $.sf;
-            $.w = $.length * $.sf;
-        }
-    }
-
-    # A method to draw itself in raw PS
-    # using a $ps instance of a Perl
-    # PostScript::File object
-    # given the llx and lly corner of its
-    # bounding box in real page coords
-    # and orientation:
-    # adjust the scale to 1/4" per foot, then 72 pts per page inch
-
-    # a 1 foot desk = 12 inches
-    # 12 inches scales to 0.25 inches on paper: 1/48
-    # 1 inch = 72 points
-    # 0.25 inches = 16 points
-    # so what do we multiply model inches by to get it correct on paper?
-    # scale = 48/72
-    #my $scale = 48/72; # <== 48 / 72 <== 12 / 0.25 / 72 # where 0.25 = $in-per-ft
-    #my $scale = 12 / $in-per-ft / 72; # where 0.25 = $in-per-ft
-    method ps-draw($ps, :$ulx, :$uly) {
-        my $cx = $ulx + 0.5 * $.w;
-        my $cy = $uly - 0.5 * $.h;
-        my $d = 2;
-        # put number $d pt above center
-        # put dimen rep $d pt below center
-        my $s = qq:to/HERE/;
-        /Times-Bold 9 selectfont
-        $cx $cy $d add mt ({$.number}) 3 puttext
-        /Times-Roman 7 selectfont
-        $cx $cy $d sub mt ({$.dims2}) 7 puttext
-        HERE
-        if $.width {
-            $s ~= qq:to/HERE/;
-            $ulx $uly {$.w} {$.h} box
-            HERE
-        }
-        elsif $.radius {
-            # note that an original furniture piece entry may
-            # have specified a diameter but a radius was also
-            # calculated and entered.
-
-            # draw a circle centered on the bounding box
-            $s ~= qq:to/HERE/;
-            $cx $cy {$.w * 0.5} circle
-            HERE
-        }
-        $ps.add_to_page: $s;
-    }
-}
-
+#| Given an empty list of rows, a list of Room objects with their
+#| Furniture object children, and the maximum width of the page to be
+#| written upon, create a list of Row objects containing Furniture
+#| objects to be written as scaled drawings on the output PDF file.
 sub make-rows(@rows,   # should be empty
               @rooms,  # all rooms with their furniture
               $maxwid, # distance between left/right page margins
@@ -619,9 +511,12 @@ sub make-rows(@rows,   # should be empty
     }
 } # end sub make-rows
 
+#| A utility function to convert input inches into a string
+#| representation (e.g., <<7'2>>) with the feet followed by a single
+#| quote followed by the inches with an implied double quote following
+#| it.
 sub in2ft($In) {
-    # given inches, convert to a string representation like
-    #   7'2
+    # given inches, convert to a
     my $ft = $In div 12;
     my $in = $In mod 12;
     return "{$ft}'{$in}";

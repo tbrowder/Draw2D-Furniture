@@ -1,4 +1,4 @@
-unit module Draw2D::Vars;
+unit module Draw2D::Furniture::Vars;
 
 #  procset 'MyFunctions':
 constant $procset is export = q:to/HERE/;

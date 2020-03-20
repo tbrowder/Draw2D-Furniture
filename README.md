@@ -12,7 +12,6 @@ available:
 
 1. Perl module `PostScript::File`
 2. program `ps2pdf`
-3. program `a2ps`
 
 ## Process
 
@@ -29,15 +28,32 @@ to produce two pdf files, each of one or more pages:
        furniture item suitible for cutting out and placing on a
        blueprint to plan furniture arrangements
 
-Note the output file names can be specified in the input data file.
+Note the default output file names can be specified in the input data file.
 
 See the example input file in the test directory (`t/data/furniture-input.txt`).
 
+Run the `Makefile` in your clone of this repository to create output
+files from the example input file:
+
+
+``` Raku
+$ make doc
+PERL6LIB=lib raku -Ilib bin/draw2d-output t/data/furniture-input.txt
+Normal end.
+See output files:
+  furniture-list.pdf
+  furniture-drawings.pdf
+```
+
+You can run `make doc2` to run the program with the debug flags on if
+you wish.
+
+In either case, run `make clean` to remove the creaated files.
 
 ## Contributing
 
 Interested users are encouraged to contribute improvements and
-corrections to this module, and pull requests, bug reports, and
+corrections to this module.  Pull requests (PRs), bug reports, and
 suggestions are always welcome.
 
 ## LICENSE and COPYRIGHT
