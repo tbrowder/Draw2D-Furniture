@@ -38,4 +38,4 @@ doc2:
 	PERL6LIB=$(LIBPATH) $(RAKU) -Ilib bin/draw2d-output t/data/furniture-input.txt debug
 
 clean:
-	@rm furniture-drawings.pdf  furniture-list.pdf furniture-list.txt furniture-list.ps
+	@rm furniture-drawings.* furniture-list.*
