@@ -162,6 +162,8 @@ sub text-to-pdf($txtfil,
     my $lspace = $fsize * 1.4; # baseline to baseline distance
     my $ytopbaseline = $ytop - $lspace;
 
+    $ps.add_to_page: "/$font $fsize selectfont\n";
+
     # page variables
     my ($x, $y);
 
@@ -187,15 +189,32 @@ sub text-to-pdf($txtfil,
     # keep track of:
     #   last baseline
     reset-page-vars;
+    $ps.add_to_page: "/$font $fsize selectfont\n";
     for $txtfil.IO.lines -> $line {
+        my $ff = $line ~~ /:i ff / ?? 1 !! 0;
+        # some analysis here:
+        #   if $line contains 'ff' make a new page
+        # otherwise, we need to translate leading space
+        #   chars to an x indent space
         reset-row-var;
-        if !check-bottom($y) {
+        if $ff || !check-bottom($y) {
             # need a new page
             reset-page-vars;
             $ps.newpage;
+            $ps.add_to_page: "/$font $fsize selectfont\n";
         }
+        next if $ff;
         # write the line
-        $ps.pstr: $line;
+        if $line ~~ /^ (\s*) (.*) $/ {
+            my $spaces = ~$0;
+            my $text   = ~$1;
+            my $xx = $spaces.chars * $fsize;
+            $ps.add_to_page: "{$x + $xx} $y mt ($text) 9 puttext\n";
+        }
+        else {
+            $ps.add_to_page: "$x $y mt ($line) 9 puttext\n";
+        }
+        $y -= $lspace;
     }
     # close and ouput the file
     $ps.output;
@@ -255,6 +274,11 @@ sub write-list(@rooms,
         =end comment
         $fh.say: "  Room {$r.number}: {$r.title}";
         for $r.furniture -> $f {
+            my $s = $f.title;
+            if $s ~~ /:i ff / {
+                $fh.say: "      <ff>";
+                next;
+            }
             ++$nitems; # cumulative number
             my $num = "{$f.number}";
             $fh.say: "      $num {$f.title} [{$f.dims}]";
@@ -356,7 +380,7 @@ sub read-data-file($ifil, @rooms, :$debug) is export {
         }
 
         # it must be a piece of furniture (or a form feed!)
-        if $line ~~ /^ \s* '<ff>' \s* $/ {
+        if $line ~~ /^:i \s* '<ff>' \s* $/ {
             my $furn = Furniture.new: :title<ff>;
             # handle the furniture
             $curr-room.furniture.append: $furn;
@@ -527,6 +551,8 @@ sub make-rows(@rows,   # should be empty
     reset-row-var;
     for @rooms -> $r {
         for $r.furniture -> $f {
+            my $title = $f.title;
+            next if $title ~~ /'<ff>'/;
             $x += $space if $row.furniture.elems;
             if !check-right($f, $x) {
                 # need a new row

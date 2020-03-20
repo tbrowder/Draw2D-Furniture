@@ -58,14 +58,10 @@ constant $procset is export = q:to/HERE/;
       6 code eq {/ox 0 urx s d /oy 0 ury s d} if %   upper right corner of text bbox positioned at the cp
       7 code eq {/ox 0 mx  s d /oy 0 ury s d} if % center of upper edge of text bbox positioned at the cp
       8 code eq {/ox 0 llx s d /oy 0 ury s d} if %    upper left corner of text bbox positioned at the cp
+     % position relative to the baseline
       9 code eq {/ox 0 llx s d /oy 0       d} if % on base line (y of cp), left-justified on cp
      10 code eq {/ox 0 mx  s d /oy 0       d} if % on base line (y of cp), centered horizontally
      11 code eq {/ox 0 urx s d /oy 0       d} if % on base line (y of cp), right-justified on cp
-      % use an easier to remember code instead of 9, 10, 11
-    /blj 9 def /bc 10 def /brj 11 def
-    blj code eq {/ox 0 llx s d /oy 0       d} if % on base line (y of cp), left-justified on
-     bc code eq {/ox 0 mx  s d /oy 0       d} if % on base line (y of cp), centered horizontally
-    brj code eq {/ox 0 urx s d /oy 0       d} if % on base line (y of cp), right-justified on cp
 
       ox oy tr
 

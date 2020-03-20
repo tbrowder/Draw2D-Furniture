@@ -101,6 +101,7 @@ chest of drawers		19 x 43
 old chair			16 x 18
 old chair			17 x 20
 
+<ff>
 room: Landing
 =======
 
