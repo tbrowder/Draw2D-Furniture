@@ -15,8 +15,11 @@ address: 113 Canterbury Circle
 #   X d   # diameter
 #   X r   # radius
 
-# note that a line consisting of only equal signs is ignored
-# a line with only <ff> results in a form feed 
+# Notes:
+#
+#   1. The dimensional data must be the last items on a data line
+#   2. A line consisting of only equal signs ('===') is ignored
+#   3. A line with only '<ff>' (or '<FF>') results in a form feed
 
 room: Master bedroom
 ==============
@@ -28,6 +31,7 @@ chest (end of bed)		16 x 34
 queen bed			65 x 86
 bedside table			25 d      # (diameter)
 lounge chair			21 x 49
+
 
 room: Foyer
 =====
@@ -60,6 +64,8 @@ small drop-leaf table (closed)	18 x 35
 small drop-leaf table (open)    40 x 35
 
 pine table			31 x 60
+
+<FF>
 
 room: Dining room
 ===========
@@ -101,7 +107,6 @@ chest of drawers		19 x 43
 old chair			16 x 18
 old chair			17 x 20
 
-<ff>
 room: Landing
 =======
 

@@ -37,9 +37,18 @@ sub write-drawings(@rooms,
 
     # start a doc, add options here
     #   enable clipping
-    my $ps = PostScript::File.new: :paper<Letter>,
-               :clipping(1), :clip_command<stroke>,
-               :landscape(0), :file($psf) :file_ext("");
+    my $ps = PostScript::File.new:
+               :paper<Letter>,
+               :clipping(1),
+               :clip_command<stroke>,
+               :landscape(0),
+               :file($psf),
+               :file_ext("");
+
+    if $debug {
+        my ($llx, $lly, $urx, $ury) = $ps.get_bounding_box;
+        note "DEBUG drawing page bbox: $llx, $lly    $urx, $ury";
+    }
 
     # setup any prolog such as my
     # procs: box, circle, puttext, clip, fonts
@@ -138,10 +147,27 @@ sub text-to-pdf($txtfil,
 
     # write the ps file
     # start a doc, add options here
-    #   enable clipping
-    my $ps = PostScript::File.new: :paper<Letter>,
-               :clipping(1), :clip_command<stroke>,
-               :landscape(0), :file($psf) :file_ext("");
+    #   enable clipping but no border
+    my $pw = 8.5 * 72;
+    my $ph = 11 * 72;
+    my $b  = 0; #70; # border
+    my $ps = PostScript::File.new:
+               :width($pw),
+               :height($ph),
+               :bottom($b),
+               :top($b),
+               :left($b),
+               :right($b),
+               :clipping(1),
+               :clip_command(''), # or 'stroke' to show the page boundaries
+               :landscape(0),
+               :file($psf),
+               :file_ext("");
+
+    if $debug {
+        my ($llx, $lly, $urx, $ury) = $ps.get_bounding_box;
+        note "DEBUG listing page bbox: $llx, $lly    $urx, $ury";
+    }
 
     # setup any prolog such as my
     # procs: box, circle, puttext, clip, fonts
@@ -149,17 +175,16 @@ sub text-to-pdf($txtfil,
 
     # page constants
     # page margins
-    my $marg    =  0.4; # inches
-    my $space   =  0.2 * 72; # vert and horiz space between figures
+    my $marg    =  1.0; # inches
     my $xleft   =  $marg * 72;
     my $xright  =  (8.5 - $marg) * 72;
     my $ytop    =  (11 - $marg) * 72;
-    my $ybottom =  $marg * 72;
+    my $ybottom =  $marg * 72 + 20; # allow 25 points for a page number
 
     # font variables
     my $font   = 'Times-Roman';
     my $fsize  = 12;
-    my $lspace = $fsize * 1.4; # baseline to baseline distance
+    my $lspace = $fsize * 1.3; # baseline to baseline distance
     my $ytopbaseline = $ytop - $lspace;
 
     $ps.add_to_page: "/$font $fsize selectfont\n";
@@ -167,22 +192,26 @@ sub text-to-pdf($txtfil,
     # page variables
     my ($x, $y);
 
+    my $npages = 0;
     # start a page
     sub reset-page-vars {
         # resets to upper left of the page
         $x = $xleft;
         $y = $ytopbaseline;
+        ++$npages;
     }
     # start a row
     sub reset-row-var {
         # resets to left of the page
         $x = $xleft;
     }
-    sub check-bottom($y --> Bool) {
-        # given a text row and its instance and its y start
-        # point, can it fit on # the current row?
-        my $ybot = $y - $lspace;
-        return $ybot >= $ybottom;
+    sub check-bottom($yy --> Bool) {
+        # given a text row and its y start
+        # point, can it fit on the current page?
+        my $ybot = $yy - $lspace;
+        my $res = $ybot >= $ybottom;
+        note "DEBUG check-bottom: y = $yy; ybot = $ybot; ybottom = $ybottom; res = $res" if $debug;
+        return $res;
     }
 
     # step through all rows of text
@@ -191,21 +220,27 @@ sub text-to-pdf($txtfil,
     reset-page-vars;
     $ps.add_to_page: "/$font $fsize selectfont\n";
     for $txtfil.IO.lines -> $line {
-        my $ff = $line ~~ /:i ff / ?? 1 !! 0;
+        my $ff = $line ~~ /:i '<ff>' / ?? 1 !! 0;
+        note "DEBUG: ff = $ff" if $debug;
         # some analysis here:
-        #   if $line contains 'ff' make a new page
+        #   if $line contains '<ff>' make a new page
         # otherwise, we need to translate leading space
         #   chars to an x indent space
         reset-row-var;
-        if $ff || !check-bottom($y) {
+        my $res = check-bottom($y);
+        if $ff || !$res {
             # need a new page
             reset-page-vars;
             $ps.newpage;
             $ps.add_to_page: "/$font $fsize selectfont\n";
         }
         next if $ff;
-        # write the line
-        if $line ~~ /^ (\s*) (.*) $/ {
+
+        # write the line or skip a line space for a blank line
+        if $line !~~ /\S/ {
+            ; # no entry but vspace
+        }
+        elsif $line ~~ /^ (\s+) (.*) $/ {
             my $spaces = ~$0;
             my $text   = ~$1;
             my $xx = $spaces.chars * $fsize;
@@ -215,7 +250,20 @@ sub text-to-pdf($txtfil,
             $ps.add_to_page: "$x $y mt ($line) 9 puttext\n";
         }
         $y -= $lspace;
+        note "DEBUG: y = $y" if $debug;
     }
+
+    note "DEBUG: num pages: $npages" if $debug;
+    # go back and add page numbers:
+    #   Page x of n
+
+    for 1..$npages -> $page {
+        my $s = "Page $page of $npages";
+        $ps.add_to_page: $page, qq:to/HERE/;
+        /Times-Roman 10 selectfont $xright $ybottom 25 sub mt ($s) 11 puttext
+        HERE
+    }
+
     # close and ouput the file
     $ps.output;
 
@@ -241,8 +289,8 @@ sub write-list(@rooms,
 
     # write the raw text file
     my $nitems = 0;
-    my $txt = $fbase ~ '.txt';
-    my $fh = open $txt, :w;
+    my $txtfil = $fbase ~ '.txt';
+    my $fh = open $txtfil, :w;
 
     # title, etc.
     if $ftitle {
@@ -275,7 +323,7 @@ sub write-list(@rooms,
         $fh.say: "  Room {$r.number}: {$r.title}";
         for $r.furniture -> $f {
             my $s = $f.title;
-            if $s ~~ /:i ff / {
+            if $s ~~ /:i '<ff>' / {
                 $fh.say: "      <ff>";
                 next;
             }
@@ -288,7 +336,7 @@ sub write-list(@rooms,
     $fh.close;
 
     # we now have a text file to convert to ps and then pdf
-    text-to-pdf $txt, @ofils, :$debug;
+    text-to-pdf $txtfil, @ofils, :$debug;
 
 
     return;
@@ -298,7 +346,7 @@ sub write-list(@rooms,
 
     my ($cmd, $args);
     $cmd  = "a2ps";
-    $args = "--portrait --columns=1 -o $ps $txt";
+    $args = "--portrait --columns=1 -o $ps $txtfil";
     # note a2ps always writes to stderr even with no problems
     # turn stderr on if problems are noted in the output
     run $cmd, $args.words, :err;
@@ -311,7 +359,7 @@ sub write-list(@rooms,
 
     die "FATAL: File $pdf not found" if !$pdf.IO.f;
     @ofils.append: $pdf;
-    unlink $txt unless $debug;
+    unlink $txtfil unless $debug;
     unlink $ps unless $debug;
 
 } # end sub write-list
@@ -381,7 +429,7 @@ sub read-data-file($ifil, @rooms, :$debug) is export {
 
         # it must be a piece of furniture (or a form feed!)
         if $line ~~ /^:i \s* '<ff>' \s* $/ {
-            my $furn = Furniture.new: :title<ff>;
+            my $furn = Furniture.new: :title('<ff>');
             # handle the furniture
             $curr-room.furniture.append: $furn;
             next LINE;
@@ -529,7 +577,8 @@ class Furniture {
 sub make-rows(@rows,   # should be empty
               @rooms,  # all rooms with their furniture
               $maxwid, # distance between left/right page margins
-              $space) {
+              $space,
+              :$debug) {
 
     @rows   = [];
     my $row = Row.new;
@@ -552,7 +601,8 @@ sub make-rows(@rows,   # should be empty
     for @rooms -> $r {
         for $r.furniture -> $f {
             my $title = $f.title;
-            next if $title ~~ /'<ff>'/;
+            note "DEBUG: title: |$title|" if $debug;
+            next if $title ~~ /:i '<ff>'/;
             $x += $space if $row.furniture.elems;
             if !check-right($f, $x) {
                 # need a new row
