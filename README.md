@@ -52,8 +52,7 @@ In either case, run `make clean` to remove the created files.
 
 Here's a look at the diagram just produced:
 
-+ [SVG](./furniture-drawings.svg)
-+ [PDF](./furniture-drawings.svg)
++ [Furniture diagram](./furniture-drawings.pdf)
 
 ## Contributing
 
