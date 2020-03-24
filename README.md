@@ -50,6 +50,8 @@ you wish.
 
 In either case, run `make clean` to remove the created files.
 
+Here's a look at the diagram you just produced: [Furniture](./furniture-drawings.svg)
+
 ## Contributing
 
 Interested users are encouraged to contribute improvements and
