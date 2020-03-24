@@ -52,6 +52,7 @@ In either case, run `make clean` to remove the created files.
 
 Here's a look at the diagram just produced:
 
++ [Furniture list](./furniture-list.pdf)
 + [Furniture diagram](./furniture-drawings.pdf)
 
 ## Contributing
