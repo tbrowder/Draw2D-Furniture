@@ -18,6 +18,7 @@ class Furniture is export {
     has $.width     is rw = 0;
     has $.length    is rw = 0;
     has $.diameter  is rw = 0;
+    has $.diameter2 is rw = 0; # for ellipses
     has $.radius    is rw = 0;
     has $.dims      is rw = ''; # for printing
     has $.dims2     is rw = ''; # for printing
@@ -30,12 +31,14 @@ class Furniture is export {
 
     method init() {
         # must have required inputs
-        die "FATAL: incomplete inputs" if !($.width || $.radius);
+        die "FATAL: incomplete inputs" if !($.width || $.radius || $.diameter2);
         $.sf = 72 / (12 / $.scale);
         if $.radius {
             # apply scale
             $.w = $.radius * 2 * $.sf;
             $.h = $.w;
+        }
+        elsif $.diameter2 && $.diameter {
         }
         else {
             # apply scale
@@ -83,6 +86,9 @@ class Furniture is export {
             $s ~= qq:to/HERE/;
             $cx $cy {$.w * 0.5} circle
             HERE
+        }
+        elsif $.diameter2 {
+            # draw an ellipse 
         }
         $ps.add_to_page: $s;
     }
