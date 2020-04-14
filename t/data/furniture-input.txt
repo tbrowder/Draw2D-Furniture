@@ -10,10 +10,11 @@ address: 113 Canterbury Circle
 #list-file:      # basename for furniture listing file, default: 'furniture-list'
 #drawings-file:  # basename for furniture drawings file, default: 'furniture-drawings'
 
-# data are in inches: side x side OR diameter
-#   X x Y # side x side
-#   X d   # diameter
-#   X r   # radius
+# data are in inches: with one or more dimension
+#   X x Y # side x side of a rectangular object
+#   X d   # diameter of a circular object
+#   X r   # radius of a circular object
+#   X e Y # lengths of the two diameters of an elliptical object
 
 # Notes:
 #
