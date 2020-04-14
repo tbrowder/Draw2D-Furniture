@@ -103,5 +103,10 @@ constant $procset is export = q:to/HERE/;
       end % required to pop the dict
     }bd % box
 
-    % various font defs
+    % ellipse
+    /ellipsedict
+    /ellipse { % Stack: ulx uly width height
+    }bd % ellipse
+    
+    % various font defs may be added here
 HERE
