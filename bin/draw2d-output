@@ -28,11 +28,12 @@ if !@*ARGS {
     exit;
 }
 
-my $debug = 0;
-
+my $debug   = 0;
+my $squeeze = 0; # shows data in the upper left corner of images
 for @*ARGS {
     when /^ g/ { ;  }
-    when /^ d/ { $debug = 1 }
+    when /^ d/ { $debug   = 1 }
+    when /^ s/ { $squeeze = 1 }
     when /^ 'scale=' (\S+) / {
          $in-per-ft = +$0; # default is 0.25
     }
@@ -49,7 +50,7 @@ read-data-file $ifil, @rooms, :$debug;
 
 write-list @rooms, @ofils, :$debug;
 
-write-drawings @rooms, @ofils, :$debug;
+write-drawings @rooms, @ofils, :$squeeze, :$debug;
 
 say "Normal end.";
 my $n = +@ofils;

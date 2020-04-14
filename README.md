@@ -4,6 +4,15 @@
 
 Provides custom, scaled furniture outlines for home and office planning
 
+New features:
+
+* added ellliptical shapes
+* added short-names to show on images
+* option to show image number and dimensions
+  in the upper left corner of the images 
+  (automatically selected if short names are used
+   in the input file)
+
 ## Additional dependencies
 
 In addition to the automatically installed Raku modules, the user

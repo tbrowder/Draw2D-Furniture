@@ -103,10 +103,24 @@ constant $procset is export = q:to/HERE/;
       end % required to pop the dict
     }bd % box
 
-    % ellipse
-    /ellipsedict
-    /ellipse { % Stack: ulx uly width height
+    % ellipse thanks to the Adobe PostScipt Tutorial and Cookbook, pp. 139-141
+    /ellipsedict 8 dict def
+    ellipsedict /mtrx matrix put
+    /ellipse { % Stack: cx cy xrad yrad startangle endangle
+      ellipsedict begin
+      /endangle ex d
+      /startangle ex d
+      /yrad ex d
+      /xrad ex d
+      /cy ex d
+      /cx ex d
+      /savematrix mtrx currentmatrix def
+      cx cy translate
+      xrad yrad scale
+      0 0 1 startangle endangle arc
+      savematrix setmatrix
+      end % required to pop the dict
     }bd % ellipse
-    
+
     % various font defs may be added here
 HERE

@@ -38,15 +38,15 @@ room: Foyer
 =====
 
 chest of drawers		19 x 40
-chair			17 x 20
-chair			17 x 20
+chair			        17 x 20
+chair			        17 x 20
 rug				69 x 160
 
 room: Living room (not in new house)
 ==============================
 
-chair			32 x 30
-chair			32 x 30
+chair			        32 x 30
+chair			        32 x 30
 chair				27 x 30
 secretary			32 x 36 # 84 high
 
@@ -58,9 +58,9 @@ desk chair			20 x 21
 Grace Lee's chair		26 x 31
 Windsor chair			23 x 25
 wing chair			30 x 32
-drop-leaf oak table (open)	42 e 51
+drop-leaf oak table (open)	42 e 51 # ellipse
 coffee table			29 x 37
-platform rocker		22 x 30
+platform rocker		        22 x 30
 small drop-leaf table (closed)	18 x 35
 small drop-leaf table (open)    40 x 35
 
@@ -82,7 +82,7 @@ chair			18 x 20
 chair			18 x 20
 
 
-banquet end	24 x 48
+banquet end	        24 x 48
 banquet end		24 x 48
 
 buffet				24 x 60

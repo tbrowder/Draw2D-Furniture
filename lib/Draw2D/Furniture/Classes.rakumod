@@ -39,6 +39,9 @@ class Furniture is export {
             $.h = $.w;
         }
         elsif $.diameter2 && $.diameter {
+            # apply scale
+            $.w = $.diameter  * $.sf;
+            $.h = $.diameter2 * $.sf;
         }
         else {
             # apply scale
@@ -50,7 +53,7 @@ class Furniture is export {
     # A method to draw itself in raw PS
     # using a $ps instance of a Perl
     # PostScript::File object
-    # given the llx and lly corner of its
+    # given the ulx and uly corner of its
     # bounding box in real page coords
     # and orientation:
     # adjust the scale to 1/4" per foot, then 72 pts per page inch
@@ -61,8 +64,16 @@ class Furniture is export {
     # so what do we multiply model inches by to get it correct on paper?
     # scale = 48/72
     method ps-draw($ps, :$ulx, :$uly) {
+        # define the center of the bounding box
+        # need to adjust cy for scaling used by ellipses
         my $cx = $ulx + 0.5 * $.w;
         my $cy = $uly - 0.5 * $.h;
+        if $.diameter2 {
+            # an ellipse
+            my $sf = $.h / $.w;
+            my $h = $sf * $.h;
+            $cy = $uly - 0.5 * $h;
+        }
         my $d = 2;
         # put number $d pt above center
         # put dimen rep $d pt below center
@@ -72,7 +83,14 @@ class Furniture is export {
         /Times-Roman 7 selectfont
         $cx $cy $d sub mt ({$.dims2}) 7 puttext
         HERE
-        if $.width {
+        if $.diameter2 {
+            # draw an ellipse centered on the bounding box
+            # bbox needs to be adjusted for the height scaling??
+            $s ~= qq:to/HERE/;
+            gs np $cx $cy {$.w * 0.5} {$.h * 0.5} 0 360 ellipse clip st gr
+            HERE
+        }
+        elsif $.width {
             $s ~= qq:to/HERE/;
             $ulx $uly {$.w} {$.h} box
             HERE
@@ -86,9 +104,6 @@ class Furniture is export {
             $s ~= qq:to/HERE/;
             $cx $cy {$.w * 0.5} circle
             HERE
-        }
-        elsif $.diameter2 {
-            # draw an ellipse 
         }
         $ps.add_to_page: $s;
     }

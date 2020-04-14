@@ -26,6 +26,7 @@ my $address3 = '';
 sub write-drawings(@rooms,
                    @ofils,
                    :$debug,
+                   :$squeeze,
                   ) is export {
 
     my $fbase = $ofilD; # file name base, no suffix
@@ -42,6 +43,11 @@ sub write-drawings(@rooms,
                :landscape(0),
                :file($psf),
                :file_ext("");
+
+    die "FATAL: no PS object" if not $ps;
+
+    # for debugging count furniture items
+    my $nfurn = 0;
 
     if $debug {
         my ($llx, $lly, $urx, $ury) = $ps.get_bounding_box;
@@ -85,9 +91,9 @@ sub write-drawings(@rooms,
     # collect furniture by page rows
     my @rows;
     make-rows @rows, @rooms, $xright - $xleft, $space;
-    my $nrows = +@rows;
+    my $nrows = @rows.elems;
     die "FATAL: no rows collected!" if !$nrows;
-    note "DEBUG: num rows: {$nrows}" if $debug;
+    note "DEBUG: num furniture rows: {$nrows}" if 1 or $debug;
 
     # step through all the furniture and number each as in the index
     # keep track of:
@@ -108,6 +114,7 @@ sub write-drawings(@rooms,
             $ps.newpage;
         }
         for $r.furniture -> $f {
+            ++$nfurn;
             my $num = "{$f.number}";
             my $dim = "{$f.dims}";
 
@@ -129,9 +136,10 @@ sub write-drawings(@rooms,
     run $cmd, $args.words;
 
     die "FATAL: File $pdf not found" if !$pdf.IO.f;
-    @ofils.append: $pdf;
+    @ofils.push: $pdf;
     unlink $psf unless  $debug;
 
+    note "DEBUG: saw $nfurn furniture objects" if 1 or $debug;
 } # end sub write-drawings
 
 #| A function to convert a text file into PostScript and that PS file
@@ -274,7 +282,7 @@ sub text-to-pdf($txtfil,
     run $cmd, $args.words;
 
     die "FATAL: File $pdf not found" if !$pdf.IO.f;
-    @ofils.append: $pdf;
+    @ofils.push: $pdf;
     unlink $txtfil unless $debug;
     unlink $psf unless $debug;
 
@@ -349,8 +357,11 @@ sub read-data-file($ifil, @rooms, :$debug) is export {
     my $lnum = 0;
     my $fnum = 0;
 
+    my $lineno = 0;
     LINE: for $ifil.IO.lines -> $line is copy {
-        say "DEBUG line: '$line'" if $debug;
+        ++$lineno;
+        note "DEBUG line $lineno" if $debug;
+        note "DEBUG line: '$line'" if $debug;
         $line = strip-comment $line;
         next LINE if $line !~~ /\S/;
         next LINE if $line ~~ /^ \s* '='+ \s* $/;
@@ -361,7 +372,7 @@ sub read-data-file($ifil, @rooms, :$debug) is export {
             ++$rnum;
             my $title = normalize-string ~$0;
             $curr-room = Room.new: :number($rnum), :$title;
-            @rooms.append: $curr-room;
+            @rooms.push: $curr-room;
 
             # reset furniture numbering
             $fnum = 0;
@@ -411,11 +422,13 @@ sub read-data-file($ifil, @rooms, :$debug) is export {
             # a form feed
             my $furn = Furniture.new: :title('<ff>');
             # handle the furniture
-            $curr-room.furniture.append: $furn;
+            $curr-room.furniture.push: $furn;
             next LINE;
         }
 
+        # it really must be a piece of furniture!
         ++$fnum;
+
         # its display number will be: {$rnum}.{$fnum}
         my $furn = Furniture.new: :scale($in-per-ft), :number("{$rnum}.{$fnum}");
         my ($wid, $len, $dia, $rad);
@@ -450,6 +463,25 @@ sub read-data-file($ifil, @rooms, :$debug) is export {
             my $ww = in2ft 2 * $furn.radius;
             $furn.dims2  = "{$ww}";
         }
+        elsif $line ~~ /^(.*) [<|w> (\d+) \s+ 'e' \s+ (\d+)] \s* $/ {
+            # ellipse
+            $furn.title = normalize-string(~$0);
+            $wid  = +$1;
+            $len  = +$2; # horizontal on the portrait page, it will be
+                         # forced to be the longest dimen
+            if $len < $wid {
+                ($wid, $len) = ($len, $wid);
+            }
+            $furn.width     = $wid;
+            $furn.length    = $len;
+            $furn.dims      = "$wid\" x $len\"";
+            $furn.diameter  = $wid;
+            $furn.diameter2 = $len;
+
+            my $ww = in2ft $wid;
+            my $ll = in2ft $len;
+            $furn.dims2  = "{$ww}x{$ll}";
+        }
         else {
             say "FATAL on line $lnum: '$line'";
             die "  Unknown format";
@@ -458,7 +490,7 @@ sub read-data-file($ifil, @rooms, :$debug) is export {
         # INIT FURNITURE - CRITICAL
         $furn.init; # CRITICAL!!
         # handle the furniture
-        $curr-room.furniture.append: $furn;
+        $curr-room.furniture.push: $furn;
     }
 
 } # end sub read-data-file
@@ -475,7 +507,7 @@ sub make-rows(@rows,   # should be empty
 
     @rows   = [];
     my $row = Row.new;
-    @rows.append: $row;
+    @rows.push: $row;
     # row var
     my $x = 0; # begin at left margin
 
@@ -500,13 +532,13 @@ sub make-rows(@rows,   # should be empty
             if !check-right($f, $x) {
                 # need a new row
                 $row = Row.new;
-                @rows.append: $row;
+                @rows.push: $row;
                 reset-row-var;
             }
 
             # update row data
             $x += $f.w;
-            $row.furniture.append: $f;
+            $row.furniture.push: $f;
             $row.max-height = $f.h if $f.h > $row.max-height;
         }
     }
