@@ -10,7 +10,7 @@ address: 113 Canterbury Circle
 #list-file:      # basename for furniture listing file, default: 'furniture-list'
 #drawings-file:  # basename for furniture drawings file, default: 'furniture-drawings'
 
-# data are in inches: with one or more dimension
+# data are in inches: with one or more dimensions
 #   X x Y # side x side of a rectangular object
 #   X d   # diameter of a circular object
 #   X r   # radius of a circular object
@@ -58,7 +58,7 @@ desk chair			20 x 21
 Grace Lee's chair		26 x 31
 Windsor chair			23 x 25
 wing chair			30 x 32
-drop-leaf oak table (open)	42 x 51
+drop-leaf oak table (open)	42 e 51
 coffee table			29 x 37
 platform rocker		22 x 30
 small drop-leaf table (closed)	18 x 35
