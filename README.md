@@ -36,7 +36,7 @@ Run the `Makefile` in your clone of this repository to create output
 files from the example input file:
 
 
-``` Raku
+```Raku
 $ make doc
 PERL6LIB=lib raku -Ilib bin/draw2d-output t/data/furniture-input.txt
 Normal end.
