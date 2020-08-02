@@ -7,7 +7,7 @@ use Draw2D::Furniture::Vars;
 use Draw2D::Furniture::Classes;
 
 # default values settable in the input data file
-# or in the drives program
+# or in the driver program
 our $in-per-ft is export = 0.25;
 
 # default values settable in the input data file
@@ -430,9 +430,20 @@ sub read-data-file($ifil, @rooms, :$debug) is export {
         ++$fnum;
 
         # its display number will be: {$rnum}.{$fnum}
+
+        # TODO create a grammar for a furniture line
+        #
+        #   create a furniture object for each line:
+        #
+        #     furn-parse $line, :furn-actions($furn);
+        #
+        #   It should replace all this this code:
         my $furn = Furniture.new: :scale($in-per-ft), :number("{$rnum}.{$fnum}");
         my ($wid, $len, $dia, $rad);
+
+        #   AND it should replace all this this code:
         if $line ~~ /^(.*) [<|w> (\d+) \s+ 'x' \s+ (\d+)] \s* $/ {
+            # a rectangular object
             $furn.title = normalize-string(~$0);
             $wid  = +$1;
             $len  = +$2; # horizontal on the portrait page, it will be
@@ -449,6 +460,7 @@ sub read-data-file($ifil, @rooms, :$debug) is export {
             $furn.dims2  = "{$ww}x{$ll}";
         }
         elsif $line ~~ /^(.*) [<|w> (\d+) \s+ 'd'] \s* $/ {
+            # a circular object
             $furn.title    = normalize-string(~$0);
             $furn.diameter = +$1;
             $furn.dims     = "{$furn.diameter}\" diameter";
@@ -457,6 +469,7 @@ sub read-data-file($ifil, @rooms, :$debug) is export {
             $furn.dims2  = "{$ww}";
         }
         elsif $line ~~ /^(.*) [<|w> (\d+) \s+ 'r'] \s* $/ {
+            # a circular object
             $furn.title = normalize-string(~$0);
             $furn.radius = +$1;
             $furn.dims = "{$furn.radius}\" radius";
@@ -464,7 +477,7 @@ sub read-data-file($ifil, @rooms, :$debug) is export {
             $furn.dims2  = "{$ww}";
         }
         elsif $line ~~ /^(.*) [<|w> (\d+) \s+ 'e' \s+ (\d+)] \s* $/ {
-            # ellipse
+            # an elliptical object
             $furn.title = normalize-string(~$0);
             $wid  = +$1;
             $len  = +$2; # horizontal on the portrait page, it will be
@@ -487,8 +500,13 @@ sub read-data-file($ifil, @rooms, :$debug) is export {
             die "  Unknown format";
         }
 
+        #   AND it should replace all this this code:
         # INIT FURNITURE - CRITICAL
         $furn.init; # CRITICAL!!
+
+
+
+        #   BUT this code remains:
         # handle the furniture
         $curr-room.furniture.push: $furn;
     }

@@ -8,10 +8,20 @@ New features:
 
 * added ellliptical shapes
 * added short-names to show on images
-* option to show image number and dimensions
-  in the upper left corner of the images 
+* `squeeze` option to show image number and dimensions
+  in the upper left corner of the images
   (automatically selected if short names are used
    in the input file)
+* dimensions may be decimals
+
+Planned features:
+
+* comma as a radix point in decimal numbers
+* handle other dimensional units (feet, meters, decimeters, centimeters, millimeters, cubits)
+* arbitrary polygons
+* other special shapes:
+    * rectangle with rounded corners [arcs of circles]
+    * rectangle with one or more sides having arcs of ellipses
 
 ## Additional dependencies
 
@@ -20,7 +30,7 @@ needs to manually install or otherwise ensure the following are
 available:
 
 1. Perl module `PostScript::File`
-2. program `ps2pdf`
+2. program `ps2pdf` (usually provided by the GhostScript package)
 
 ## Process
 
@@ -67,8 +77,8 @@ Here's a look at the files just produced:
 ## Contributing
 
 Interested users are encouraged to contribute improvements and
-corrections to this module.  Pull requests (PRs), bug reports, and
-suggestions are always welcome.
+corrections to this module.  Pull requests (PRs), bug reports, feature
+requests, and suggestions are always welcome.
 
 ## LICENSE and COPYRIGHT
 

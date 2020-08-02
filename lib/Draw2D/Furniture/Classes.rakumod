@@ -65,15 +65,8 @@ class Furniture is export {
     # scale = 48/72
     method ps-draw($ps, :$ulx, :$uly) {
         # define the center of the bounding box
-        # need to adjust cy for scaling used by ellipses
         my $cx = $ulx + 0.5 * $.w;
         my $cy = $uly - 0.5 * $.h;
-        if $.diameter2 {
-            # an ellipse
-            my $sf = $.h / $.w;
-            my $h = $sf * $.h;
-            $cy = $uly - 0.5 * $h;
-        }
         my $d = 2;
         # put number $d pt above center
         # put dimen rep $d pt below center
@@ -85,7 +78,6 @@ class Furniture is export {
         HERE
         if $.diameter2 {
             # draw an ellipse centered on the bounding box
-            # bbox needs to be adjusted for the height scaling??
             $s ~= qq:to/HERE/;
             gs np $cx $cy {$.w * 0.5} {$.h * 0.5} 0 360 ellipse clip st gr
             HERE

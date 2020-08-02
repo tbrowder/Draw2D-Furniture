@@ -19,26 +19,30 @@ address: 113 Canterbury Circle
 # Notes:
 #
 #   1. The dimensional data must be the last items on a data line
+#      (and no digits in the leading descriptive text)
 #   2. A line consisting of only equal signs ('===') is ignored
 #   3. A line with only '<ff>' (or '<FF>') results in a form feed
+#   4. A furniture "short name" (used with option "squeeze") is
+#      either the first word in a description or a word inside
+#      curly braces {}
 
 room: Master bedroom
 ==============
 
-Tom's chest of drawers	        20 x 42
-Missy's chest of drawers	19 x 64
-desk (by bed)			20 x 36
-chest (end of bed)		16 x 34
-queen bed			65 x 86
-bedside table			25 d      # (diameter)
-lounge chair			21 x 49
+Tom's chest of drawers {T's drsr}       20 x 42
+Missy's chest of drawers {M's drsr}	19 x 64
+desk (by bed)			        20 x 36
+chest (end of bed)		        16 x 34
+queen bed			        65 x 86
+bedside table			        25 d      # (diameter)
+lounge chair			        21 x 49
 
 
 room: Foyer
 =====
 
 chest of drawers		19 x 40
-chair			        17 x 20
+chair 			        17 x 20
 chair			        17 x 20
 rug				69 x 160
 
@@ -55,23 +59,23 @@ room: Family room
 
 desk				23 x 41
 desk chair			20 x 21
-Grace Lee's chair		26 x 31
-Windsor chair			23 x 25
-wing chair			30 x 32
-drop-leaf oak table (open)	42 e 51 # ellipse
-coffee table			29 x 37
-platform rocker		        22 x 30
-small drop-leaf table (closed)	18 x 35
-small drop-leaf table (open)    40 x 35
+chair, Grace Lee's 		26 x 31
+chair, Windsor			23 x 25
+chair, wing			30 x 32
+table, drop-leaf oak (open)	42 e 51 # ellipse
+table, coffee			29 x 37
+rocker, platform	        22 x 30
+table, small drop-leaf (closed)	18 x 35
+table, small drop-leaf(open)    40 x 35
 
-pine table			31 x 60
+table, pine			31 x 60
 
 <FF>
 
 room: Dining room
 ===========
 
-dining table			74 x 48
+table, dining		74 x 48
 chair			18 x 20
 chair			18 x 20
 chair			18 x 20
@@ -85,38 +89,38 @@ chair			18 x 20
 banquet end	        24 x 48
 banquet end		24 x 48
 
-buffet				24 x 60
+buffet			24 x 60
 
 room: Bedroom 2 (Tommy's)
 ======================
 
-twin bed			43 x 81
-twin bed			43 x 81
-bed table			17 x 21
+bed, twin			43 x 81
+bed, twin 			43 x 81
+table, bedside			17 x 21
 chest of drawers		21 x 40
-dressing table			18 x 46
-chair				19 x 19
-cane chair			20 x 20
-cane chair			20 x 20
+table, dressing			18 x 46
+chair, easy			19 x 19
+chair, cane			20 x 20
+chair, cane			20 x 20
 
 room: Bedroom 3 (Grace's)
 ======================
 
-double bed			56 x 80
-bedside table			16 x 16
+bed, double			56 x 80
+table, bedside			16 x 16
 chest of drawers		19 x 43
-old chair			16 x 18
-old chair			17 x 20
+chair, old			16 x 18
+chair, old			17 x 20
 
 room: Landing
 =======
 
 chest of drawers		17 x 40
-chair (Tom's USAFA)		22 x 23
+chair (Tom's USAFA) {AFA chair}	22 x 23
 
 room: Bonus room
 ==========
 
-old, larger desk		21 x 41
-small table			18 x 31
-small rocking chair		18 x 28
+desk, old, larger		21 x 41
+table, small			18 x 31
+chair, small rocking		18 x 28
