@@ -22,6 +22,8 @@ Planned features:
 * other special shapes:
     * rectangle with rounded corners [arcs of circles]
     * rectangle with one or more sides having arcs of ellipses
+* furniture 'overlay' so that drawers, doors, pulls,
+  and other furniture features can be shown
 
 ## Additional dependencies
 
