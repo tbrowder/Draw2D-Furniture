@@ -1,4 +1,4 @@
-[![Actions Status](https://github.com/tbrowder/Draw2D-Furniture/workflows/test/badge.svg)](https://github.com/tbrowder/Draw2D-Furniture/actions)
+[![Actions Status](https://github.com/tbrowder/Draw2D-Furniture/workflows/test-inline-perl5/badge.svg)](https://github.com/tbrowder/Draw2D-Furniture/actions)
 
 Draw2D::Furniture
 =================
