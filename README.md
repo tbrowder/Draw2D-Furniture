@@ -7,9 +7,15 @@ Provides custom, scaled furniture outlines for home and office planning
 
 New features:
 
-  * added ellliptical shapes
+  * improved output file naming
 
-  * added short-names to show on images
+  * executive program renamed `draw2d` (but the original name is still available)
+
+Other features:
+
+  * elliptical shapes
+
+  * short-names to show on images
 
   * `squeeze` option to show image number and dimensions in the upper left corner of the images (automatically selected if short names are used in the input file)
 
@@ -47,14 +53,14 @@ Process
 
   * Run the executable `draw2d` with the input file to produce two pdf files, each of one or more pages:
 
-    1. `furniture-list.pdf` - A list of the rooms and furniture with each furniture item's
+    1. `BASENAME-furniture-list.pdf` - A list of the rooms and furniture with each furniture item's
        unique reference number, description, and its dimensions
 
-    2. `furniture-drawings.pdf` - A series of scaled drawings of each
+    2. `BASENAME-furniture-drawings.pdf` - A series of scaled drawings of each
        furniture item suitible for cutting out and placing on a
        blueprint to plan furniture arrangements
 
-Note the default output file names can be specified in the input data file.
+Note the BASENAME and default output file names can be specified in the input data file.
 
 See the example input file in the test directory (`t/data/furniture-input.txt`).
 
@@ -62,7 +68,7 @@ Run the `Makefile` in your clone of this repository to create output files from 
 
 ```Raku
 $ make doc
-PERL6LIB=lib raku -Ilib bin/draw2d-output t/data/furniture-input.txt
+PERL6LIB=lib raku -Ilib bin/draw2d t/data/furniture-input.txt
 Normal end.
 See output files:
   furniture-list.pdf
