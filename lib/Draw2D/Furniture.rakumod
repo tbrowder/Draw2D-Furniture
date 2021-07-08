@@ -11,9 +11,14 @@ use Draw2D::Furniture::Classes;
 our $in-per-ft is export = 0.25;
 
 # default values settable in the input data file
-my $ofilL = 'furniture-list';
-my $ofilD = 'furniture-drawings';
+my $basename = ''; # if not entered, the project title will be used to create it
+# the default file extensions:
+my $ofilL    = 'furniture-list';
+my $ofilD    = 'furniture-drawings';
+# the project title:
 my $ftitle   = '';
+
+# other data
 my $author   = '';
 my $date     = '';
 my $address  = '';
@@ -437,11 +442,11 @@ sub read-data-file($ifil, @rooms, :$debug) is export {
         #
         #     furn-parse $line, :furn-actions($furn);
         #
-        #   It should replace all this this code:
+        #   It should replace all this code:
         my $furn = Furniture.new: :scale($in-per-ft), :number("{$rnum}.{$fnum}");
         my ($wid, $len, $dia, $rad);
 
-        #   AND it should replace all this this code:
+        #   AND it should replace all this code:
         if $line ~~ /^(.*) [<|w> (\d+) \s+ 'x' \s+ (\d+)] \s* $/ {
             # a rectangular object
             $furn.title = normalize-string(~$0);
