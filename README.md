@@ -45,7 +45,7 @@ Process
 
   * Prepare a formatted text input file describing rooms and furniture items in them.
 
-  * Run the executable `draw2d-output` with the input file to produce two pdf files, each of one or more pages:
+  * Run the executable `draw2d` with the input file to produce two pdf files, each of one or more pages:
 
     1. `furniture-list.pdf` - A list of the rooms and furniture with each furniture item's
        unique reference number, description, and its dimensions
