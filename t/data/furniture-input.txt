@@ -1,8 +1,15 @@
-# this is a formatted input file used to produce
-# scaled drawings for cutout
+# This is a formatted input file used to produce scaled drawings for
+# cutout along with lists of the objects.
+
+# Comments start with the first '#' character in a line and it and all
+# following characters on the line are ignored.  Blank or empty lines
+# are also ignored.
+
+# Standard elements recognized by 'draw2d':
 
 title: Furniture Measurements for Bluewater Bay
-date: 2020-01-28
+name: some-name-with-no-spaces
+date: 2020-01-28T02:13:16.5Z
 author: Tom Browder
 address: 113 Canterbury Circle
 
@@ -10,7 +17,7 @@ address: 113 Canterbury Circle
 #list-file:      # basename for furniture listing file, default: 'furniture-list'
 #drawings-file:  # basename for furniture drawings file, default: 'furniture-drawings'
 
-# data are in inches: with one or more dimensions
+# data are in inches: with one or more dimensions where X and X are dimension numbers
 #   X x Y # side x side of a rectangular object
 #   X d   # diameter of a circular object
 #   X r   # radius of a circular object

@@ -1,14 +1,16 @@
 #!/usr/bin/env raku
 
 use Draw2D::Furniture;
+use Draw2D::Furniture::Classes;
 
-# this file is in the basic format to be used
-# by this program:
 my $ifil = '';
-
 if !@*ARGS {
     say qq:to/HERE/;
     Usage: {$*PROGRAM.basename} <formatted input file> [scale=X][debug]
+
+    (Note: If the first argument is other than a readable file in the proper
+    format, the user will be prompted for required inputs to 
+    produce such a file.)
 
     The optional scale is a number representing page inches per
     real feet. The default is 0.25 (i.e., 1/4 inch per foot, a
@@ -16,7 +18,7 @@ if !@*ARGS {
 
     Produces:
 
-      1. A pdf doc listing of rooms and furniture
+      1. A pdf document listing rooms and furniture
 
       2. A pdf file with furniture numbers and other
          data (which may overflow) for cutting out. Items are
@@ -30,27 +32,73 @@ if !@*ARGS {
 
 my $debug   = 0;
 my $squeeze = 0; # shows data in the upper left corner of images
+my $cli-scale; # ($in-per-ft) a hack for on-the-fly scale changes (only for that run)
 for @*ARGS {
     when /^ g/ { ;  }
     when /^ d/ { $debug   = 1 }
     when /^ s/ { $squeeze = 1 }
     when /^ 'scale=' (\S+) / {
-         $in-per-ft = +$0; # default is 0.25
+         #$in-per-ft = +$0; # default is 0.25
+         $cli-scale = +$0; # default is 0.25
     }
     default { $ifil = $_ }
 }
 
 if !$ifil.IO.f {
-    die "FATAL: Input file '$ifil' cannot be opened.";
+    # we step the user through aborting or creating 
+    # a formatted file for further use
+    say "You have not entered a readable file name.";
+    my $resp = prompt "Do you want to create a file for entering furniture data? (Y/n) => ";
+    if $resp !~~ /^ :i y / {
+        say "Okay, goodbye.";
+        exit
+    }
+
+    my $title    = prompt "Project name or title: ";
+    my $basename = prompt "A unique'basename' (with no spaces) for the input/output files: ";
+    my $creator  = prompt "Created by: ";
+    my $date     = now.DateTime.Str;
+    my $p = Project.new: :$title, :$basename, :$creator, :$date;
+    if $cli-scale.defined {
+        $p.scale = $cli-scale;
+    }
+
+    $resp = prompt "Do you want to add contact data (Y/n) => ";
+    if $resp ~~ /^ :i y / {
+        say "Okay.";
+        my $addr = prompt qq:to/HERE/;
+        You can add contact date i
+        HERE
+    }
+
+    $resp = prompt "Do you want to add any notes or other information (Y/n) => ";
+    if $resp ~~ /^ :i y / {
+        say "Okay.";
+    }
+
+    create-master-file $p;
+    
+    print qq:to/HERE/;
+    See your master file for further inputs: '{$p.inp}'
+    You may change header values in the file (including the default scale) if you wish.
+    Now you may start entering furniture by room in file '{$p.inp}'.
+    You should run that file as input to 'draw2d' often to ensure formatting is correct.
+    HERE
+    exit
+}
+
+my $p = Project.new;
+if $cli-scale.defined {
+    $p.scale = $cli-scale;
 }
 
 my @ofils; # list of output files generated
 my @rooms; # list of room objects containing furniture objects
-read-data-file $ifil, @rooms, :$debug;
+@rooms = read-data-file $ifil, :project($p), :$debug;
 
-write-list @rooms, @ofils, :$debug;
+write-list @rooms, @ofils, :project($p), :$debug;
 
-write-drawings @rooms, @ofils, :$squeeze, :$debug;
+write-drawings @rooms, @ofils, :project($p), :$squeeze, :$debug;
 
 say "Normal end.";
 my $n = +@ofils;

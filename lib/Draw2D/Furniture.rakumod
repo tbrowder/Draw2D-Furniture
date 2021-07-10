@@ -2,51 +2,37 @@ unit module Draw2D::Furniture;
 
 use PostScript::File:from<Perl5>;
 use Text::Utils :strip-comment, :normalize-string;
+use File::Temp;
 
 use Draw2D::Furniture::Vars;
 use Draw2D::Furniture::Classes;
 
-# default values settable in the input data file
-# or in the driver program
-our $in-per-ft is export = 0.25;
-
-# default values settable in the input data file
-my $basename = ''; # if not entered, the project title will be used to create it
-# the default file extensions:
-my $ofilL    = 'furniture-list';
-my $ofilD    = 'furniture-drawings';
-# the project title:
-my $ftitle   = '';
-
-# other data
-my $author   = '';
-my $date     = '';
-my $address  = '';
-my $address2 = '';
-my $address3 = '';
+sub create-master-file(Project $p) is export {
+    note "Tom, fix sub create-master-file";
+}
 
 #==============================================================
 #| Data from the input data file are used to create scaled
 #| drawings of the furniture items.
 sub write-drawings(@rooms,
                    @ofils,
+                   Project :$project!,
                    :$debug,
                    :$squeeze,
                   ) is export {
 
-    my $fbase = $ofilD; # file name base, no suffix
+    my $p = $project;
+    my $psf = $p.ps(:draw);
+    my $pdf = $p.pdf(:draw);
 
-    my $psf = $fbase ~ '.ps';
-    my $pdf = $fbase ~ '.pdf';
-
-    # start a doc, add options here
+    # start a PostScript doc, add options here
     #   enable clipping
     my $ps = PostScript::File.new:
                :paper<Letter>,
                :clipping(1),
                :clip_command<stroke>,
                :landscape(0),
-               :file($psf),
+               :file($psf), # the PS output file
                :file_ext("");
 
     die "FATAL: no PS object" if not $ps;
@@ -106,7 +92,7 @@ sub write-drawings(@rooms,
     reset-page-vars;
     my $i = 0;
     for @rows -> $r {
-        reset-row-var;
+       reset-row-var;
         ++$i;
         if $debug {
             note "DEBUG: row $i max-height: {$r.max-height}";
@@ -131,32 +117,30 @@ sub write-drawings(@rooms,
 
         $y -= $r.max-height + $space;
     }
-    # close and ouput the file
+    # close and output the file
     $ps.output;
 
     # produce the pdf
-    die "FATAL: File $psf not found" if !$psf.IO.f;
-    my $cmd  = "ps2pdf";
-    my $args = "$psf $pdf";
-    run $cmd, $args.words;
-
-    die "FATAL: File $pdf not found" if !$pdf.IO.f;
-    @ofils.push: $pdf;
-    unlink $psf unless  $debug;
+    ps-to-pdf @ofils, :$psf, :$pdf;
 
     note "DEBUG: saw $nfurn furniture objects" if 1 or $debug;
 } # end sub write-drawings
 
-#| A function to convert a text file into PostScript and that PS file
-#| to PDF.
-sub text-to-pdf($txtfil,
-                @ofils,
-                :$debug
-               ) is export {
+#| A function to convert an ASCII text file into PostScript.
+sub text-to-ps($txtfil, # the ASCII input text file
+               Project :$project!,
+               :$debug
+               --> Str
+              ) is export {
 
-    my $fbase = $ofilL; # file name base, no suffix
-    my $psf   = $fbase ~ '.ps';
+    my $p = $project;
+    my $psfile = $p.ps(:list); # get the correct name for the project
+
+    =begin comment
+    my $fbase = $p.$ofilL; # file name base, no suffix
+    my $psf   = $$fbase ~ '.ps';
     my $pdf   = $fbase ~ '.pdf';
+    =end comment
 
     # write the ps file
     # start a doc, add options here
@@ -174,7 +158,7 @@ sub text-to-pdf($txtfil,
                :clipping(1),
                :clip_command(''), # or 'stroke' to show the page boundaries
                :landscape(0),
-               :file($psf),
+               :file($psfile),
                :file_ext("");
 
     if $debug {
@@ -232,6 +216,16 @@ sub text-to-pdf($txtfil,
     #   last baseline
     reset-page-vars;
     $ps.add_to_page: "/$font $fsize selectfont\n";
+
+    # read the text input file and convert each line into a PostScript
+    # command in the output file
+
+    # TODO provide for wrapping long lines somehow
+    #   save the indention size
+    #   fix max line length based on dist to right margin
+    #   wrap the text to proper width (check Text::Utils)
+    #   use a PS proc to write
+
     for $txtfil.IO.lines -> $line {
         my $ff = $line ~~ /:i '<ff>' / ?? 1 !! 0;
         note "DEBUG: ff = $ff" if $debug;
@@ -278,8 +272,9 @@ sub text-to-pdf($txtfil,
     }
 
     # close and output the file
-    $ps.output;
+    $ps.output; # writes $psfil
 
+    =begin comment
     # produce the pdf
     die "FATAL: File $psf not found" if !$psf.IO.f;
     my $cmd  = "ps2pdf";
@@ -290,47 +285,49 @@ sub text-to-pdf($txtfil,
     @ofils.push: $pdf;
     unlink $txtfil unless $debug;
     unlink $psf unless $debug;
+    =end comment
 
-} # end sub text-to-pdf
+    $psfile
+} # end sub text-to-ps
 
 #| Given a list of Room objects (with their Furniture object
 #| children), create a text file of all items including a unique
 #| reference number for each.
 #|
 #| This sub then calls another sub to convert the text file to
-#| PostScript and that PS file to PDF.
+#| PostScript.
 sub write-list(@rooms,
                @ofils,
+               Project :$project!,
                :$debug
               ) is export {
 
-    my $fbase = $ofilL; # file name base, no suffix
 
+    my $p = $project;
+-
     # write the raw text file
+    # use a system tmp file
     my $nitems = 0;
-    my $txtfil = $fbase ~ '.txt';
+    my $tdir = tempdir; # for safety
+    my $txtfil = "$tdir/temp"; # tmp file, destroyed at exit
     my $fh = open $txtfil, :w;
 
     # title, etc.
-    if $ftitle {
-        $fh.say: "Title: $ftitle";
+    if $p.title {
+        $fh.say: "Title: $p.title";
     }
-    if $author {
-        $fh.say: "Author: $author";
+    if $p.author {
+        $fh.say: "Author: $p.author";
     }
-    if $date {
-        $fh.say: "Date: $date";
+    if $p.date {
+        $fh.say: "Date: $p.date";
     }
-    if $address {
-        $fh.say: "Address:  $address";
+
+    if $p.address {
+        $fh.say("Address: $_") for $p.address;
     }
-    if $address2 {
-        $fh.say: "Address2: $address2";
-    }
-    if $address3 {
-        $fh.say: "Address3: $address3";
-    }
-    $fh.say: "";
+
+    $fh.say();
 
     for @rooms -> $r {
         $fh.say: "  Room {$r.number}: {$r.title}";
@@ -348,15 +345,32 @@ sub write-list(@rooms,
     $fh.say: "\nTotal number items: $nitems";
     $fh.close;
 
-    # we now have a text file to convert to ps and then pdf
-    text-to-pdf $txtfil, @ofils, :$debug;
+    # we now have a text file to convert to ps 
+    my $psf = text-to-ps $txtfil, :project($p), :$debug;
+
+    # convert ps to pdf
+    my $pdf = $p.pdf(:list);
+    ps-to-pdf @ofils, :$psf, :$pdf;
 
 } # end sub write-list
 
 #| Given a specially formatted text file, read the file and convert
 #| the data into a list of Room objects and their Furniture object
 #| children.
-sub read-data-file($ifil, @rooms, :$debug) is export {
+#sub read-data-file($ifil, @rooms, Project :$p!, :$debug) is export {
+my token sign { <[+-]> }
+my token int  { \d+ }
+my regex number {
+    <sign>?
+    <int>
+    [ '.' <int> ]?
+}
+
+sub read-data-file($ifil, Project :$project!, :$debug --> List) is export {
+    my $p = $project;
+
+    my @rooms;
+
     my $curr-room = 0;
     my $rnum = 0;
     my $lnum = 0;
@@ -372,7 +386,7 @@ sub read-data-file($ifil, @rooms, :$debug) is export {
         next LINE if $line ~~ /^ \s* '='+ \s* $/;
         say "DEBUG2 line: '$line'" if $debug;
 
-        if $line ~~ /^ \s* 'room:' \s* (.*) \s* $/ {
+        if $line ~~ /^ \s* room ':' \s* (.*) \s* $/ {
             # a new room
             ++$rnum;
             my $title = normalize-string ~$0;
@@ -385,42 +399,87 @@ sub read-data-file($ifil, @rooms, :$debug) is export {
             next LINE;
         }
 
+        #=== BEGIN HEADER INFO COLLECTION ===#
+        #    ERROR IF ALREADY READING ROOM INFO
+        # these three attributes were set at creation, warn if changed
         if $line ~~ /^ \s* 'title:' \s* (.*) \s* $/ {
-            $ftitle = normalize-string ~$0;
+            die "FATAL: header info '{~$0}' not allowed after room info has begun" if $curr-room;
+            my $txt = normalize-string ~$0;
+            if $p.title ne $txt {
+                note qq:to/HERE/
+                note "WARNING: title $txt has changed since project was created
+                HERE
+            }
+            $p.title = $txt;
             next LINE;
         }
         if $line ~~ /^ \s* 'date:' \s* (.*) $/ {
-            $date = normalize-string ~$0;
+            die "FATAL: header info '{~$0}' not allowed after room info has begun" if $curr-room;
+            my $txt = normalize-string ~$0;
+            if $p.date ne $txt {
+                note qq:to/HERE/
+                note "WARNING: date $txt has changed since project was created
+                HERE
+            }
+            $p.date = $txt;
             next LINE;
         }
-        if $line ~~ /^ \s* 'author:' (.*) $/ {
-            $author = normalize-string ~$0;
+        if $line ~~ /^ \s* 'basename:' \s* (.*) $/ {
+            die "FATAL: header info '{~$0}' not allowed after room info has begun" if $curr-room;
+            my $txt = normalize-string ~$0;
+            if $p.basename ne $txt {
+                note qq:to/HERE/
+                note "WARNING: basename $txt has changed since project was created
+                HERE
+            }
+            $p.basename = $txt;
             next LINE;
         }
-        if $line ~~ /^ \s* 'address:' (.*) $/ {
-            $address = normalize-string ~$0;
+
+        # handle multi-line items
+        #   author
+        #   address
+        #   phone
+        #   email
+        #   mobile
+        #   note
+        if $line ~~ /^ \s* 
+            (
+              | author
+              | address\d*
+              | phone
+              | mobile
+              | email
+              | note
+            )
+            ':'
+            (.*) 
+            $/ {
+
+            die "FATAL: header info '{~$0}' not allowed after room info has begun" if $curr-room;
+            my $key = ~$0;
+            my $txt = normalize-string ~$1;
+            $p.push($key, $txt);
             next LINE;
         }
-        if $line ~~ /^ \s* 'address2:' (.*) $/ {
-            $address2 = normalize-string ~$0;
-            next LINE;
-        }
-        if $line ~~ /^ \s* 'address3:' (.*) $/ {
-            $address3 = normalize-string ~$0;
-            next LINE;
-        }
+
         if $line ~~ /^ \s* 'scale:' \s* (\S*) \s* $/ {
-            $in-per-ft = ~$0;
+            die "FATAL: header info '{~$0}' not allowed after room info has begun" if $curr-room;
+            #$p.in-per-ft = +$0;
+            $p.scale = +$0;
             next LINE;
         }
         if $line ~~ /^ \s* 'list-file:' \s* (\S*) \s* $/ {
-            $ofilL = ~$0;
+            die "FATAL: header info '{~$0}' not allowed after room info has begun" if $curr-room;
+            $p.list-name = ~$0;
             next LINE;
         }
         if $line ~~ /^ \s* 'drawings-file:' \s* (\S*) $/ {
-            $ofilD = ~$0;
+            die "FATAL: header info '{~$0}' not allowed after room info has begun" if $curr-room;
+            $p.draw-name = ~$0;
             next LINE;
         }
+        #=== END OF HEADER INFO LINES ===#
 
         # it must be a piece of furniture (or a form feed!)
         if $line ~~ /^:i \s* '<ff>' \s* $/ {
@@ -443,12 +502,21 @@ sub read-data-file($ifil, @rooms, :$debug) is export {
         #     furn-parse $line, :furn-actions($furn);
         #
         #   It should replace all this code:
-        my $furn = Furniture.new: :scale($in-per-ft), :number("{$rnum}.{$fnum}");
-        my ($wid, $len, $dia, $rad);
+        my $furn = Furniture.new: :scale($p.scale), # in-per-ft), 
+                      :number("{$rnum}.{$fnum}");
+        my ($wid, $len, $dia, $rad, $hgt);
 
         #   AND it should replace all this code:
-        if $line ~~ /^(.*) [<|w> (\d+) \s+ 'x' \s+ (\d+)] \s* $/ {
+        if $line ~~ /^(.*) 
+                      [
+                         <|w> (\d+) \s+ 'x' \s+ (\d+)
+                      ] 
+                      \s* 
+                    $/ {
             # a rectangular object
+            my $s = "rectangular object";
+            note "DEBUG: line $lineno item '$s'" if 1; 
+
             $furn.title = normalize-string(~$0);
             $wid  = +$1;
             $len  = +$2; # horizontal on the portrait page, it will be
@@ -464,8 +532,15 @@ sub read-data-file($ifil, @rooms, :$debug) is export {
             my $ll = in2ft $len;
             $furn.dims2  = "{$ww}x{$ll}";
         }
-        elsif $line ~~ /^(.*) [<|w> (\d+) \s+ 'd'] \s* $/ {
-            # a circular object
+        elsif $line ~~ /^(.*) 
+                         [
+                           <|w> (\d+) \s+ 'd'
+                         ] 
+                         \s* 
+                       $/ {
+            my $s = "circular object with dia";
+            note "DEBUG: line $lineno item '$s'" if 1; 
+
             $furn.title    = normalize-string(~$0);
             $furn.diameter = +$1;
             $furn.dims     = "{$furn.diameter}\" diameter";
@@ -473,16 +548,30 @@ sub read-data-file($ifil, @rooms, :$debug) is export {
             my $ww = in2ft $furn.diameter;
             $furn.dims2  = "{$ww}";
         }
-        elsif $line ~~ /^(.*) [<|w> (\d+) \s+ 'r'] \s* $/ {
-            # a circular object
+        elsif $line ~~ /^(.*) 
+                         [
+                           <|w> (\d+) \s+ 'r'
+                         ] 
+                         \s* 
+                       $/ {
+            my $s = "circular object with radius";
+            note "DEBUG: line $lineno item '$s'" if 1; 
+
             $furn.title = normalize-string(~$0);
             $furn.radius = +$1;
             $furn.dims = "{$furn.radius}\" radius";
             my $ww = in2ft 2 * $furn.radius;
             $furn.dims2  = "{$ww}";
         }
-        elsif $line ~~ /^(.*) [<|w> (\d+) \s+ 'e' \s+ (\d+)] \s* $/ {
-            # an elliptical object
+        elsif $line ~~ /^(.*) 
+                         [
+                           <|w> (\d+) \s+ 'e' \s+ (\d+)
+                         ] 
+                         \s* 
+                       $/ {
+            my $s = "elliptical object";
+            note "DEBUG: line $lineno item '$s'" if 1; 
+
             $furn.title = normalize-string(~$0);
             $wid  = +$1;
             $len  = +$2; # horizontal on the portrait page, it will be
@@ -501,7 +590,7 @@ sub read-data-file($ifil, @rooms, :$debug) is export {
             $furn.dims2  = "{$ww}x{$ll}";
         }
         else {
-            say "FATAL on line $lnum: '$line'";
+            say "FATAL on line $lineno: '$line'";
             die "  Unknown format";
         }
 
@@ -510,11 +599,12 @@ sub read-data-file($ifil, @rooms, :$debug) is export {
         $furn.init; # CRITICAL!!
 
 
-
         #   BUT this code remains:
         # handle the furniture
         $curr-room.furniture.push: $furn;
     }
+
+    @rooms
 
 } # end sub read-data-file
 
@@ -577,3 +667,20 @@ sub in2ft($In) {
     my $in = $In mod 12;
     return "{$ft}'{$in}";
 }
+
+#| A utility sub to convert a valid PostScript file to
+#| using the system progeam 'ps2pdf'.
+sub ps-to-pdf(@ofils, :$psf!, :$pdf!, :$debug) {
+    # produce the pdf
+    # some additional error checking
+    note "DEBUG: psf '$psf' pdf '$pdf'" if 1;
+
+    die "FATAL: Input file '$psf' not found" if !$psf.IO.f;
+    my $cmd  = "ps2pdf";
+    my $args = "$psf $pdf";
+    run $cmd, $args.words;
+    die "FATAL: Output file $pdf not found" if !$pdf.IO.f;
+    @ofils.push: $pdf;
+    unlink $psf unless  $debug;
+}
+

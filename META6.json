@@ -1,4 +1,5 @@
 {
+  "api": "2",
   "auth": "github:tbrowder",
   "author": "github:tbrowder",
   "authors": [
@@ -7,6 +8,7 @@
   "build-depends": [
   ],
   "depends": [
+    "File::Temp",
     "Inline::Perl5",
     "Text::Utils"
   ],

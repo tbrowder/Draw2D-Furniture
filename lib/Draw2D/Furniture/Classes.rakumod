@@ -1,5 +1,62 @@
 unit module Draw2D::Furniture::Classes;
 
+class Project is export {
+    # SET UPON CREATION WARN IF DIFFERENT
+    has $.title    is rw; # normally set upon creation, may have spaces
+    has $.date     is rw; # normally set upon creation
+    has $.basename is rw; # normally set upon creation # cannot have spaces
+
+    # following attribute values cannot have spaces
+    has $.list-name is rw = "furniture-list";     # was $ofilL
+    has $.draw-name is rw = "furniture-drawings"; # was $ofilD
+
+    # following have defaults:
+    has $.in-per-ft is rw = 0.25; # scale
+    has $.units is rw     = 'in-per-ft';
+    has $.scale is rw     = 0.25; # in-per-ft
+
+
+    has @.author is rw;  # multi-valued (one per line)
+    has @.address is rw; # multi-valued (one per line)
+    has @.note  is rw;   # multi-valued (one per line)
+    has @.email is rw;   # multi-valued (one per line)
+    has @.phone is rw;   # multi-valued (one per line)
+    has @.mobile is rw;  # multi-valued (one per line)
+
+    method push($attr-key, $value) {
+        given $attr-key {
+            when $_ eq 'author' { self.author.push: $value }
+            when $_ eq 'address' { self.author.push: $value }
+            when $_ eq 'note' { self.note.push: $value }
+            when $_ eq 'email' { self.email.push: $value }
+            when $_ eq 'phone' { self.phone.push: $value }
+            when $_ eq 'mobile' { self.phone.push: $value }
+        }
+    }
+
+    # output file names:
+    #   basename-[list-name|draw-name].[inp|ps|pdf]
+    method inp {
+        my $nam = self.title;
+        $nam = join '-', $nam.words;
+        $nam ~= '.input';
+    }
+
+    method ps(:$list, :$draw, :$base) {
+        my $nam = self.basename.defined ?? self.basename !! '';
+        $nam ~= '-' if $nam;
+        $nam ~= $list ?? self.list-name !! self.draw-name;
+        $nam ~= '.ps' if not $base;
+    }
+
+    method pdf(:$list, :$draw, :$base) {
+        my $nam = self.basename.defined ?? self.basename !! '';
+        $nam ~= '-' if $nam;
+        $nam ~= $list ?? self.list-name !! self.draw-name;
+        $nam ~= '.pdf' if not $base;
+    }
+}
+
 class Row is export {
     has $.max-height is rw = 0; # PS points
     has @.furniture is rw;
