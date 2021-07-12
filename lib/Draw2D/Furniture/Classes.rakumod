@@ -74,6 +74,7 @@ class Furniture is export {
     # input dimensions are inches
     has $.width     is rw = 0;
     has $.length    is rw = 0;
+    has $.height    is rw = 0;
     has $.diameter  is rw = 0;
     has $.diameter2 is rw = 0; # for ellipses
     has $.radius    is rw = 0;

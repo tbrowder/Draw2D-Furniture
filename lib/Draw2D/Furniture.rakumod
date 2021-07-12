@@ -2,7 +2,6 @@ unit module Draw2D::Furniture;
 
 use PostScript::File:from<Perl5>;
 use Text::Utils :strip-comment, :normalize-string;
-use File::Temp;
 
 use Draw2D::Furniture::Vars;
 use Draw2D::Furniture::Classes;
@@ -136,12 +135,6 @@ sub text-to-ps($txtfil, # the ASCII input text file
     my $p = $project;
     my $psfile = $p.ps(:list); # get the correct name for the project
 
-    =begin comment
-    my $fbase = $p.$ofilL; # file name base, no suffix
-    my $psf   = $$fbase ~ '.ps';
-    my $pdf   = $fbase ~ '.pdf';
-    =end comment
-
     # write the ps file
     # start a doc, add options here
     #   enable clipping but no border
@@ -272,20 +265,7 @@ sub text-to-ps($txtfil, # the ASCII input text file
     }
 
     # close and output the file
-    $ps.output; # writes $psfil
-
-    =begin comment
-    # produce the pdf
-    die "FATAL: File $psf not found" if !$psf.IO.f;
-    my $cmd  = "ps2pdf";
-    my $args = "$psf $pdf";
-    run $cmd, $args.words;
-
-    die "FATAL: File $pdf not found" if !$pdf.IO.f;
-    @ofils.push: $pdf;
-    unlink $txtfil unless $debug;
-    unlink $psf unless $debug;
-    =end comment
+    $ps.output; # writes $psfile
 
     $psfile
 } # end sub text-to-ps
@@ -304,12 +284,10 @@ sub write-list(@rooms,
 
 
     my $p = $project;
--
+
     # write the raw text file
-    # use a system tmp file
     my $nitems = 0;
-    my $tdir = tempdir; # for safety
-    my $txtfil = "$tdir/temp"; # tmp file, destroyed at exit
+    my $txtfil = ".draw2d-ascii";
     my $fh = open $txtfil, :w;
 
     # title, etc.
@@ -344,8 +322,9 @@ sub write-list(@rooms,
     }
     $fh.say: "\nTotal number items: $nitems";
     $fh.close;
+    @ofils.push: $txtfil;
 
-    # we now have a text file to convert to ps 
+    # we now have a text file to convert to ps
     my $psf = text-to-ps $txtfil, :project($p), :$debug;
 
     # convert ps to pdf
@@ -357,36 +336,130 @@ sub write-list(@rooms,
 #| Given a specially formatted text file, read the file and convert
 #| the data into a list of Room objects and their Furniture object
 #| children.
-#sub read-data-file($ifil, @rooms, Project :$p!, :$debug) is export {
+my token codes { '[' <[A..Za..z\h]>+ ']' }
+my token key { \w+ ['-'? \w+ ]? ':' }
 my token sign { <[+-]> }
-my token int  { \d+ }
-my regex number {
+my token decimal  { \d+ }
+my regex number { :r
     <sign>?
-    <int>
-    [ '.' <int> ]?
+    [
+      | <decimal>
+      | <decimal> '.' <decimal>
+    ]
 }
 
-sub read-data-file($ifil, Project :$project!, :$debug --> List) is export {
+sub read-data-file($ifil,
+                   Project :$project!,
+                   :$debug
+                   --> List
+                  ) is export {
     my $p = $project;
 
     my @rooms;
 
     my $curr-room = 0;
     my $rnum = 0;
-    my $lnum = 0;
     my $fnum = 0;
 
+    my $i = 0;
+    my @lines;
+    # fold lines with backslashes before processing
+    my @flines;
+
+    for $ifil.IO.lines -> $line is copy {
+        ++$i;
+        # lines with an ending slash are combined with following lines
+        # until the first unslashed one
+        # note embedded slashes are IGNORED in the combining
+        note "== line $i" if $debug;
+        $line = strip-comment $line;
+        $line = ' ' if not $line; # IMPORTANT FOR THE REST OF THIS LOOP
+
+        my $has-ending-slash = 0;
+        if $line ~~ /'\\' \h* $/ {
+            ++$has-ending-slash;
+            note "backslash on end of line '$line'" if $debug;
+            $line ~~ s/'\\' \h* $//;
+            note "  after removal: '$line'" if $debug;
+            # stash in @flines
+            @flines.push: $line;
+            next;
+
+            =begin comment
+            my $idx = $line.index: '\\';
+            #while $idx.defined and $line {
+            while $idx.defined {
+                my $first = " ";
+                $first ~= $line.substr(0, $idx);
+                @flines.push: $first;
+                $line  = $line.substr: $idx+1;
+                $idx = $line.index: '\\';
+            }
+            # combine the folded lines
+            $line = join " ", @flines;
+            =end comment
+           
+        }
+
+        # combine the line with any parent lines
+        if @flines.elems {
+            my $p = join " ", @flines;
+            $line = $p ~ " " ~ $line;
+            @flines = [];
+        }
+
+        @lines.push($line) if $line;
+    }
+
+#    if 0 {
+#        # all this works, just need to take care and add a space for empty (blank) lines
+#        my @tlines;
+#        my $i = 0;
+#        for $ifil.IO.lines -> $line is copy {
+#            ++$i;
+#            my $has-slash = 0;
+#            note "== line $i";
+#            $line = strip-comment $line;
+#            $line = ' ' if not $line; # IMPORTANT FOR THE REST OF THIS LOOP
+#            if $line ~~ /'\\' \h* $/ {
+#                note "backslash on end of line '$line'";
+#                $line ~~ s/'\\' \h* $//;
+#                note "  after removal: '$line'";
+#            }
+#            elsif $line ~~ /'\\'/ {
+#                note "embedded backslash on line '$line'";
+#                $line ~~ s/'\\'//;
+#                note "  after removal: '$line'";
+#            }
+#            @tlines.push: $line;
+#            next;
+#
+#            my @c = $line.comb;
+#            my $c = @c.tail;
+#            if $c.ord == 92 {
+#                ; #$c = 'backslash';
+#                ++$has-slash;
+#            }
+#            note "last char is |$c|";
+#            $line ~~ s/'\\'//;
+#            $line = @c.join: '|';
+#            @tlines.push: $line;
+#            next;
+#        }
+#        note "$_" for @tlines;
+#        note "DEBUG exit after dumping input file '$ifil'"; exit;
+#    }
+
     my $lineno = 0;
-    LINE: for $ifil.IO.lines -> $line is copy {
+    LINE: for @lines -> $line is copy {
         ++$lineno;
         note "DEBUG line $lineno" if $debug;
         note "DEBUG line: '$line'" if $debug;
-        $line = strip-comment $line;
         next LINE if $line !~~ /\S/;
         next LINE if $line ~~ /^ \s* '='+ \s* $/;
         say "DEBUG2 line: '$line'" if $debug;
 
-        if $line ~~ /^ \s* room ':' \s* (.*) \s* $/ {
+        if $line ~~ /^ \h* room ':' \h* (.*) \h* $/ {
             # a new room
             ++$rnum;
             my $title = normalize-string ~$0;
@@ -402,34 +475,34 @@ sub read-data-file($ifil, Project :$project!, :$debug --> List) is export {
         #=== BEGIN HEADER INFO COLLECTION ===#
         #    ERROR IF ALREADY READING ROOM INFO
         # these three attributes were set at creation, warn if changed
-        if $line ~~ /^ \s* 'title:' \s* (.*) \s* $/ {
+        if $line ~~ /^ \s* title ':' \s* (.*) \s* $/ {
             die "FATAL: header info '{~$0}' not allowed after room info has begun" if $curr-room;
             my $txt = normalize-string ~$0;
             if $p.title ne $txt {
                 note qq:to/HERE/
-                note "WARNING: title $txt has changed since project was created
+                WARNING: title $txt has changed since project was created
                 HERE
             }
             $p.title = $txt;
             next LINE;
         }
-        if $line ~~ /^ \s* 'date:' \s* (.*) $/ {
+        if $line ~~ /^ \s* date ':' \s* (.*) $/ {
             die "FATAL: header info '{~$0}' not allowed after room info has begun" if $curr-room;
             my $txt = normalize-string ~$0;
             if $p.date ne $txt {
                 note qq:to/HERE/
-                note "WARNING: date $txt has changed since project was created
+                WARNING: date $txt has changed since project was created
                 HERE
             }
             $p.date = $txt;
             next LINE;
         }
-        if $line ~~ /^ \s* 'basename:' \s* (.*) $/ {
+        if $line ~~ /^ \s* basename ':' \s* (.*) $/ {
             die "FATAL: header info '{~$0}' not allowed after room info has begun" if $curr-room;
             my $txt = normalize-string ~$0;
-            if $p.basename ne $txt {
+            if (not $p.basename.defined) or ($p.basename ne $txt) {
                 note qq:to/HERE/
-                note "WARNING: basename $txt has changed since project was created
+                WARNING: basename $txt has changed since project was created
                 HERE
             }
             $p.basename = $txt;
@@ -443,17 +516,17 @@ sub read-data-file($ifil, Project :$project!, :$debug --> List) is export {
         #   email
         #   mobile
         #   note
-        if $line ~~ /^ \s* 
+        if $line ~~ /^ \s*
             (
-              | author
-              | address\d*
-              | phone
-              | mobile
-              | email
-              | note
+              || author
+              || address\d*
+              || phone
+              || mobile
+              || email
+              || note
             )
             ':'
-            (.*) 
+            (.*)
             $/ {
 
             die "FATAL: header info '{~$0}' not allowed after room info has begun" if $curr-room;
@@ -463,7 +536,7 @@ sub read-data-file($ifil, Project :$project!, :$debug --> List) is export {
             next LINE;
         }
 
-        if $line ~~ /^ \s* 'scale:' \s* (\S*) \s* $/ {
+        if $line ~~ /^ \s* scale ':' \s* (\S*) \s* $/ {
             die "FATAL: header info '{~$0}' not allowed after room info has begun" if $curr-room;
             #$p.in-per-ft = +$0;
             $p.scale = +$0;
@@ -502,92 +575,166 @@ sub read-data-file($ifil, Project :$project!, :$debug --> List) is export {
         #     furn-parse $line, :furn-actions($furn);
         #
         #   It should replace all this code:
-        my $furn = Furniture.new: :scale($p.scale), # in-per-ft), 
+        my $furn = Furniture.new: :scale($p.scale), # in-per-ft),
                       :number("{$rnum}.{$fnum}");
         my ($wid, $len, $dia, $rad, $hgt);
 
         #   AND it should replace all this code:
-        if $line ~~ /^(.*) 
-                      [
-                         <|w> (\d+) \s+ 'x' \s+ (\d+)
-                      ] 
-                      \s* 
-                    $/ {
-            # a rectangular object
-            my $s = "rectangular object";
-            note "DEBUG: line $lineno item '$s'" if 1; 
 
-            $furn.title = normalize-string(~$0);
-            $wid  = +$1;
-            $len  = +$2; # horizontal on the portrait page, it will be
-                         # forced to be the longest dimen
-            if $len < $wid {
-                ($wid, $len) = ($len, $wid);
-            }
-            $furn.width  = $wid;
-            $furn.length = $len;
-            $furn.dims   = "$wid\" x $len\"";
-
-            my $ww = in2ft $wid;
-            my $ll = in2ft $len;
-            $furn.dims2  = "{$ww}x{$ll}";
-        }
-        elsif $line ~~ /^(.*) 
+        # ELLIPSE W/ MAJOR x MINOR AXES
+        if $line ~~ / # first collect dimensional and object type at the end of the string
                          [
-                           <|w> (\d+) \s+ 'd'
-                         ] 
-                         \s* 
+                            || \h+ (<number>) \h+ 'e' \h+ (<number>) \h+ 'x' \h+ (<number>)
+                            || \h+ (<number>) \h+ 'e' \h+ (<number>)
+                         ]
+                         \h*
                        $/ {
-            my $s = "circular object with dia";
-            note "DEBUG: line $lineno item '$s'" if 1; 
-
-            $furn.title    = normalize-string(~$0);
-            $furn.diameter = +$1;
-            $furn.dims     = "{$furn.diameter}\" diameter";
-            $furn.radius   = 0.5 * $furn.diameter;
-            my $ww = in2ft $furn.diameter;
-            $furn.dims2  = "{$ww}";
-        }
-        elsif $line ~~ /^(.*) 
-                         [
-                           <|w> (\d+) \s+ 'r'
-                         ] 
-                         \s* 
-                       $/ {
-            my $s = "circular object with radius";
-            note "DEBUG: line $lineno item '$s'" if 1; 
-
-            $furn.title = normalize-string(~$0);
-            $furn.radius = +$1;
-            $furn.dims = "{$furn.radius}\" radius";
-            my $ww = in2ft 2 * $furn.radius;
-            $furn.dims2  = "{$ww}";
-        }
-        elsif $line ~~ /^(.*) 
-                         [
-                           <|w> (\d+) \s+ 'e' \s+ (\d+)
-                         ] 
-                         \s* 
-                       $/ {
+            # 1. an elliptical object
             my $s = "elliptical object";
-            note "DEBUG: line $lineno item '$s'" if 1; 
+            note "DEBUG: line $lineno item '$s'" if 1;
 
-            $furn.title = normalize-string(~$0);
-            $wid  = +$1;
-            $len  = +$2; # horizontal on the portrait page, it will be
+            # save the starting position of the match to save the leading part of the
+            # line for later parsing
+            my $idx = $/.from;
+            my $leading = $line.substr(0, $idx);
+
+            # collect the data in the current match
+
+            #$furn.title = normalize-string(~$0);
+            $wid  = +$0;
+            $len  = +$1; # horizontal on the portrait page, it will be
                          # forced to be the longest dimen
+            $hgt  = $2.defined ?? +$2 !! '';
+            $furn.height   = $hgt;
+
             if $len < $wid {
                 ($wid, $len) = ($len, $wid);
             }
             $furn.width     = $wid;
             $furn.length    = $len;
             $furn.dims      = "$wid\" x $len\"";
+            $furn.dims   = $hgt ?? "$wid\" x $len\" x $hgt\""
+                                !! "$wid\" x $len\"";
+
             $furn.diameter  = $wid;
             $furn.diameter2 = $len;
 
             my $ww = in2ft $wid;
             my $ll = in2ft $len;
             $furn.dims2  = "{$ww}x{$ll}";
+
+            # now parse the leading part of the line
+            my ($id, $codes, $desc) = parse-leading $leading, :$debug;
+            note "  captures => |$id| |$codes| |$desc| |$wid| |$len| |h: $hgt|" if 1;
+        }
+        # CIRCLE W/ DIAMETER
+        elsif $line ~~ / # first collect dimensional and object type at the end of the string
+                         [
+                            || \h+ (<number>) \h+ 'd' \h+ 'x' \h+ (<number>)
+                            || \h+ (<number>) \h+ 'd'
+                         ]
+                         \h*
+                       $/ {
+            # 2. a circular object with diam
+            my $s = "circular object with diam";
+            note "DEBUG: line $lineno item '$s'" if 1;
+
+            # save the starting position of the match to save the leading part of the
+            # line for later parsing
+            my $idx = $/.from;
+            my $leading = $line.substr(0, $idx);
+
+            # collect the data in the current match
+            #$furn.title    = normalize-string(~$0);
+            $furn.diameter = +$0;
+            $hgt  = $1.defined ?? +$1 !! '';
+            $furn.height   = $hgt;
+
+
+            $furn.dims     = $hgt ?? "{$furn.diameter}\" diameter x {$furn.height}\" height"
+                                  !! "{$furn.diameter}\" diameter";
+
+
+            $furn.radius   = 0.5 * $furn.diameter;
+            my $ww = in2ft $furn.diameter;
+            $furn.dims2  = "{$ww}";
+
+            # now parse the leading part of the line
+            my ($id, $codes, $desc) = parse-leading $leading, :$debug;
+            note "  captures => |$id| |$codes| |$desc| |{$furn.diameter}| |h: $hgt|" if 1;
+        }
+        # CIRCLE W/ RADIUS
+        elsif $line ~~ / # first collect dimensional and object type at the end of the string
+                         [
+                            || \h+ (<number>) \h+ 'r' \h+ 'x' \h+ (<number>)
+                            || \h+ (<number>) \h+ 'r'
+                         ]
+                         \h*
+                       $/ {
+            # 3. a circular object with radius
+            my $s = "circular object with radius";
+            note "DEBUG: line $lineno item '$s'" if 1;
+
+            # save the starting position of the match to save the leading part of the
+            # line for later parsing
+            my $idx = $/.from;
+            my $leading = $line.substr(0, $idx);
+
+            # collect the data in the current match
+
+            #$furn.title = normalize-string(~$0);
+            $furn.radius = +$0;
+            $hgt  = $1.defined ?? +$1 !! '';
+            $furn.height   = $hgt;
+
+            $furn.dims     = $hgt ?? "{$furn.radius}\" radius x {$furn.height}\" height"
+                                  !! "{$furn.radius}\" radius";
+            my $ww = in2ft 2 * $furn.radius;
+            $furn.dims2  = "{$ww}";
+
+            # now parse the leading part of the line
+            my ($id, $codes, $desc) = parse-leading $leading, :$debug;
+            note "  captures => |$id| |$codes| |$desc| |{$furn.radius}| |h: $hgt|" if 1;
+        }
+        # RECTANGLE
+        elsif $line ~~ / # first collect dimensional and object type at the end of the string
+                      [
+                         || \h+ (<number>) \h+ 'x' \h+ (<number>) \h+ 'x' \h+ (<number>)
+                         || \h+ (<number>) \h+ 'x' \h+ (<number>)
+                      ]
+                      \h*
+                    $/ {
+            # 4. a rectangular object
+            my $s = "rectangular object";
+            note "DEBUG: line $lineno item '$s'" if 1;
+
+            # save the starting position of the match to save the leading part of the
+            # line for later parsing
+            my $idx = $/.from;
+            my $leading = $line.substr(0, $idx);
+
+            # collect the data in the current match
+            $wid  = +$0;
+            $len  = +$1; # horizontal on the portrait page, it will be
+                         # forced to be the longest dimen
+            $hgt  = $2.defined ?? +$2 !! '';
+
+            if $len < $wid {
+                ($wid, $len) = ($len, $wid);
+            }
+            $furn.width  = $wid;
+            $furn.length = $len;
+            $furn.height = $hgt;
+            $furn.dims   = $hgt ?? "$wid\" x $len\" x $hgt\""
+                                !! "$wid\" x $len\"";
+
+            my $ww = in2ft $wid;
+            my $ll = in2ft $len;
+            $furn.dims2  = "{$ww}x{$ll}";
+
+            # now parse the leading part of the line
+            my ($id, $codes, $desc) = parse-leading $leading, :$debug;
+            note "  captures => |$id| |$codes| |$desc| |$wid| |$len| |h: $hgt|" if 1;
         }
         else {
             say "FATAL on line $lineno: '$line'";
@@ -662,9 +809,17 @@ sub make-rows(@rows,   # should be empty
 #| quote followed by the inches with an implied double quote following
 #| it.
 sub in2ft($In) {
-    # given inches, convert to a
-    my $ft = $In div 12;
-    my $in = $In mod 12;
+    # given inches, convert to a string repr
+    my ($ft, $in);
+    if $In ~~ Int {
+        $ft = $In div 12;
+        $in = $In mod 12;
+    }
+    elsif $In ~~ Num|Rat {
+        $ft = $In / 12;
+        $in = $In % 12;
+    }
+
     return "{$ft}'{$in}";
 }
 
@@ -684,3 +839,47 @@ sub ps-to-pdf(@ofils, :$psf!, :$pdf!, :$debug) {
     unlink $psf unless  $debug;
 }
 
+sub parse-leading($s, :$debug --> List) {
+    # now parse the leading part of the line
+    #   my ($id, $codes, $desc) = parse-leading $leading, :$debug;
+    #
+    # example leading input lines:
+    #   <number>? <codes>? name rest of description
+    my $id    = "";
+    my $codes = "";
+    my $desc  = $s;
+
+    my @w = $s.words;
+    $id = @w.shift;
+    $desc = join " ", @w;
+    if $id !~~ /<number>/ {
+        die "FATAL: This furniture line ($s) has no leading ID number";
+    }
+
+
+    if $desc ~~ /^
+                \h* 
+                [
+                  || (<codes>)  \h+ (\N*) 
+                  || (\N*)
+                ]
+                \h*
+                $/ {
+        if $0.defined and $1.defined {
+            $codes = ~$0;
+            $desc  = ~$1;
+
+        }
+        elsif $0.defined {
+            $desc  = ~$0;
+        }
+        else {
+            note "WARNING: This furniture line ($s) has unknown format";
+        }
+    }
+    else {
+        note "WARNING: no parse for line: |$s|";
+    }
+
+    $id, $codes, $desc
+}

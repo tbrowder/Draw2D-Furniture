@@ -6,7 +6,7 @@ use Draw2D::Furniture::Classes;
 my $ifil = '';
 if !@*ARGS {
     say qq:to/HERE/;
-    Usage: {$*PROGRAM.basename} <formatted input file> [scale=X][debug]
+    Usage: {$*PROGRAM.basename} <formatted input file> [scale=X][list|draw][debug]
 
     (Note: If the first argument is other than a readable file in the proper
     format, the user will be prompted for required inputs to 
@@ -30,13 +30,17 @@ if !@*ARGS {
     exit;
 }
 
+my $draw    = 1;
+my $list    = 1;
 my $debug   = 0;
 my $squeeze = 0; # shows data in the upper left corner of images
 my $cli-scale; # ($in-per-ft) a hack for on-the-fly scale changes (only for that run)
 for @*ARGS {
-    when /^ g/ { ;  }
-    when /^ d/ { $debug   = 1 }
-    when /^ s/ { $squeeze = 1 }
+    when /^ g/  { ;  }
+    when /^ l/  { $list=1; $draw=0 }
+    when /^ de/ { $debug   = 1 }
+    when /^ d/  { $draw=1; $list=0 }
+    when /^ s/  { $squeeze = 1 }
     when /^ 'scale=' (\S+) / {
          #$in-per-ft = +$0; # default is 0.25
          $cli-scale = +$0; # default is 0.25
@@ -96,9 +100,9 @@ my @ofils; # list of output files generated
 my @rooms; # list of room objects containing furniture objects
 @rooms = read-data-file $ifil, :project($p), :$debug;
 
-write-list @rooms, @ofils, :project($p), :$debug;
+write-list(@rooms, @ofils, :project($p), :$debug) if $list;
 
-write-drawings @rooms, @ofils, :project($p), :$squeeze, :$debug;
+write-drawings(@rooms, @ofils, :project($p), :$squeeze, :$debug) if $draw;
 
 say "Normal end.";
 my $n = +@ofils;
