@@ -558,7 +558,7 @@ sub read-data-file($ifil,
                        $/ {
             # 1. an elliptical object
             my $s = "elliptical object";
-            note "DEBUG: line $lineno item '$s'" if 1;
+            note "DEBUG: line $lineno item '$s'" if $debug;
 
             # save the starting position of the match to save the leading part of the
             # line for later parsing
@@ -592,7 +592,7 @@ sub read-data-file($ifil,
 
             # now parse the leading part of the line
             my ($id, $codes, $desc) = parse-leading $leading, :$ids, :$debug;
-            note "  captures => |$id| |$codes| |$desc| |$wid| |$len| |h: $hgt|" if 1;
+            note "  captures => |$id| |$codes| |$desc| |$wid| |$len| |h: $hgt|" if $debug;
             $furn.id    = $id;
             $furn.desc  = $id;
             $furn.codes = $codes;
@@ -607,7 +607,7 @@ sub read-data-file($ifil,
                        $/ {
             # 2. a circular object with diam
             my $s = "circular object with diam";
-            note "DEBUG: line $lineno item '$s'" if 1;
+            note "DEBUG: line $lineno item '$s'" if $debug;
 
             # save the starting position of the match to save the leading part of the
             # line for later parsing
@@ -631,7 +631,7 @@ sub read-data-file($ifil,
 
             # now parse the leading part of the line
             my ($id, $codes, $desc) = parse-leading $leading, :$ids, :$debug;
-            note "  captures => |$id| |$codes| |$desc| |{$furn.diameter}| |h: $hgt|" if 1;
+            note "  captures => |$id| |$codes| |$desc| |{$furn.diameter}| |h: $hgt|" if $debug;
             $furn.id    = $id;
             $furn.desc  = $id;
             $furn.codes = $codes;
@@ -646,7 +646,7 @@ sub read-data-file($ifil,
                        $/ {
             # 3. a circular object with radius
             my $s = "circular object with radius";
-            note "DEBUG: line $lineno item '$s'" if 1;
+            note "DEBUG: line $lineno item '$s'" if $debug;
 
             # save the starting position of the match to save the leading part of the
             # line for later parsing
@@ -667,7 +667,7 @@ sub read-data-file($ifil,
 
             # now parse the leading part of the line
             my ($id, $codes, $desc) = parse-leading $leading, :$ids, :$debug;
-            note "  captures => |$id| |$codes| |$desc| |{$furn.radius}| |h: $hgt|" if 1;
+            note "  captures => |$id| |$codes| |$desc| |{$furn.radius}| |h: $hgt|" if $debug;
             $furn.id    = $id;
             $furn.desc  = $id;
             $furn.codes = $codes;
@@ -682,7 +682,7 @@ sub read-data-file($ifil,
                     $/ {
             # 4. a rectangular object
             my $s = "rectangular object";
-            note "DEBUG: line $lineno item '$s'" if 1;
+            note "DEBUG: line $lineno item '$s'" if $debug;
 
             # save the starting position of the match to save the leading part of the
             # line for later parsing
@@ -710,7 +710,7 @@ sub read-data-file($ifil,
 
             # now parse the leading part of the line
             my ($id, $codes, $desc) = parse-leading $leading, :$ids, :$debug;
-            note "  captures => |$id| |$codes| |$desc| |$wid| |$len| |h: $hgt|" if 1;
+            note "  captures => |$id| |$codes| |$desc| |$wid| |$len| |h: $hgt|" if $debug;
             $furn.id    = $id;
             $furn.desc  = $id;
             $furn.codes = $codes;
@@ -807,7 +807,7 @@ sub in2ft($In) {
 sub ps-to-pdf(@ofils, :$psf!, :$pdf!, :$debug) {
     # produce the pdf
     # some additional error checking
-    note "DEBUG: psf '$psf' pdf '$pdf'" if 1;
+    note "DEBUG: psf '$psf' pdf '$pdf'" if $debug;
 
     die "FATAL: Input file '$psf' not found" if !$psf.IO.f;
     my $cmd  = "ps2pdf";
