@@ -6,7 +6,8 @@ use Text::Utils :strip-comment, :normalize-string;
 use Draw2D::Furniture::Vars;
 use Draw2D::Furniture::Classes;
 
-constant SPACE = Q| |; # space for text
+constant SPACE  = Q| |;  # space for text
+constant BSLASH = Q|\\|; # backslash for text
 
 sub create-master-file(Project $p) is export {
     note "Tom, fix sub create-master-file";
@@ -352,6 +353,7 @@ my regex number { :r
 
 sub read-data-file($ifil,
                    Project :$project!,
+                   :$ids!,
                    :$debug
                    --> List
                   ) is export {
@@ -365,6 +367,7 @@ sub read-data-file($ifil,
 
     my $i = 0;
     my @lines;
+
     # fold lines with backslashes before processing
     my @flines;
 
@@ -400,7 +403,7 @@ sub read-data-file($ifil,
             # combine the folded lines
             $line = join SPACE, @flines;
             =end comment
-           
+
         }
 
         # combine the line with any parent lines
@@ -412,45 +415,6 @@ sub read-data-file($ifil,
 
         @lines.push($line) if $line;
     }
-
-#    if 0 {
-#        # all this works, just need to take care and add a space for empty (blank) lines
-#        my @tlines;
-#        my $i = 0;
-#        for $ifil.IO.lines -> $line is copy {
-#            ++$i;
-#            my $has-slash = 0;
-#            note "== line $i";
-#            $line = strip-comment $line;
-#            $line = ' ' if not $line; # IMPORTANT FOR THE REST OF THIS LOOP
-#            if $line ~~ /'\\' \h* $/ {
-#                note "backslash on end of line '$line'";
-#                $line ~~ s/'\\' \h* $//;
-#                note "  after removal: '$line'";
-#            }
-#            elsif $line ~~ /'\\'/ {
-#                note "embedded backslash on line '$line'";
-#                $line ~~ s/'\\'//;
-#                note "  after removal: '$line'";
-#            }
-#            @tlines.push: $line;
-#            next;
-#
-#            my @c = $line.comb;
-#            my $c = @c.tail;
-#            if $c.ord == 92 {
-#                ; #$c = 'backslash';
-#                ++$has-slash;
-#            }
-#            note "last char is |$c|";
-#            $line ~~ s/'\\'//;
-#            $line = @c.join: '|';
-#            @tlines.push: $line;
-#            next;
-#        }
-#        note "$_" for @tlines;
-#        note "DEBUG exit after dumping input file '$ifil'"; exit;
-#    }
 
     my $lineno = 0;
     LINE: for @lines -> $line is copy {
@@ -568,6 +532,7 @@ sub read-data-file($ifil,
         # it really must be a piece of furniture!
         ++$fnum;
 
+        #== FURNITURE LINES ========================
         # its display number will be: {$rnum}.{$fnum}
 
         # TODO create a grammar for a furniture line
@@ -626,8 +591,11 @@ sub read-data-file($ifil,
             $furn.dims2  = "{$ww}x{$ll}";
 
             # now parse the leading part of the line
-            my ($id, $codes, $desc) = parse-leading $leading, :$debug;
+            my ($id, $codes, $desc) = parse-leading $leading, :$ids, :$debug;
             note "  captures => |$id| |$codes| |$desc| |$wid| |$len| |h: $hgt|" if 1;
+            $furn.id    = $id;
+            $furn.desc  = $id;
+            $furn.codes = $codes;
         }
         # CIRCLE W/ DIAMETER
         elsif $line ~~ / # first collect dimensional and object type at the end of the string
@@ -662,8 +630,11 @@ sub read-data-file($ifil,
             $furn.dims2  = "{$ww}";
 
             # now parse the leading part of the line
-            my ($id, $codes, $desc) = parse-leading $leading, :$debug;
+            my ($id, $codes, $desc) = parse-leading $leading, :$ids, :$debug;
             note "  captures => |$id| |$codes| |$desc| |{$furn.diameter}| |h: $hgt|" if 1;
+            $furn.id    = $id;
+            $furn.desc  = $id;
+            $furn.codes = $codes;
         }
         # CIRCLE W/ RADIUS
         elsif $line ~~ / # first collect dimensional and object type at the end of the string
@@ -695,8 +666,11 @@ sub read-data-file($ifil,
             $furn.dims2  = "{$ww}";
 
             # now parse the leading part of the line
-            my ($id, $codes, $desc) = parse-leading $leading, :$debug;
+            my ($id, $codes, $desc) = parse-leading $leading, :$ids, :$debug;
             note "  captures => |$id| |$codes| |$desc| |{$furn.radius}| |h: $hgt|" if 1;
+            $furn.id    = $id;
+            $furn.desc  = $id;
+            $furn.codes = $codes;
         }
         # RECTANGLE
         elsif $line ~~ / # first collect dimensional and object type at the end of the string
@@ -735,8 +709,11 @@ sub read-data-file($ifil,
             $furn.dims2  = "{$ww}x{$ll}";
 
             # now parse the leading part of the line
-            my ($id, $codes, $desc) = parse-leading $leading, :$debug;
+            my ($id, $codes, $desc) = parse-leading $leading, :$ids, :$debug;
             note "  captures => |$id| |$codes| |$desc| |$wid| |$len| |h: $hgt|" if 1;
+            $furn.id    = $id;
+            $furn.desc  = $id;
+            $furn.codes = $codes;
         }
         else {
             say "FATAL on line $lineno: '$line'";
@@ -841,7 +818,7 @@ sub ps-to-pdf(@ofils, :$psf!, :$pdf!, :$debug) {
     unlink $psf unless  $debug;
 }
 
-sub parse-leading($s, :$debug --> List) {
+sub parse-leading($s, :$ids!, :$debug --> List) {
     # now parse the leading part of the line
     #   my ($id, $codes, $desc) = parse-leading $leading, :$debug;
     #
@@ -854,15 +831,14 @@ sub parse-leading($s, :$debug --> List) {
     my @w = $s.words;
     $id = @w.shift;
     $desc = join SPACE, @w;
-    if $id !~~ /<number>/ {
+    if $ids and $id !~~ /<number>/ {
         die "FATAL: This furniture line ($s) has no leading ID number";
     }
 
-
     if $desc ~~ /^
-                \h* 
+                \h*
                 [
-                  || (<codes>)  \h+ (\N*) 
+                  || (<codes>)  \h+ (\N*)
                   || (\N*)
                 ]
                 \h*

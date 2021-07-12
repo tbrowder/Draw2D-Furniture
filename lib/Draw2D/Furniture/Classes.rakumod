@@ -23,6 +23,9 @@ class Project is export {
     has @.phone is rw;   # multi-valued (one per line)
     has @.mobile is rw;  # multi-valued (one per line)
 
+    has %.id;    # unique furniture id numbers
+    has %.codes; # all known codes to sort furniture lists by
+
     method push($attr-key, $value) {
         given $attr-key {
             when $_ eq 'author' { self.author.push: $value }
@@ -87,9 +90,15 @@ class Furniture is export {
     has $.h is rw;
     has $.sf is rw; # scale factor
 
+    # new attrs in api 2
+    has $.id    is rw;
+    has $.codes is rw;
+    has $.desc  is rw;
+
     method init() {
         # must have required inputs
         die "FATAL: incomplete inputs" if !($.width || $.radius || $.diameter2);
+        die "FATAL: incomplete inputs" if !($.id || $.codes || $.desc);
         $.sf = 72 / (12 / $.scale);
         if $.radius {
             # apply scale

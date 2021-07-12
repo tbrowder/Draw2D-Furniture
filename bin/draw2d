@@ -6,10 +6,13 @@ use Draw2D::Furniture::Classes;
 my $ifil = '';
 if !@*ARGS {
     say qq:to/HERE/;
-    Usage: {$*PROGRAM.basename} <formatted input file> [scale=X][list|draw][debug]
+    Usage: {$*PROGRAM.basename} <formatted input file>
+                OR
+                                <formatted input file>
+                                  [id][scale=X][list|draw][debug]
 
     (Note: If the first argument is other than a readable file in the proper
-    format, the user will be prompted for required inputs to 
+    format, the user will be prompted for required inputs to
     produce such a file.)
 
     The optional scale is a number representing page inches per
@@ -20,19 +23,19 @@ if !@*ARGS {
 
       1. A pdf document listing rooms and furniture
 
-      2. A pdf file with furniture numbers and other
-         data (which may overflow) for cutting out. Items are
-         scaled 1/4\" to the foot to match typical house blueprints.
-         A different scale may be entered into the formatted
-         input file (NYI).
+      2. An optional pdf file with furniture numbers and other data
+         (which may overflow) for cutting out. Items are scaled 1/4\"
+         to the foot to match typical house blueprints.  A different
+         scale may be entered into the formatted input file (NYI).
     HERE
 
     exit;
 }
 
-my $draw    = 1;
+my $draw    = 0;
 my $list    = 1;
 my $debug   = 0;
+my $ids     = 0; # mandatory IDs if true
 my $squeeze = 0; # shows data in the upper left corner of images
 my $cli-scale; # ($in-per-ft) a hack for on-the-fly scale changes (only for that run)
 for @*ARGS {
@@ -45,11 +48,12 @@ for @*ARGS {
          #$in-per-ft = +$0; # default is 0.25
          $cli-scale = +$0; # default is 0.25
     }
+    when /^i / { $ids  = 1 }
     default { $ifil = $_ }
 }
 
 if !$ifil.IO.f {
-    # we step the user through aborting or creating 
+    # we step the user through aborting or creating
     # a formatted file for further use
     say "You have not entered a readable file name.";
     my $resp = prompt "Do you want to create a file for entering furniture data? (Y/n) => ";
@@ -81,7 +85,7 @@ if !$ifil.IO.f {
     }
 
     create-master-file $p;
-    
+
     print qq:to/HERE/;
     See your master file for further inputs: '{$p.inp}'
     You may change header values in the file (including the default scale) if you wish.
@@ -98,7 +102,7 @@ if $cli-scale.defined {
 
 my @ofils; # list of output files generated
 my @rooms; # list of room objects containing furniture objects
-@rooms = read-data-file $ifil, :project($p), :$debug;
+@rooms = read-data-file $ifil, :project($p), :$ids, :$debug;
 
 write-list(@rooms, @ofils, :project($p), :$debug) if $list;
 
