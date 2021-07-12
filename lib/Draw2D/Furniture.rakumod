@@ -295,13 +295,13 @@ sub write-list(@rooms,
 
     # title, etc.
     if $p.title {
-        $fh.say: "Title: $p.title";
+        $fh.say: "Title: {$p.title}";
     }
     if $p.author {
-        $fh.say: "Author: $p.author";
+        $fh.say: "Author: {$p.author}";
     }
     if $p.date {
-        $fh.say: "Date: $p.date";
+        $fh.say: "Date: {$p.date}";
     }
 
     if $p.address {
@@ -442,9 +442,10 @@ sub read-data-file($ifil,
         #    ERROR IF ALREADY READING ROOM INFO
         # these three attributes were set at creation, warn if changed
         if $line ~~ /^ \s* title ':' \s* (.*) \s* $/ {
-            die "FATAL: header info '{~$0}' not allowed after room info has begun" if $curr-room;
             my $txt = normalize-string ~$0;
-            if $p.title ne $txt {
+            note "DEBUG: txt: '$txt'" if $debug;
+            die "FATAL: header info '$txt' not allowed after room info has begun" if $curr-room;
+            if $p.title and $p.title ne $txt {
                 note qq:to/HERE/
                 WARNING: title $txt has changed since project was created
                 HERE
@@ -453,9 +454,9 @@ sub read-data-file($ifil,
             next LINE;
         }
         if $line ~~ /^ \s* date ':' \s* (.*) $/ {
-            die "FATAL: header info '{~$0}' not allowed after room info has begun" if $curr-room;
             my $txt = normalize-string ~$0;
-            if $p.date ne $txt {
+            die "FATAL: header info '$txt' not allowed after room info has begun" if $curr-room;
+            if $p.date and $p.date ne $txt {
                 note qq:to/HERE/
                 WARNING: date $txt has changed since project was created
                 HERE
