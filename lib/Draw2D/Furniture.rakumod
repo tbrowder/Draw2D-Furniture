@@ -6,6 +6,8 @@ use Text::Utils :strip-comment, :normalize-string;
 use Draw2D::Furniture::Vars;
 use Draw2D::Furniture::Classes;
 
+constant SPACE = Q| |; # space for text
+
 sub create-master-file(Project $p) is export {
     note "Tom, fix sub create-master-file";
 }
@@ -389,22 +391,22 @@ sub read-data-file($ifil,
             my $idx = $line.index: '\\';
             #while $idx.defined and $line {
             while $idx.defined {
-                my $first = " ";
+                my $first = SPACE;
                 $first ~= $line.substr(0, $idx);
                 @flines.push: $first;
                 $line  = $line.substr: $idx+1;
                 $idx = $line.index: '\\';
             }
             # combine the folded lines
-            $line = join " ", @flines;
+            $line = join SPACE, @flines;
             =end comment
            
         }
 
         # combine the line with any parent lines
         if @flines.elems {
-            my $p = join " ", @flines;
-            $line = $p ~ " " ~ $line;
+            my $p = join SPACE, @flines;
+            $line = $p ~ SPACE ~ $line;
             @flines = [];
         }
 
@@ -851,7 +853,7 @@ sub parse-leading($s, :$debug --> List) {
 
     my @w = $s.words;
     $id = @w.shift;
-    $desc = join " ", @w;
+    $desc = join SPACE, @w;
     if $id !~~ /<number>/ {
         die "FATAL: This furniture line ($s) has no leading ID number";
     }
