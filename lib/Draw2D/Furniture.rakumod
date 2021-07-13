@@ -304,6 +304,10 @@ sub write-list(@rooms,
         $fh.say("Address: $_") for $p.address;
     }
 
+    if $p.phone {
+        $fh.say("Phone: $_") for $p.phone;
+    }
+
     $fh.say();
 
     for @rooms -> $r {
@@ -320,7 +324,7 @@ sub write-list(@rooms,
             my $id    = $f.id // "";
             my $codes = $f.codes2str: :keys; # output "a bb .."
 $codes = "" if not $codes; # tmp hack
-            $fh.say: "      $num [$id] [$codes] {$f.title} [{$f.dims}]";
+            $fh.say: "      $num [$id] [$codes] {$f.desc} [{$f.dims}]";
         }
     }
     $fh.say: "\nTotal number items: $nitems";
@@ -339,6 +343,7 @@ $codes = "" if not $codes; # tmp hack
 #| Given a specially formatted text file, read the file and convert
 #| the data into a list of Room objects and their Furniture object
 #| children.
+# TODO allow either square brackets or curly braces or <> or ""
 my token codes { '[' <[A..Za..z\h]>+ ']' }
 my token key { \w+ ['-'? \w+ ]? ':' }
 my token sign { <[+-]> }
@@ -366,7 +371,7 @@ sub read-data-file($ifil,
     my $i = 0;
     my @lines;
 
-    # fold lines with backslashes before processing
+    # fold (concatenate) lines with backslashes before processing
     my @flines;
 
     for $ifil.IO.lines -> $line is copy {
@@ -582,6 +587,8 @@ sub read-data-file($ifil,
 
             my $res  = $furn.set-id: $id, :$p;
             my $res2 = $furn.set-codes: $codes, :$p;
+            say "DEBUG: res from set-id: $res" if $res;
+            say "DEBUG: res2 from set-id: $res2" if $res2;
             $furn.desc  = $desc;
         }
         # CIRCLE W/ DIAMETER
@@ -622,6 +629,8 @@ sub read-data-file($ifil,
 
             my $res  = $furn.set-id: $id, :$p;
             my $res2 = $furn.set-codes: $codes, :$p;
+            say "DEBUG: res from set-id: $res" if $res;
+            say "DEBUG: res2 from set-id: $res2" if $res2;
             $furn.desc  = $desc;
         }
         # CIRCLE W/ RADIUS
@@ -659,6 +668,8 @@ sub read-data-file($ifil,
 
             my $res  = $furn.set-id: $id, :$p;
             my $res2 = $furn.set-codes: $codes, :$p;
+            say "DEBUG: res from set-id: $res" if $res;
+            say "DEBUG: res2 from set-id: $res2" if $res2;
             $furn.desc  = $desc;
         }
         # RECTANGLE
@@ -703,6 +714,8 @@ sub read-data-file($ifil,
 
             my $res  = $furn.set-id: $id, :$p;
             my $res2 = $furn.set-codes: $codes, :$p;
+            say "DEBUG: res from set-id: $res" if $res;
+            say "DEBUG: res2 from set-id: $res2" if $res2;
             $furn.desc  = $desc;
         }
         else {
