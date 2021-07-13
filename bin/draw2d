@@ -96,17 +96,18 @@ if !$ifil.IO.f {
 }
 
 my $p = Project.new;
+
 if $cli-scale.defined {
     $p.scale = $cli-scale;
 }
 
 my @ofils; # list of output files generated
 my @rooms; # list of room objects containing furniture objects
-@rooms = read-data-file $ifil, :project($p), :$ids, :$debug;
+@rooms = read-data-file $ifil, :$p, :$ids, :$debug;
 
-write-list(@rooms, @ofils, :project($p), :$debug) if $list;
+write-list(@rooms, @ofils, :$p, :$debug) if $list;
 
-write-drawings(@rooms, @ofils, :project($p), :$squeeze, :$debug) if $draw;
+write-drawings(@rooms, @ofils, :$p, :$squeeze, :$debug) if $draw;
 
 say "Normal end.";
 my $n = +@ofils;
