@@ -1,6 +1,140 @@
 unit module Draw2D::Furniture::Classes;
 
-class Project is export {
+class Project {...}
+class Furniture {...}
+
+role Collections {
+
+    has %.ids;   # unique furniture id numbers
+    has %.codes; # all known codes to sort furniture lists by
+                 #   code => list name to add for output 
+                 #   not case sensitive
+                 #   e.g.: a  => Apartment
+                 #         gb => Gulf Breeze
+                 #         go => Goodwill
+                 #         s  => Sell
+                 #         t  => Throw-away
+
+    method id(Furniture:D: ) {
+        self.ids.keys
+    }
+
+    method id-exists($id, :$debug --> Bool) {
+        self.ids{$id}:exists
+    }
+
+    method code-exists($code, :$debug --> Bool) {
+        self.codes{$code}:exists
+    }
+    
+    method codes2str(:$keys, :$list, :$debug --> Str)  {
+        # my $codes = $f.codes2str: :keys; # output "a bb .."
+        # outputs the %.codes as a list or a project header
+
+        my $s;
+        if $keys {
+            $s = self.codes.elems ?? self.codes.keys.lc.sort.join(", ") !! "";
+        }
+        elsif $list {
+            $s = "";
+            for self.keys.lc.sort -> $k {
+                my $v = self.codes{$k};
+                $s ~= "\n" if $s;
+                $s ~= $v;
+            }
+        }
+        $s
+    }
+
+    method set-id($id,           # a unique number for the Project and child
+                  :project(:$p), # for use by the Furniture child object to check validity
+                  :$debug
+                  --> Bool
+                 ) {
+        # used by the Project object to keep all ids used by furniture children
+        # used by the Furniture object to set its id if valid (checked with the parent project)
+        my $err = "";
+        if $p.defined {
+            # must be the child asking if the is unique
+            # cannnot have but one ids element
+            if self.ids.elems {
+                return False
+                #die "FATAL: Attempting to get a new ID when one exists";
+            }
+            elsif $p.id-exists($id) {
+                return False
+            }
+            else {
+                $p.set-id($id);
+                self.set-id($id);
+            }
+        }
+        else {
+            # the Project
+            if self.id-exists($id) {
+                return False
+            }
+            else {
+                self.set-id($id);
+            }
+        }
+        True
+    }
+
+    method set-code(:$code! is copy, # a space-separated string of one or more codes (multiple codes should only be used by a child
+                    :$title,         # for use by the Project object)
+                                     # if this is used, the $code entry must be a single value
+                    :project(:$p),   # for use by the Furniture child object to check validity
+                    :$debug 
+                    --> Str
+                   ) {
+        # used by the Project object to keep all codes used by furniture children
+        # used by the Furniture object to keep all used by furniture children
+     
+        # adds $code to the collection
+        $code .= lc;
+        my @c = $code.words;
+        my $n = @c.elems;
+        if $title.defined {
+            # should only be one code and should be only used by the project, i.e., $p should NOT be defined
+            my $err = "";
+            if $p.defined {
+                $err ~= "the 'title' attr cannot be used by a Project child\n";
+            }
+            if $n != 1 {
+                $err ~= "the 'title' attr cannot be used with multiple codes\n";
+            }
+
+            return "ERROR: $err" if $err;
+
+            # okay to add to collection
+            if self.codes{$code}:exists {
+                my $v = self.codes{$code};
+                return "ERROR: code '$code' already exists with title '$v'";
+            }
+            self.codes{$code} = $title;
+            return Q|| # empty string
+        }
+
+        # a child must have permission from the parent to enter codes only
+        return "ERROR: codes alone may not be entered by a Project" if not $p.defined;
+ 
+        my $err = "";
+        for @c -> $c {
+            # the project must know about it
+            if not $p.code-exists($c) {
+                $err ~= "$c\n";
+                next;
+            }
+            self.codes{$code} = 1;
+        }
+        return "ERROR: the following codes are not known in this project [$err]" if $err;
+          
+        Q|| # empty string
+    }
+}
+
+class Project does Collections is export {
     # SET UPON CREATION WARN IF DIFFERENT
     has $.title    is rw; # normally set upon creation, may have spaces
     has $.date     is rw; # normally set upon creation
@@ -16,24 +150,21 @@ class Project is export {
     has $.scale is rw     = 0.25; # in-per-ft
 
 
-    has @.author is rw;  # multi-valued (one per line)
+    has @.author  is rw; # multi-valued (one per line)
     has @.address is rw; # multi-valued (one per line)
-    has @.note  is rw;   # multi-valued (one per line)
-    has @.email is rw;   # multi-valued (one per line)
-    has @.phone is rw;   # multi-valued (one per line)
-    has @.mobile is rw;  # multi-valued (one per line)
-
-    has %.id;    # unique furniture id numbers
-    has %.codes; # all known codes to sort furniture lists by
+    has @.note    is rw; # multi-valued (one per line)
+    has @.email   is rw; # multi-valued (one per line)
+    has @.phone   is rw; # multi-valued (one per line)
+    has @.mobile  is rw; # multi-valued (one per line)
 
     method push($attr-key, $value) {
         given $attr-key {
-            when $_ eq 'author' { self.author.push: $value }
-            when $_ eq 'address' { self.author.push: $value }
-            when $_ eq 'note' { self.note.push: $value }
-            when $_ eq 'email' { self.email.push: $value }
-            when $_ eq 'phone' { self.phone.push: $value }
-            when $_ eq 'mobile' { self.phone.push: $value }
+            when $_ eq 'author'  { self.author.push:  $value }
+            when $_ eq 'address' { self.address.push: $value }
+            when $_ eq 'note'    { self.note.push:    $value }
+            when $_ eq 'email'   { self.email.push:   $value }
+            when $_ eq 'phone'   { self.phone.push:   $value }
+            when $_ eq 'mobile'  { self.mobile.push:  $value }
         }
     }
 
@@ -71,7 +202,7 @@ class Room is export {
     has @.furniture is rw ;
 }
 
-class Furniture is export {
+class Furniture does Collections is export {
     has $.number    is rw;
     has $.title     is rw = "";
     # input dimensions are inches
@@ -91,8 +222,6 @@ class Furniture is export {
     has $.sf is rw; # scale factor
 
     # new attrs in api 2
-    has $.id    is rw;
-    has $.codes is rw;
     has $.desc  is rw;
 
     method init() {
@@ -116,6 +245,16 @@ class Furniture is export {
             $.w = $.length * $.sf;
         }
     }
+
+    method set-id($id, :project(:$p), :$debug --> Str) {
+        #   my $res  = $furn.set-id: $id, :project($p);
+    }
+
+    method set-codes($codes, :project(:$p), :$debug --> Str) {
+        # codes as input "a ab" (space-separated list)
+        #   my $res2 = $furn.set-codes: $codes, project($p);
+    }
+
 
     # A method to draw itself in raw PS
     # using a $ps instance of a Perl

@@ -18,12 +18,11 @@ sub create-master-file(Project $p) is export {
 #| drawings of the furniture items.
 sub write-drawings(@rooms,
                    @ofils,
-                   Project :$project!,
+                   Project :project(:$p)!,
                    :$debug,
                    :$squeeze,
                   ) is export {
 
-    my $p = $project;
     my $psf = $p.ps(:draw);
     my $pdf = $p.pdf(:draw);
 
@@ -130,12 +129,11 @@ sub write-drawings(@rooms,
 
 #| A function to convert an ASCII text file into PostScript.
 sub text-to-ps($txtfil, # the ASCII input text file
-               Project :$project!,
+               Project :project(:$p)!,
                :$debug
                --> Str
               ) is export {
 
-    my $p = $project;
     my $psfile = $p.ps(:list); # get the correct name for the project
 
     # write the ps file
@@ -281,12 +279,10 @@ sub text-to-ps($txtfil, # the ASCII input text file
 #| PostScript.
 sub write-list(@rooms,
                @ofils,
-               Project :$project!,
+               Project :project(:$p)!,
                :$debug
               ) is export {
 
-
-    my $p = $project;
 
     # write the raw text file
     my $nitems = 0;
@@ -313,14 +309,18 @@ sub write-list(@rooms,
     for @rooms -> $r {
         $fh.say: "  Room {$r.number}: {$r.title}";
         for $r.furniture -> $f {
-            my $s = $f.title;
-            if $s ~~ /:i '<ff>' / {
+            my $t = $f.title;
+            if $t ~~ /:i '<ff>' / {
                 $fh.say: "      <ff>";
                 next;
             }
             ++$nitems; # cumulative number
-            my $num = "{$f.number}";
-            $fh.say: "      $num {$f.title} [{$f.dims}]";
+
+            my $num   = "{$f.number}";
+            my $id    = $f.id // "";
+            my $codes = $f.codes2str: :keys; # output "a bb .."
+$codes = "" if not $codes; # tmp hack
+            $fh.say: "      $num [$id] [$codes] {$f.title} [{$f.dims}]";
         }
     }
     $fh.say: "\nTotal number items: $nitems";
@@ -328,7 +328,7 @@ sub write-list(@rooms,
     @ofils.push: $txtfil;
 
     # we now have a text file to convert to ps
-    my $psf = text-to-ps $txtfil, :project($p), :$debug;
+    my $psf = text-to-ps $txtfil, :$p, :$debug;
 
     # convert ps to pdf
     my $pdf = $p.pdf(:list);
@@ -352,13 +352,11 @@ my regex number { :r
 }
 
 sub read-data-file($ifil,
-                   Project :$project!,
+                   Project :project(:$p)!,
                    :$ids!,
                    :$debug
                    --> List
                   ) is export {
-    my $p = $project;
-
     my @rooms;
 
     my $curr-room = 0;
@@ -388,22 +386,7 @@ sub read-data-file($ifil,
             note "  after removal: '$line'" if $debug;
             # stash in @flines
             @flines.push: $line;
-            next;
-
-            =begin comment
-            my $idx = $line.index: $BSLASH;
-            #while $idx.defined and $line {
-            while $idx.defined {
-                my $first = $SPACE;
-                $first ~= $line.substr(0, $idx);
-                @flines.push: $first;
-                $line  = $line.substr: $idx+1;
-                $idx = $line.index: $BSLASH;
-            }
-            # combine the folded lines
-            $line = join $SPACE, @flines;
-            =end comment
-
+            next ;
         }
 
         # combine the line with any parent lines
@@ -483,6 +466,7 @@ sub read-data-file($ifil,
         #   email
         #   mobile
         #   note
+        #   code
         if $line ~~ /^ \s*
             (
               || author
@@ -491,6 +475,7 @@ sub read-data-file($ifil,
               || mobile
               || email
               || note
+              || code
             )
             ':'
             (.*)
@@ -594,9 +579,10 @@ sub read-data-file($ifil,
             # now parse the leading part of the line
             my ($id, $codes, $desc) = parse-leading $leading, :$ids, :$debug;
             note "  captures => |$id| |$codes| |$desc| |$wid| |$len| |h: $hgt|" if $debug;
-            $furn.id    = $id;
-            $furn.desc  = $id;
-            $furn.codes = $codes;
+
+            my $res  = $furn.set-id: $id, :$p;
+            my $res2 = $furn.set-codes: $codes, :$p;
+            $furn.desc  = $desc;
         }
         # CIRCLE W/ DIAMETER
         elsif $line ~~ / # first collect dimensional and object type at the end of the string
@@ -633,9 +619,10 @@ sub read-data-file($ifil,
             # now parse the leading part of the line
             my ($id, $codes, $desc) = parse-leading $leading, :$ids, :$debug;
             note "  captures => |$id| |$codes| |$desc| |{$furn.diameter}| |h: $hgt|" if $debug;
-            $furn.id    = $id;
-            $furn.desc  = $id;
-            $furn.codes = $codes;
+
+            my $res  = $furn.set-id: $id, :$p;
+            my $res2 = $furn.set-codes: $codes, :$p;
+            $furn.desc  = $desc;
         }
         # CIRCLE W/ RADIUS
         elsif $line ~~ / # first collect dimensional and object type at the end of the string
@@ -669,9 +656,10 @@ sub read-data-file($ifil,
             # now parse the leading part of the line
             my ($id, $codes, $desc) = parse-leading $leading, :$ids, :$debug;
             note "  captures => |$id| |$codes| |$desc| |{$furn.radius}| |h: $hgt|" if $debug;
-            $furn.id    = $id;
-            $furn.desc  = $id;
-            $furn.codes = $codes;
+
+            my $res  = $furn.set-id: $id, :$p;
+            my $res2 = $furn.set-codes: $codes, :$p;
+            $furn.desc  = $desc;
         }
         # RECTANGLE
         elsif $line ~~ / # first collect dimensional and object type at the end of the string
@@ -712,9 +700,10 @@ sub read-data-file($ifil,
             # now parse the leading part of the line
             my ($id, $codes, $desc) = parse-leading $leading, :$ids, :$debug;
             note "  captures => |$id| |$codes| |$desc| |$wid| |$len| |h: $hgt|" if $debug;
-            $furn.id    = $id;
-            $furn.desc  = $id;
-            $furn.codes = $codes;
+
+            my $res  = $furn.set-id: $id, :$p;
+            my $res2 = $furn.set-codes: $codes, :$p;
+            $furn.desc  = $desc;
         }
         else {
             say "FATAL on line $lineno: '$line'";
