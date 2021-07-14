@@ -283,7 +283,6 @@ sub write-list(@rooms,
                :$debug
               ) is export {
 
-
     # write the raw text file
     my $nitems = 0;
     my $txtfil = ".draw2d-ascii";
@@ -300,10 +299,10 @@ sub write-list(@rooms,
         $fh.say: "Date: {$p.date}";
     }
 
+    # multiply-valued keys
     if $p.address {
         $fh.say("Address: $_") for $p.address;
     }
-
     if $p.phone {
         $fh.say("Phone: $_") for $p.phone;
     }
@@ -321,9 +320,8 @@ sub write-list(@rooms,
             ++$nitems; # cumulative number
 
             my $num   = "{$f.number}";
-            my $id    = $f.id // "";
+            my $id    = $f.id;
             my $codes = $f.codes2str: :keys; # output "a bb .."
-$codes = "" if not $codes; # tmp hack
             $fh.say: "      $num [$id] [$codes] {$f.desc} [{$f.dims}]";
         }
     }
@@ -358,7 +356,8 @@ my regex number { :r
 
 sub read-data-file($ifil,
                    Project :project(:$p)!,
-                   :$ids!,
+                   :$ids!, # if true, throws on no id on input for a child 
+                   :$list-codes,
                    :$debug
                    --> List
                   ) is export {
@@ -489,7 +488,19 @@ sub read-data-file($ifil,
             die "FATAL: header info '{~$0}' not allowed after room info has begun" if $curr-room;
             my $key = ~$0;
             my $txt = normalize-string ~$1;
-            $p.push($key, $txt);
+
+            # special handling for codes
+            if $key eq "code" {
+                # the code key is the first word of the value
+                my @w = $txt.words;
+                my $c = @w.shift.lc;
+                my $title = @w.join: " ";
+                my $res = $p.set-code($c, :$title);
+                die "FATAL: $res" if $res;
+            }
+            else {
+                $p.push($key, $txt);
+            }       
             next LINE;
         }
 
@@ -585,10 +596,18 @@ sub read-data-file($ifil,
             my ($id, $codes, $desc) = parse-leading $leading, :$ids, :$debug;
             note "  captures => |$id| |$codes| |$desc| |$wid| |$len| |h: $hgt|" if $debug;
 
-            my $res  = $furn.set-id: $id, :$p;
-            my $res2 = $furn.set-codes: $codes, :$p;
-            say "DEBUG: res from set-id: $res" if $res;
-            say "DEBUG: res2 from set-id: $res2" if $res2;
+            # handle the id
+            if not $p.id-exists($id) {
+                # it's unique
+                $p.set-id: $id;
+                $furn.set-id: $id;
+            }
+            else { die "FATAL: furniture object with non-unique id: $id"; }
+
+            #my $res  = $furn.set-id: $id, :$p;
+            #my $res2 = $furn.set-codes: $codes, :$p;
+            #say "DEBUG: res from set-id: $res" if $res;
+            #say "DEBUG: res2 from set-id: $res2" if $res2;
             $furn.desc  = $desc;
         }
         # CIRCLE W/ DIAMETER
@@ -627,10 +646,18 @@ sub read-data-file($ifil,
             my ($id, $codes, $desc) = parse-leading $leading, :$ids, :$debug;
             note "  captures => |$id| |$codes| |$desc| |{$furn.diameter}| |h: $hgt|" if $debug;
 
-            my $res  = $furn.set-id: $id, :$p;
-            my $res2 = $furn.set-codes: $codes, :$p;
-            say "DEBUG: res from set-id: $res" if $res;
-            say "DEBUG: res2 from set-id: $res2" if $res2;
+            # handle the id
+            if not $p.id-exists($id) {
+                # it's unique
+                $p.set-id: $id;
+                $furn.set-id: $id;
+            }
+            else { die "FATAL: furniture object with non-unique id: $id"; }
+
+            #my $res  = $furn.set-id: $id, :$p;
+            #my $res2 = $furn.set-codes: $codes, :$p;
+            #say "DEBUG: res from set-id: $res" if $res;
+            #say "DEBUG: res2 from set-id: $res2" if $res2;
             $furn.desc  = $desc;
         }
         # CIRCLE W/ RADIUS
@@ -666,10 +693,18 @@ sub read-data-file($ifil,
             my ($id, $codes, $desc) = parse-leading $leading, :$ids, :$debug;
             note "  captures => |$id| |$codes| |$desc| |{$furn.radius}| |h: $hgt|" if $debug;
 
-            my $res  = $furn.set-id: $id, :$p;
-            my $res2 = $furn.set-codes: $codes, :$p;
-            say "DEBUG: res from set-id: $res" if $res;
-            say "DEBUG: res2 from set-id: $res2" if $res2;
+            # handle the id
+            if not $p.id-exists($id) {
+                # it's unique
+                $p.set-id: $id;
+                $furn.set-id: $id;
+            }
+            else { die "FATAL: furniture object with non-unique id: $id"; }
+
+            #my $res  = $furn.set-id: $id, :$p;
+            #my $res2 = $furn.set-codes: $codes, :$p;
+            #say "DEBUG: res from set-id: $res" if $res;
+            #say "DEBUG: res2 from set-id: $res2" if $res2;
             $furn.desc  = $desc;
         }
         # RECTANGLE
@@ -712,10 +747,18 @@ sub read-data-file($ifil,
             my ($id, $codes, $desc) = parse-leading $leading, :$ids, :$debug;
             note "  captures => |$id| |$codes| |$desc| |$wid| |$len| |h: $hgt|" if $debug;
 
-            my $res  = $furn.set-id: $id, :$p;
-            my $res2 = $furn.set-codes: $codes, :$p;
-            say "DEBUG: res from set-id: $res" if $res;
-            say "DEBUG: res2 from set-id: $res2" if $res2;
+            # handle the id
+            if not $p.id-exists($id) {
+                # it's unique
+                $p.set-id: $id;
+                $furn.set-id: $id;
+            }
+            else { die "FATAL: furniture object with non-unique id: $id"; }
+
+            #my $res  = $furn.set-id: $id, :$p;
+            #my $res2 = $furn.set-codes: $codes, :$p;
+            #say "DEBUG: res from set-id: $res" if $res;
+            #say "DEBUG: res2 from set-id: $res2" if $res2;
             $furn.desc  = $desc;
         }
         else {
@@ -861,6 +904,6 @@ sub parse-leading($s, :$ids!, :$debug --> List) {
     else {
         note "WARNING: no parse for line: |$s|";
     }
-
+    note "DEBUG: parse leading: |$id| |$codes|";
     $id, $codes, $desc
 }

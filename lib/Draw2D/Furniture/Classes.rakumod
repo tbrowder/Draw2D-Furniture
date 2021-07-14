@@ -15,16 +15,32 @@ role Collections {
                  #         s  => Sell
                  #         t  => Throw-away
 
-    method id(Furniture:D: ) {
-        self.ids.keys
+    method id(Furniture:D: --> Str) {
+        # outputs the id as a string
+        # should only be one key (the unique ID)
+        my $n = self.ids.elems;
+        if $n > 1 {
+            die "FATAL: Unexpected: furniture object with multiple IDs: $n"
+        }
+        my $s = "";
+        if self.ids.elems {
+            for self.ids.keys {
+                $s = $_;
+                last;
+            }
+        }
+        $s 
     }
 
     method id-exists($id, :$debug --> Bool) {
-        self.ids{$id}:exists
+        # true if id exists in caller's hash
+        #%(self.ids{$id}):exists ?? True !! False
+        %.ids{$id}:exists ?? True !! False
     }
 
     method code-exists($code, :$debug --> Bool) {
-        self.codes{$code}:exists
+        # true if a single code exists in caller's hash
+        %(self.codes{$code}):exists
     }
     
     method codes2str(:$keys, :$list, :$debug --> Str)  {
@@ -33,7 +49,7 @@ role Collections {
 
         my $s;
         if $keys {
-            $s = self.codes.elems ?? self.codes.keys.lc.sort.join(", ") !! "";
+            $s = self.codes.elems ?? self.codes.keys.lc.sort.join(", ") !! "?";
         }
         elsif $list {
             $s = "";
@@ -47,41 +63,39 @@ role Collections {
     }
 
     method set-id($id,           # a unique number for the Project and child
-                  :project(:$p), # for use by the Furniture child object to check validity
                   :$debug
-                  --> Bool
+                  --> Str
                  ) {
         # used by the Project object to keep all ids used by furniture children
         # used by the Furniture object to set its id if valid (checked with the parent project)
         my $err = "";
-        if $p.defined {
-            # must be the child asking if the is unique
+
+        if self ~~ Furniture {
+            # must be the child asking if its id is unique
             # cannnot have but one ids element
             if self.ids.elems {
-                return False
-                #die "FATAL: Attempting to get a new ID when one exists";
+                $err = "FATAL: Attempting to get a new ID when one exists";
             }
-            elsif $p.id-exists($id) {
-                return False
+            elsif self.id-exists($id) {
+                $err = "FATAL: Attempting to get a new ID when one exists";
             }
             else {
-                $p.set-id($id);
-                self.set-id($id);
+                self.ids{$id} = 1;
             }
         }
         else {
             # the Project
             if self.id-exists($id) {
-                return False
+                $err = "FATAL: Attempting to get a new ID when one exists";
             }
             else {
-                self.set-id($id);
+                self.ids{$id} = 1;
             }
         }
-        True
+        $err
     }
 
-    method set-code(:$code! is copy, # a space-separated string of one or more codes (multiple codes should only be used by a child
+    method set-code($code! is copy,  # a space-separated string of one or more codes (multiple codes should only be used by a child
                     :$title,         # for use by the Project object)
                                      # if this is used, the $code entry must be a single value
                     :project(:$p),   # for use by the Furniture child object to check validity
@@ -112,7 +126,7 @@ role Collections {
                 my $v = self.codes{$code};
                 return "ERROR: code '$code' already exists with title '$v'";
             }
-            self.codes{$code} = $title;
+            self.set-code($code, :$title);
             return Q|| # empty string
         }
 
@@ -246,14 +260,16 @@ class Furniture does Collections is export {
         }
     }
 
+    =begin comment
     method set-id($id, :project(:$p), :$debug --> Str) {
         #   my $res  = $furn.set-id: $id, :project($p);
     }
 
-    method set-codes($codes, :project(:$p), :$debug --> Str) {
+    method set-code($codes, :project(:$p), :$debug --> Str) {
         # codes as input "a ab" (space-separated list)
         #   my $res2 = $furn.set-codes: $codes, project($p);
     }
+    =end comment
 
 
     # A method to draw itself in raw PS

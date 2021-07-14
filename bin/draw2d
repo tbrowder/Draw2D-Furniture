@@ -9,7 +9,7 @@ if !@*ARGS {
     Usage: {$*PROGRAM.basename} <formatted input file>
                 OR
                                 <formatted input file>
-                                  [id][scale=X][list|draw][debug]
+                                  [id][scale=X][codes][list|draw][debug]
 
     (Note: If the first argument is other than a readable file in the proper
     format, the user will be prompted for required inputs to
@@ -35,6 +35,7 @@ if !@*ARGS {
 my $draw    = 0;
 my $list    = 1;
 my $debug   = 0;
+my $codes   = 0; # show codes and exit
 my $ids     = 0; # mandatory IDs if true
 my $squeeze = 0; # shows data in the upper left corner of images
 my $cli-scale; # ($in-per-ft) a hack for on-the-fly scale changes (only for that run)
@@ -49,6 +50,7 @@ for @*ARGS {
          $cli-scale = +$0; # default is 0.25
     }
     when /^i / { $ids  = 1 }
+    when /^c / { $codes  = 1 }
     default { $ifil = $_ }
 }
 
@@ -103,7 +105,9 @@ if $cli-scale.defined {
 
 my @ofils; # list of output files generated
 my @rooms; # list of room objects containing furniture objects
-@rooms = read-data-file $ifil, :$p, :$ids, :$debug;
+my $list-codes = $codes ?? 1 !! 0;
+@rooms = read-data-file $ifil, :$p, :$ids, :$list-codes, :$debug;
+exit if $list-codes;
 
 write-list(@rooms, @ofils, :$p, :$debug) if $list;
 
