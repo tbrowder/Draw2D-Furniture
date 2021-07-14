@@ -471,7 +471,7 @@ sub read-data-file($ifil,
         #   mobile
         #   note
         #   code
-        if $line ~~ /^ \s*
+        if $line ~~ /^ \h*
             (
               || author
               || address\d*
@@ -490,13 +490,14 @@ sub read-data-file($ifil,
             my $txt = normalize-string ~$1;
 
             # special handling for codes
+            note "DEBUG: handling input code '$key' with text '$txt'" if 1 or $debug;
             if $key eq "code" {
                 # the code key is the first word of the value
                 my @w = $txt.words;
                 my $c = @w.shift.lc;
                 my $title = @w.join: " ";
-                my $res = $p.set-code($c, :$title);
-                die "FATAL: $res" if $res;
+                note "DEBUG: handling Project code '$c' with text '$title'" if 1 or $debug;
+                $p.set-code($c, :$title);
             }
             else {
                 $p.push($key, $txt);
@@ -522,6 +523,12 @@ sub read-data-file($ifil,
         }
         #=== END OF HEADER INFO LINES ===#
 
+        if 0 or $debug {
+            note $p.codes2str: :keys;
+            note $p.codes2str: :list;
+            die "DEBUG: debug early exit"; 
+        }
+
         # it must be a piece of furniture (or a form feed!)
         if $line ~~ /^:i \s* '<ff>' \s* $/ {
             # a form feed
@@ -533,6 +540,7 @@ sub read-data-file($ifil,
 
         # it really must be a piece of furniture!
         ++$fnum;
+
 
         #== FURNITURE LINES ========================
         # its display number will be: {$rnum}.{$fnum}
@@ -597,12 +605,25 @@ sub read-data-file($ifil,
             note "  captures => |$id| |$codes| |$desc| |$wid| |$len| |h: $hgt|" if $debug;
 
             # handle the id
-            if not $p.id-exists($id) {
+            if $id and not $p.id-exists($id) {
                 # it's unique
                 $p.set-id: $id;
                 $furn.set-id: $id;
             }
-            else { die "FATAL: furniture object with non-unique id: $id"; }
+            else { die "FATAL: furniture object with non-unique id: '$id'"; }
+
+            # handle the codes
+            if $codes {
+                note "handling codes:  |$id| |$codes| |$desc| |$wid| |$len| |h: $hgt|" if 1 or $debug;
+            for $codes.words -> $c  {
+                note "checking furn code '$c' for validity|" if 1 or $debug;
+                if $p.code-exists($c) {
+                    # it's valid
+                    $furn.set-code: $c;
+                }
+                else { die "FATAL: furniture object id '$id' with non-valid code: '$c'"; }
+            }
+            }
 
             #my $res  = $furn.set-id: $id, :$p;
             #my $res2 = $furn.set-codes: $codes, :$p;
@@ -647,12 +668,24 @@ sub read-data-file($ifil,
             note "  captures => |$id| |$codes| |$desc| |{$furn.diameter}| |h: $hgt|" if $debug;
 
             # handle the id
-            if not $p.id-exists($id) {
+            if $id and not $p.id-exists($id) {
                 # it's unique
                 $p.set-id: $id;
                 $furn.set-id: $id;
             }
             else { die "FATAL: furniture object with non-unique id: $id"; }
+
+            # handle the codes
+            if $codes {
+                note "handling codes:  |$id| |$codes| |$desc| |$wid| |$len| |h: $hgt|" if 1 or $debug;
+            for $codes.words -> $c  {
+                if $p.code-exists($c) {
+                    # it's valid
+                    $furn.set-code: $c;
+                }
+                else { die "FATAL: furniture object id '$id' with non-valid code: '$c'"; }
+            }
+            }
 
             #my $res  = $furn.set-id: $id, :$p;
             #my $res2 = $furn.set-codes: $codes, :$p;
@@ -694,12 +727,26 @@ sub read-data-file($ifil,
             note "  captures => |$id| |$codes| |$desc| |{$furn.radius}| |h: $hgt|" if $debug;
 
             # handle the id
-            if not $p.id-exists($id) {
+            if $id and not $p.id-exists($id) {
                 # it's unique
                 $p.set-id: $id;
                 $furn.set-id: $id;
             }
             else { die "FATAL: furniture object with non-unique id: $id"; }
+
+            # handle the codes
+            if $codes {
+                note "handling codes:  |$id| |$codes| |$desc| " if 1 or $debug;
+            for $codes.words -> $c  {
+                note "handling code for furn  '$c'" if 1 or $debug;
+                if $p.code-exists($c) {
+                    # it's valid
+                    note "code for furn: $c is known by Project";
+                    $furn.set-code: $c;
+                }
+                else { die "FATAL: furniture object id '$id' with non-valid code: '$c'"; }
+            }
+            }
 
             #my $res  = $furn.set-id: $id, :$p;
             #my $res2 = $furn.set-codes: $codes, :$p;
@@ -748,12 +795,24 @@ sub read-data-file($ifil,
             note "  captures => |$id| |$codes| |$desc| |$wid| |$len| |h: $hgt|" if $debug;
 
             # handle the id
-            if not $p.id-exists($id) {
+            if $id and not $p.id-exists($id) {
                 # it's unique
                 $p.set-id: $id;
                 $furn.set-id: $id;
             }
             else { die "FATAL: furniture object with non-unique id: $id"; }
+
+            # handle the codes
+            if $codes {
+                note "handling codes:  |$id| |$codes| |$desc| |$wid| |$len| |h: $hgt|" if 1 or $debug;
+            for $codes.words -> $c  {
+                if $p.code-exists($c) {
+                    # it's valid
+                    $furn.set-code: $c;
+                }
+                else { die "FATAL: furniture object id '$id' with non-valid code: '$c'"; }
+            }
+            }
 
             #my $res  = $furn.set-id: $id, :$p;
             #my $res2 = $furn.set-codes: $codes, :$p;
@@ -904,6 +963,17 @@ sub parse-leading($s, :$ids!, :$debug --> List) {
     else {
         note "WARNING: no parse for line: |$s|";
     }
+
     note "DEBUG: parse leading: |$id| |$codes|";
+
+    # remove brackets from codes
+    if $codes ~~ /'['|']'/ {
+        $codes ~~ s/ '[' //;
+        $codes ~~ s/ ']' //;
+    }
+    $codes = normalize-string $codes;
+
+    die "FATAL: code has [] '$codes'" if $codes ~~ /'['|']'/;
+
     $id, $codes, $desc
 }

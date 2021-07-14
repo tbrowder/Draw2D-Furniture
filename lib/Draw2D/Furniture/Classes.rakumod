@@ -5,8 +5,8 @@ class Furniture {...}
 
 role Collections {
 
-    has %.ids;   # unique furniture id numbers
-    has %.codes; # all known codes to sort furniture lists by
+    has %!ids;   # unique furniture id numbers
+    has %!codes; # all known codes to sort furniture lists by
                  #   code => list name to add for output 
                  #   not case sensitive
                  #   e.g.: a  => Apartment
@@ -18,13 +18,13 @@ role Collections {
     method id(Furniture:D: --> Str) {
         # outputs the id as a string
         # should only be one key (the unique ID)
-        my $n = self.ids.elems;
+        my $n = %!ids.elems;
         if $n > 1 {
             die "FATAL: Unexpected: furniture object with multiple IDs: $n"
         }
         my $s = "";
-        if self.ids.elems {
-            for self.ids.keys {
+        if %!ids.elems {
+            for %!ids.keys {
                 $s = $_;
                 last;
             }
@@ -35,28 +35,30 @@ role Collections {
     method id-exists($id, :$debug --> Bool) {
         # true if id exists in caller's hash
         #%(self.ids{$id}):exists ?? True !! False
-        %.ids{$id}:exists ?? True !! False
+        %!ids{$id}:exists ?? True !! False
     }
 
     method code-exists($code, :$debug --> Bool) {
         # true if a single code exists in caller's hash
-        %(self.codes{$code}):exists
+        #%(self.codes{$code}):exists
+        %!codes{$code}:exists ?? True !! False
     }
     
     method codes2str(:$keys, :$list, :$debug --> Str)  {
         # my $codes = $f.codes2str: :keys; # output "a bb .."
-        # outputs the %.codes as a list or a project header
+        # outputs the %!codes as a list or a project header
 
         my $s;
         if $keys {
-            $s = self.codes.elems ?? self.codes.keys.lc.sort.join(", ") !! "?";
+            $s = %!codes.elems ?? %!codes.keys.sort.join(", ") !! "?";
         }
         elsif $list {
             $s = "";
-            for self.keys.lc.sort -> $k {
-                my $v = self.codes{$k};
+            my @k = %!codes.keys.sort;
+            for @k -> $k {
+                my $v = %!codes{$k} // "";
                 $s ~= "\n" if $s;
-                $s ~= $v;
+                $s ~= "$k => $v";
             }
         }
         $s
@@ -73,23 +75,23 @@ role Collections {
         if self ~~ Furniture {
             # must be the child asking if its id is unique
             # cannnot have but one ids element
-            if self.ids.elems {
+            if %!ids.elems {
                 $err = "FATAL: Attempting to get a new ID when one exists";
             }
-            elsif self.id-exists($id) {
+            elsif %!ids{$id}:exists {
                 $err = "FATAL: Attempting to get a new ID when one exists";
             }
             else {
-                self.ids{$id} = 1;
+                %!ids{$id} = 1;
             }
         }
         else {
             # the Project
-            if self.id-exists($id) {
+            if %!ids{$id}:exists {
                 $err = "FATAL: Attempting to get a new ID when one exists";
             }
             else {
-                self.ids{$id} = 1;
+                %!ids{$id} = 1;
             }
         }
         $err
@@ -98,9 +100,8 @@ role Collections {
     method set-code($code! is copy,  # a space-separated string of one or more codes (multiple codes should only be used by a child
                     :$title,         # for use by the Project object)
                                      # if this is used, the $code entry must be a single value
-                    :project(:$p),   # for use by the Furniture child object to check validity
                     :$debug 
-                    --> Str
+           #         --> Str
                    ) {
         # used by the Project object to keep all codes used by furniture children
         # used by the Furniture object to keep all used by furniture children
@@ -109,42 +110,26 @@ role Collections {
         $code .= lc;
         my @c = $code.words;
         my $n = @c.elems;
-        if $title.defined {
+        if $title { # $title.defined {
+            my $typ = self.^name;
+            die "FATAL: code title only used with a Project, this self is a '$typ'" if not self ~~ Project;
             # should only be one code and should be only used by the project, i.e., $p should NOT be defined
-            my $err = "";
-            if $p.defined {
-                $err ~= "the 'title' attr cannot be used by a Project child\n";
-            }
             if $n != 1 {
-                $err ~= "the 'title' attr cannot be used with multiple codes\n";
+                die "FATAL: 'title' attr cannot be used with multiple codes\n";
             }
-
-            return "ERROR: $err" if $err;
 
             # okay to add to collection
-            if self.codes{$code}:exists {
-                my $v = self.codes{$code};
-                return "ERROR: code '$code' already exists with title '$v'";
+            if %!codes{$code}:exists {
+                my $v = %!codes{$code};
+                die "ERROR: code '$code' already exists with title '$v'";
             }
-            self.set-code($code, :$title);
-            return Q|| # empty string
+            %!codes{$code} = $title;
+           return;
         }
 
-        # a child must have permission from the parent to enter codes only
-        return "ERROR: codes alone may not be entered by a Project" if not $p.defined;
- 
-        my $err = "";
         for @c -> $c {
-            # the project must know about it
-            if not $p.code-exists($c) {
-                $err ~= "$c\n";
-                next;
-            }
-            self.codes{$code} = 1;
+            %!codes{$c} = 1;
         }
-        return "ERROR: the following codes are not known in this project [$err]" if $err;
-          
-        Q|| # empty string
     }
 }
 
