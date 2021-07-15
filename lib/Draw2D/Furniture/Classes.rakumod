@@ -58,7 +58,7 @@ role Collections {
             for @k -> $k {
                 my $v = %!codes{$k} // "";
                 $s ~= "\n" if $s;
-                $s ~= "$k => $v";
+                $s ~= "  $k \t $v";
             }
         }
         $s

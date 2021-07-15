@@ -283,7 +283,7 @@ sub write-list(@rooms,
                :$debug
               ) is export {
 
-    # write the raw text file
+    # write the raw text files
     my $nitems = 0;
     my $txtfil = ".draw2d-ascii";
     my $fh = open $txtfil, :w;
@@ -305,6 +305,12 @@ sub write-list(@rooms,
     }
     if $p.phone {
         $fh.say("Phone: $_") for $p.phone;
+    }
+    # show codes with title
+    my $cs = $p.codes2str(:list);
+    if $cs {
+        $fh.say: "Code / Title";
+        $fh.say: $cs;
     }
 
     $fh.say();
@@ -985,3 +991,11 @@ sub parse-leading($s, $rnum, $fnum, :$ids!, :$debug --> List) {
 
     $id, $codes, $desc
 } # sub parse-leading
+
+sub write-id-list(:$debug) {
+    # writes a list in id order
+}
+sub write-code-list(:$debug) {
+    # writes a separate list for each code
+}
+
