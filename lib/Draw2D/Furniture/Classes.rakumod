@@ -44,7 +44,7 @@ role Collections {
         %!codes{$code}:exists ?? True !! False
     }
     
-    method codes2str(:$keys, :$list, :$debug --> Str)  {
+    method codes2str(:$keys, :$list, :$sepchar = '=>', :$debug --> Str)  {
         # my $codes = $f.codes2str: :keys; # output "a bb .."
         # outputs the %!codes as a list or a project header
 
@@ -58,7 +58,7 @@ role Collections {
             for @k -> $k {
                 my $v = %!codes{$k} // "";
                 $s ~= "\n" if $s;
-                $s ~= "  $k \t $v";
+                $s ~= "$k $sepchar $v";
             }
         }
         $s

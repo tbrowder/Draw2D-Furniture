@@ -285,31 +285,22 @@ sub write-list(@rooms,
 
     # write the raw text files
     my $nitems = 0;
-    my $txtfil = ".draw2d-ascii";
+    my $txtfil = ".draw2d-ascii-list";
     my $fh = open $txtfil, :w;
 
     # title, etc.
-    if $p.title {
-        $fh.say: "Title: {$p.title}";
-    }
-    if $p.author {
-        $fh.say: "Author: {$p.author}";
-    }
-    if $p.date {
-        $fh.say: "Date: {$p.date}";
-    }
+    if $p.title { $fh.say: "Title: {$p.title}"; }
+    if $p.author { $fh.say: "Author: {$p.author}"; }
+    if $p.date { $fh.say: "Date: {$p.date}"; }
 
     # multiply-valued keys
-    if $p.address {
-        $fh.say("Address: $_") for $p.address;
-    }
-    if $p.phone {
-        $fh.say("Phone: $_") for $p.phone;
-    }
+    if $p.address { $fh.say("Address: $_") for $p.address; }
+    if $p.phone { $fh.say("Phone: $_") for $p.phone; }
     # show codes with title
-    my $cs = $p.codes2str(:list);
+    my $cs = $p.codes2str(:list, :sepchar("\t"));
     if $cs {
-        $fh.say: "Code / Title";
+        $fh.say: "Code \t Title";
+        $fh.say: "==== \t =====";
         $fh.say: $cs;
     }
 
