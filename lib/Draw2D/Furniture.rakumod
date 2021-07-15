@@ -342,7 +342,7 @@ sub write-list(@rooms,
 #| the data into a list of Room objects and their Furniture object
 #| children.
 # TODO allow either square brackets or curly braces or <> or ""
-my token codes { '[' <[A..Za..z\h]>+ ']' }
+my token codes { <[A..Za..z\h]>+  }
 my token key { \w+ ['-'? \w+ ]? ':' }
 my token sign { <[+-]> }
 my token decimal  { \d+ }
@@ -490,13 +490,13 @@ sub read-data-file($ifil,
             my $txt = normalize-string ~$1;
 
             # special handling for codes
-            note "DEBUG: handling input code '$key' with text '$txt'" if 1 or $debug;
+            note "DEBUG: handling input code '$key' with text '$txt'" if $debug;
             if $key eq "code" {
                 # the code key is the first word of the value
                 my @w = $txt.words;
                 my $c = @w.shift.lc;
                 my $title = @w.join: " ";
-                note "DEBUG: handling Project code '$c' with text '$title'" if 1 or $debug;
+                note "DEBUG: handling Project code '$c' with text '$title'" if $debug;
                 $p.set-code($c, :$title);
             }
             else {
@@ -601,7 +601,7 @@ sub read-data-file($ifil,
             $furn.dims2  = "{$ww}x{$ll}";
 
             # now parse the leading part of the line
-            my ($id, $codes, $desc) = parse-leading $leading, :$ids, :$debug;
+            my ($id, $codes, $desc) = parse-leading $leading, $rnum, $fnum, :$ids, :$debug;
             note "  captures => |$id| |$codes| |$desc| |$wid| |$len| |h: $hgt|" if $debug;
 
             # handle the id
@@ -614,7 +614,7 @@ sub read-data-file($ifil,
 
             # handle the codes
             if $codes {
-                note "handling codes:  |$id| |$codes| |$desc| |$wid| |$len| |h: $hgt|" if 1 or $debug;
+                note "DEBUG: handling codes:  |$id| |$codes| |$desc| |$wid| |$len| |h: $hgt|" if $debug;
             for $codes.words -> $c  {
                 note "checking furn code '$c' for validity|" if 1 or $debug;
                 if $p.code-exists($c) {
@@ -664,7 +664,7 @@ sub read-data-file($ifil,
             $furn.dims2  = "{$ww}";
 
             # now parse the leading part of the line
-            my ($id, $codes, $desc) = parse-leading $leading, :$ids, :$debug;
+            my ($id, $codes, $desc) = parse-leading $leading, $rnum, $fnum, :$ids, :$debug;
             note "  captures => |$id| |$codes| |$desc| |{$furn.diameter}| |h: $hgt|" if $debug;
 
             # handle the id
@@ -677,7 +677,7 @@ sub read-data-file($ifil,
 
             # handle the codes
             if $codes {
-                note "handling codes:  |$id| |$codes| |$desc| |$wid| |$len| |h: $hgt|" if 1 or $debug;
+                note "DEBUG: handling codes:  |$id| |$codes| |$desc| |$wid| |$len| |h: $hgt|" if $debug;
             for $codes.words -> $c  {
                 if $p.code-exists($c) {
                     # it's valid
@@ -723,7 +723,7 @@ sub read-data-file($ifil,
             $furn.dims2  = "{$ww}";
 
             # now parse the leading part of the line
-            my ($id, $codes, $desc) = parse-leading $leading, :$ids, :$debug;
+            my ($id, $codes, $desc) = parse-leading $leading, $rnum, $fnum, :$ids, :$debug;
             note "  captures => |$id| |$codes| |$desc| |{$furn.radius}| |h: $hgt|" if $debug;
 
             # handle the id
@@ -736,12 +736,12 @@ sub read-data-file($ifil,
 
             # handle the codes
             if $codes {
-                note "handling codes:  |$id| |$codes| |$desc| " if 1 or $debug;
+                note "DEBUG: handling codes:  |$id| |$codes| |$desc| " if $debug;
             for $codes.words -> $c  {
-                note "handling code for furn  '$c'" if 1 or $debug;
+                note "DEBUG: handling code for furn  '$c'" if $debug;
                 if $p.code-exists($c) {
                     # it's valid
-                    note "code for furn: $c is known by Project";
+                    note "DEBUG: code for furn: $c is known by Project" if $debug;
                     $furn.set-code: $c;
                 }
                 else { die "FATAL: furniture object id '$id' with non-valid code: '$c'"; }
@@ -791,7 +791,7 @@ sub read-data-file($ifil,
             $furn.dims2  = "{$ww}x{$ll}";
 
             # now parse the leading part of the line
-            my ($id, $codes, $desc) = parse-leading $leading, :$ids, :$debug;
+            my ($id, $codes, $desc) = parse-leading $leading, $rnum, $fnum, :$ids, :$debug;
             note "  captures => |$id| |$codes| |$desc| |$wid| |$len| |h: $hgt|" if $debug;
 
             # handle the id
@@ -804,7 +804,7 @@ sub read-data-file($ifil,
 
             # handle the codes
             if $codes {
-                note "handling codes:  |$id| |$codes| |$desc| |$wid| |$len| |h: $hgt|" if 1 or $debug;
+                note "DEBUG: handling codes:  |$id| |$codes| |$desc| |$wid| |$len| |h: $hgt|" if $debug;
             for $codes.words -> $c  {
                 if $p.code-exists($c) {
                     # it's valid
@@ -923,7 +923,7 @@ sub ps-to-pdf(@ofils, :$psf!, :$pdf!, :$debug) {
     unlink $psf unless  $debug;
 }
 
-sub parse-leading($s, :$ids!, :$debug --> List) {
+sub parse-leading($s, $rnum, $fnum, :$ids!, :$debug --> List) {
     # now parse the leading part of the line
     #   my ($id, $codes, $desc) = parse-leading $leading, :$debug;
     #
@@ -933,17 +933,24 @@ sub parse-leading($s, :$ids!, :$debug --> List) {
     my $codes = "";
     my $desc  = $s;
 
+    my $num = "$rnum.$fnum";
+    my $no-id = 0;
+
     my @w = $s.words;
     $id = @w.shift;
     $desc = join $SPACE, @w;
     if $ids and $id !~~ /<number>/ {
-        die "FATAL: This furniture line ($s) has no leading ID number";
+        die "FATAL: This furniture line (number $num) has no leading ID number";
     }
+    elsif $id !~~ /<number>/ {
+        ++$no-id;
+    }
+    
 
     if $desc ~~ /^
                 \h*
                 [
-                  || (<codes>)  \h+ (\N*)
+                  || '[' (<codes>) ']' \h+ (\N*)
                   || (\N*)
                 ]
                 \h*
@@ -957,23 +964,24 @@ sub parse-leading($s, :$ids!, :$debug --> List) {
             $desc  = ~$0;
         }
         else {
-            note "WARNING: This furniture line ($s) has unknown format";
+            note "WARNING: This furniture line (number $num) has unknown format";
         }
     }
     else {
         note "WARNING: no parse for line: |$s|";
     }
 
-    note "DEBUG: parse leading: |$id| |$codes|";
-
-    # remove brackets from codes
-    if $codes ~~ /'['|']'/ {
-        $codes ~~ s/ '[' //;
-        $codes ~~ s/ ']' //;
+    if $no-id {
+        # add first word back
+        $desc = $id ~ " $desc";
+        note "WARNING: Furniture line number $num has no leading ID number.";
     }
+
+    note "DEBUG: parsing leading: id/codes |$id| |$codes|" if $debug;
+
     $codes = normalize-string $codes;
 
     die "FATAL: code has [] '$codes'" if $codes ~~ /'['|']'/;
 
     $id, $codes, $desc
-}
+} # sub parse-leading
