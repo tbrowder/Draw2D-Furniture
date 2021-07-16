@@ -293,29 +293,6 @@ sub write-lists(@rooms,
     my $txtfil = ".draw2d-ascii-list";
     my $fh = open $txtfil, :w;
 
-    =begin comment
-    #= write-list-headers $fh, $debug;
-    #== headers for ALL files
-    # title, etc.
-    if $p.title { $fh.say: "Title: {$p.title}"; }
-    if $p.author { $fh.say: "Author: {$p.author}"; }
-    if $p.date { $fh.say: "Date: {$p.date}"; }
-    # multiply-valued keys
-    if $p.address { $fh.say("Address: $_") for $p.address; }
-    if $p.phone { $fh.say("Phone: $_") for $p.phone; }
-    # show codes with title
-    my $cs = $p.codes2str(:list, :sepchar("\t"));
-    if $cs {
-        $fh.print: qq:to/HERE/;
-        Code \t Title
-        ==== \t =====;
-        $cs
-        HERE
-    }
-    $fh.say();
-    #== end headers for ALL files
-    =end comment
-
     write-list-headers $fh, :$p, :$debug;
 
     #===========
