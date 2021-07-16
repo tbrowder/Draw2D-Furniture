@@ -109,7 +109,7 @@ my $list-codes = $codes ?? 1 !! 0;
 @rooms = read-data-file $ifil, :$p, :$ids, :$list-codes, :$debug;
 exit if $list-codes;
 
-write-list(@rooms, @ofils, :$p, :$debug) if $list;
+write-lists(@rooms, @ofils, :$p, :$debug) if $list;
 
 write-drawings(@rooms, @ofils, :$p, :$squeeze, :$debug) if $draw;
 
