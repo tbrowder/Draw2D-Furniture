@@ -148,7 +148,6 @@ class Project does Collections is export {
     has $.units is rw     = 'in-per-ft';
     has $.scale is rw     = 0.25; # in-per-ft
 
-
     has @.author  is rw; # multi-valued (one per line)
     has @.address is rw; # multi-valued (one per line)
     has @.note    is rw; # multi-valued (one per line)
@@ -169,24 +168,50 @@ class Project does Collections is export {
 
     # output file names:
     #   basename-[list-name|draw-name].[inp|ps|pdf]
-    method inp {
-        my $nam = self.title;
-        $nam = join '-', $nam.words;
-        $nam ~= '.input';
-    }
+    method filename($type, # where /list|draw|inp|text/,
+                    # we must know the desired suffix, if any, depending on the use of the file,
+                    # e.g., a "dot" file doesn't get a file extension (suffix)
+                    :$ftype!, # where /ps|pdf|inp|dot|none/,
 
-    method ps(:$list, :$draw, :$base) {
-        my $nam = self.basename.defined ?? self.basename !! '';
-        $nam ~= '-' if $nam;
-        $nam ~= $list ?? self.list-name !! self.draw-name;
-        $nam ~= '.ps' if not $base;
-    }
+                    :$subtype, # where /id|code/, 
 
-    method pdf(:$list, :$draw, :$base) {
-        my $nam = self.basename.defined ?? self.basename !! '';
-        $nam ~= '-' if $nam;
-        $nam ~= $list ?? self.list-name !! self.draw-name;
-        $nam ~= '.pdf' if not $base;
+                    :$code, # must be one of the known codes in the Project's collection
+                    :$debug,
+                    --> Str
+                   ) {
+        my $f = "";
+        given $type {
+            when /list/ { $f = self.basename ~ "-" ~ self.list-name }
+            when /draw/ { $f = self.basename ~ "-" ~ self.draw-name }
+            when /inp/  { $f = self.basename ~ "-master.inp" }
+            when /text/ { $f = ".draw2d-ascii" }
+            default {
+                die "FATAL: Unknown output file type '$_'";
+            }
+        }
+        if $subtype {
+            when /id/ { $f ~= "-ids"; }
+            when /code/ { 
+                die Q|FATAL: Code output file with no $code entry| if not $code; 
+                die "FATAL: Code '$code' is not a valid Project code" if not self.code-exists($code);
+                $f ~= "-code-$code"; 
+            }
+            default {
+                die "FATAL: Unknown output file subtype '$_'";
+            }
+        }
+        given $ftype {
+            # $ftype! where { $_ ~~ /ps|pdf|inp|dot|none/ },
+            when /ps/  { $f ~= ".ps"; }
+            when /pdf/ { $f ~= ".pdf"; }
+            when /inp/ { $f ~= ".inp"; }
+            when /dot|none/ { ; # no extension "; 
+            }
+            default {
+                die "FATAL: Unknown output file type '$_'";
+            }
+        }
+        $f
     }
 }
 
