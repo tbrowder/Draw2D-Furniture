@@ -1,0 +1,27 @@
+Code 	 Title
+==== 	 =====;
+a 	 Buy
+abc 	 Sell
+b 	 Trade
+
+  Room 1: Master bedroom
+      1.1 [1.1] [abc] desk (by bed) [20" radius]
+      1.2 [1.2] [?] Missy's chest of drawers {M's drsr} [19" x 64.1"]
+      1.3 [1.3] [?] bedside table [25" diameter]
+      1.4 [1.4] [?] lounge chair [21" x 49"]
+      1.5 [1.5] [?] table, drop-leaf oak (open) [42" x 51"]
+      1.6 [1.6] [?] rocker, platform [22" x 30"]
+  Room 2: Bogus room
+      2.1 [2.1] [?] desk (by bed) [20" radius x 10" height]
+      2.2 [2.2] [?] Missy's chest of drawers {M's drsr} [19.1" x 64" x 11"]
+      2.3 [2.3] [?] another chest of drawers (T's drsr) [19" x 64" x 11"]
+      2.4 [2.4] [?] bedside table [25" diameter x 12" height]
+      2.5 [2.5] [?] lounge chair [21" x 49" x 13"]
+      2.6 [2.6] [?] table, drop-leaf oak (open) [42" x 51" x 14"]
+      2.7 [2.7] [?] rocker, platform [22" x 30.2" x 15"]
+      2.8 [3.3] [?] long, antique couch with apricot spots, Golden flowers, and many other cool features, org cost $10,000 in 1968 [23" x 134"]
+      2.9 [4.7] [?] line with embedded backslash \more text..., org cost $10,000 in 1968 [23" x 134"]
+      2.10 [5.2] [a, b] a line with embedded backslash \ more text..., org cost $10,000 in 1968 [23" x 134"]
+      2.11 [[a] [?] [a b ] another line with embedded backslash \ more text..., org cost $10,000 in 1968 [23" x 134"]
+
+Total number items: 17
