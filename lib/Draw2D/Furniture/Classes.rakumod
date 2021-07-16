@@ -171,7 +171,7 @@ class Project does Collections is export {
     method filename($type, # where /list|draw|inp|text/,
                     # we must know the desired suffix, if any, depending on the use of the file,
                     # e.g., a "dot" file doesn't get a file extension (suffix)
-                    :$ftype!, # where /ps|pdf|inp|dot|none/,
+                    :$suffix!, # where /ps|pdf|inp|dot|none/,
 
                     :$subtype, # where /id|code/, 
 
@@ -183,7 +183,7 @@ class Project does Collections is export {
         given $type {
             when /list/ { $f = self.basename ~ "-" ~ self.list-name }
             when /draw/ { $f = self.basename ~ "-" ~ self.draw-name }
-            when /inp/  { $f = self.basename ~ "-master.inp" }
+            when /inp/  { $f = self.basename ~ "-master" }
             when /text/ { $f = ".draw2d-ascii" }
             default {
                 die "FATAL: Unknown output file type '$_'";
@@ -200,12 +200,13 @@ class Project does Collections is export {
                 die "FATAL: Unknown output file subtype '$_'";
             }
         }
-        given $ftype {
+        given $suffix {
             # $ftype! where { $_ ~~ /ps|pdf|inp|dot|none/ },
             when /ps/  { $f ~= ".ps"; }
             when /pdf/ { $f ~= ".pdf"; }
             when /inp/ { $f ~= ".inp"; }
-            when /dot|none/ { ; # no extension "; 
+            when /dot|none/ { 
+                ; # no extension "; 
             }
             default {
                 die "FATAL: Unknown output file type '$_'";
