@@ -293,6 +293,7 @@ sub write-lists(@rooms,
     my $txtfil = ".draw2d-ascii-list";
     my $fh = open $txtfil, :w;
 
+    =begin comment
     #= write-list-headers $fh, $debug;
     #== headers for ALL files
     # title, etc.
@@ -309,10 +310,13 @@ sub write-lists(@rooms,
         Code \t Title
         ==== \t =====;
         $cs
-        HERE 
+        HERE
     }
     $fh.say();
     #== end headers for ALL files
+    =end comment
+
+    write-list-headers $fh, :$p, :$debug;
 
     #===========
     # this is the standard list output by room, furniture
@@ -337,7 +341,7 @@ sub write-lists(@rooms,
     $fh.close;
     @ofils.push: $txtfil;
 
-    my $psfile = $p.filename: "list", :ftype("ps");
+    my $psfile = $p.filename: "list", :suffix("ps");
     # we now have a text file to convert to ps
     text-to-ps $txtfil, $psfile, :$p, :$debug;
 
@@ -367,7 +371,7 @@ my regex number { :r
 
 sub read-data-file($ifil,
                    Project :project(:$p)!,
-                   :$ids!, # if true, throws on no id on input for a child 
+                   :$ids!, # if true, throws on no id on input for a child
                    :$list-codes,
                    :$debug
                    --> List
@@ -513,7 +517,7 @@ sub read-data-file($ifil,
             }
             else {
                 $p.push($key, $txt);
-            }       
+            }
             next LINE;
         }
 
@@ -538,7 +542,7 @@ sub read-data-file($ifil,
         if 0 or $debug {
             note $p.codes2str: :keys;
             note $p.codes2str: :list;
-            die "DEBUG: debug early exit"; 
+            die "DEBUG: debug early exit";
         }
 
         # it must be a piece of furniture (or a form feed!)
@@ -923,9 +927,9 @@ sub in2ft($In) {
 
 #| A utility sub to convert a valid PostScript file to
 #| pdf using the system progeam 'ps2pdf'.
-sub ps-to-pdf(@ofils, 
-              :psfile(:$psf)!, 
-              :pdfile(:$pdf)!, 
+sub ps-to-pdf(@ofils,
+              :psfile(:$psf)!,
+              :pdfile(:$pdf)!,
               :$debug
              ) {
 
@@ -964,7 +968,7 @@ sub parse-leading($s, $rnum, $fnum, :$ids!, :$debug --> List) {
     elsif $id !~~ /<number>/ {
         ++$no-id;
     }
-    
+
     if $desc ~~ /^
                 \h*
                 [
@@ -1004,11 +1008,32 @@ sub parse-leading($s, $rnum, $fnum, :$ids!, :$debug --> List) {
     $id, $codes, $desc
 } # sub parse-leading
 
-sub write-list-headers($fh, :$debug) {
-}
+sub write-list-headers($fh, :project(:$p), :$debug) is export {
+    #= write-list-headers $fh, $debug;
+    #== headers for ALL files
+    # title, etc.
+    if $p.title { $fh.say: "Title: {$p.title}"; }
+    if $p.author { $fh.say: "Author: {$p.author}"; }
+    if $p.date { $fh.say: "Date: {$p.date}"; }
+    # multiply-valued keys
+    if $p.address { $fh.say("Address: $_") for $p.address; }
+    if $p.phone { $fh.say("Phone: $_") for $p.phone; }
+    # show codes with title
+    my $cs = $p.codes2str(:list, :sepchar("\t"));
+    if $cs {
+        $fh.print: qq:to/HERE/;
+        Code \t Title
+        ==== \t =====;
+        $cs
+        HERE
+    }
+    $fh.say();
+    #== end headers for ALL files
+} # sub write-list-headers
 
 sub write-list-room(:$debug) {
-}
+    #
+} # sub write-list-room
 
 sub write-list(:$debug) {
     # writes a list in room, furniture order
@@ -1022,4 +1047,3 @@ sub write-list-code(:$debug) {
     # writes a separate list for each code
     # in room, furniture order
 }
-
