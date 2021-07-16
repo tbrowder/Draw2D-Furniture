@@ -1,7 +1,7 @@
 unit module Draw2D::Furniture;
 
 use PostScript::File:from<Perl5>;
-use Text::Utils :strip-comment, :normalize-string;
+use Text::Utils :strip-comment, :normalize-string, :wrap-paragraph;
 
 use Draw2D::Furniture::Vars;
 use Draw2D::Furniture::Classes;
@@ -24,7 +24,10 @@ sub write-drawings(@rooms,
                   ) is export {
 
     my $psf = $p.ps(:draw);
-    my $pdf = $p.pdf(:draw);
+    my $basename = $psf;
+    $basename ~~ s/'.ps'$/.pdf/;
+
+    #my $pdf = $p.pdf(:draw);
 
     # start a PostScript doc, add options here
     #   enable clipping
@@ -122,22 +125,20 @@ sub write-drawings(@rooms,
     $ps.output;
 
     # produce the pdf
-    ps-to-pdf @ofils, :$psf, :$pdf;
+    ps-to-pdf @ofils, :$basename; # :$psf, :$pdf;
 
     note "DEBUG: saw $nfurn furniture objects" if 1 or $debug;
 } # end sub write-drawings
 
 #| A function to convert an ASCII text file into PostScript.
 sub text-to-ps($txtfil, # the ASCII input text file
+               $psfile, # the PS output file name
                Project :project(:$p)!,
                :$debug
-               --> Str
               ) is export {
 
-    my $psfile = $p.ps(:list); # get the correct name for the project
-
-    # write the ps file
-    # start a doc, add options here
+    # write the ps file,
+    # start a doc, add options here:
     #   enable clipping but no border
     my $pw = 8.5 * 72;
     my $ph = 11 * 72;
@@ -149,7 +150,7 @@ sub text-to-ps($txtfil, # the ASCII input text file
                :top($b),
                :left($b),
                :right($b),
-               :clipping(1),
+               :clipping(1), # 1 - clipping, but no border
                :clip_command(''), # or 'stroke' to show the page boundaries
                :landscape(0),
                :file($psfile),
@@ -268,7 +269,6 @@ sub text-to-ps($txtfil, # the ASCII input text file
     # close and output the file
     $ps.output; # writes $psfile
 
-    $psfile
 } # end sub text-to-ps
 
 #| Given a list of Room objects (with their Furniture object
@@ -277,35 +277,46 @@ sub text-to-ps($txtfil, # the ASCII input text file
 #|
 #| This sub then calls another sub to convert the text file to
 #| PostScript.
-sub write-list(@rooms,
-               @ofils,
-               Project :project(:$p)!,
-               :$debug
-              ) is export {
+sub write-lists(@rooms,
+                @ofils,
+                Project :project(:$p)!,
+                :$debug
+               ) is export {
+
+    # TODO here we determine ALL the list-type PS outputs
+    #      we want
+
+    # first get the file names for output
 
     # write the raw text files
     my $nitems = 0;
     my $txtfil = ".draw2d-ascii-list";
     my $fh = open $txtfil, :w;
 
+    #= write-list-headers $fh, $debug;
+    #== headers for ALL files
     # title, etc.
     if $p.title { $fh.say: "Title: {$p.title}"; }
     if $p.author { $fh.say: "Author: {$p.author}"; }
     if $p.date { $fh.say: "Date: {$p.date}"; }
-
     # multiply-valued keys
     if $p.address { $fh.say("Address: $_") for $p.address; }
     if $p.phone { $fh.say("Phone: $_") for $p.phone; }
     # show codes with title
     my $cs = $p.codes2str(:list, :sepchar("\t"));
     if $cs {
-        $fh.say: "Code \t Title";
-        $fh.say: "==== \t =====";
-        $fh.say: $cs;
+        $fh.print: qq:to/HERE/;
+        Code \t Title
+        ==== \t =====;
+        $cs
+        HERE 
     }
-
     $fh.say();
+    #== end headers for ALL files
 
+    #===========
+    # this is the standard list output by room, furniture
+    # write-list
     for @rooms -> $r {
         $fh.say: "  Room {$r.number}: {$r.title}";
         for $r.furniture -> $f {
@@ -326,12 +337,15 @@ sub write-list(@rooms,
     $fh.close;
     @ofils.push: $txtfil;
 
+    my $psfile = $p.filename: "list", :ftype("ps");
     # we now have a text file to convert to ps
-    my $psf = text-to-ps $txtfil, :$p, :$debug;
+    text-to-ps $txtfil, $psfile, :$p, :$debug;
 
     # convert ps to pdf
-    my $pdf = $p.pdf(:list);
-    ps-to-pdf @ofils, :$psf, :$pdf;
+    my $pdf = $psfile;
+    $pdf ~~ s/'.ps'$/.pdf/;
+    ps-to-pdf @ofils, :$psfile, :$pdf;
+    #===========
 
 } # end sub write-list
 
@@ -358,6 +372,7 @@ sub read-data-file($ifil,
                    :$debug
                    --> List
                   ) is export {
+    my @headers;
     my @rooms;
 
     my $curr-room = 0;
@@ -846,6 +861,7 @@ sub make-rows(@rows,   # should be empty
               $space,
               :$debug) {
 
+    # TODO wrap long lines with wrap-paragraph
     @rows   = [];
     my $row = Row.new;
     @rows.push: $row;
@@ -856,6 +872,7 @@ sub make-rows(@rows,   # should be empty
         # resets to left of the page
         $x = 0;
     }
+
     sub check-right(Furniture $f, $x --> Bool) {
         # given a furniture instance and its x start
         # point, can it fit on # the current row?
@@ -905,8 +922,13 @@ sub in2ft($In) {
 }
 
 #| A utility sub to convert a valid PostScript file to
-#| using the system progeam 'ps2pdf'.
-sub ps-to-pdf(@ofils, :$psf!, :$pdf!, :$debug) {
+#| pdf using the system progeam 'ps2pdf'.
+sub ps-to-pdf(@ofils, 
+              :psfile(:$psf)!, 
+              :pdfile(:$pdf)!, 
+              :$debug
+             ) {
+
     # produce the pdf
     # some additional error checking
     note "DEBUG: psf '$psf' pdf '$pdf'" if $debug;
@@ -917,7 +939,7 @@ sub ps-to-pdf(@ofils, :$psf!, :$pdf!, :$debug) {
     run $cmd, $args.words;
     die "FATAL: Output file $pdf not found" if !$pdf.IO.f;
     @ofils.push: $pdf;
-    unlink $psf unless  $debug;
+    $debug ??  @ofils.push($psf) !! unlink($psf);
 }
 
 sub parse-leading($s, $rnum, $fnum, :$ids!, :$debug --> List) {
@@ -943,7 +965,6 @@ sub parse-leading($s, $rnum, $fnum, :$ids!, :$debug --> List) {
         ++$no-id;
     }
     
-
     if $desc ~~ /^
                 \h*
                 [
@@ -983,10 +1004,22 @@ sub parse-leading($s, $rnum, $fnum, :$ids!, :$debug --> List) {
     $id, $codes, $desc
 } # sub parse-leading
 
-sub write-id-list(:$debug) {
-    # writes a list in id order
+sub write-list-headers($fh, :$debug) {
 }
-sub write-code-list(:$debug) {
+
+sub write-list-room(:$debug) {
+}
+
+sub write-list(:$debug) {
+    # writes a list in room, furniture order
+}
+sub write-list-id(:$debug) {
+    # writes a list in id order
+    # for all IDs
+}
+
+sub write-list-code(:$debug) {
     # writes a separate list for each code
+    # in room, furniture order
 }
 
