@@ -44,13 +44,20 @@ role Collections {
         %!codes{$code}:exists ?? True !! False
     }
     
-    method codes2str(:$keys, :$list, :$sepchar = '=>', :$debug --> Str)  {
+    method codes2str(:$keys, 
+                     :$no-comma,
+                     :$list, 
+                     :$sepchar = '=>', 
+                     :$debug 
+                     --> Str
+                    )  {
         # my $codes = $f.codes2str: :keys; # output "a bb .."
         # outputs the %!codes as a list or a project header
 
         my $s;
         if $keys {
-            $s = %!codes.elems ?? %!codes.keys.sort.join(", ") !! "?";
+            my $jchar = $no-comma ?? " " !! ", ";
+            $s = %!codes.elems ?? %!codes.keys.sort.join($jchar) !! "?";
         }
         elsif $list {
             $s = "";
@@ -60,6 +67,7 @@ role Collections {
                 $s ~= "\n" if $s;
                 $s ~= "$k $sepchar $v";
             }
+            $s ~= "\n"
         }
         $s
     }

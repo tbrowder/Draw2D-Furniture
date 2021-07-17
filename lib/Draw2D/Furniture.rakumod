@@ -1003,7 +1003,6 @@ sub write-list-headers($fh, :project(:$p), :$debug) is export {
         $cs
         HERE
     }
-    $fh.say();
     #== end headers for ALL files
 } # sub write-list-headers
 
@@ -1029,3 +1028,4 @@ sub write-list-code($fh, :project(:$p), :$debug) {
     write-list-headers $fh, :$p, :$debug;
 
 } # sub write-list-code
+
