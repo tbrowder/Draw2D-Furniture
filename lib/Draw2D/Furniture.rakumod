@@ -286,8 +286,10 @@ sub write-lists(@rooms,
     # TODO here we determine ALL the list-type PS outputs
     #      we want
 
-    # first get the file names for output
+    write-list-room @rooms, @ofils, :$p, :$debug;
 
+    =begin comment
+    # get the file name for output
     # write the raw text files
     my $nitems = 0;
     my $txtfil = ".draw2d-ascii-list";
@@ -327,6 +329,7 @@ sub write-lists(@rooms,
     $pdf ~~ s/'.ps'$/.pdf/;
     ps-to-pdf @ofils, :$psfile, :$pdf;
     #===========
+    =end comment
 
 } # end sub write-list
 
@@ -1006,11 +1009,53 @@ sub write-list-headers($fh, :project(:$p), :$debug) is export {
     #== end headers for ALL files
 } # sub write-list-headers
 
-sub write-list-room($fh, :project(:$p), :$debug) {
+sub write-list-room(@rooms, @ofils, :project(:$p), :$debug) {
     # writes a list in room, furniture order
-    # the msster list
+    # the master list
+
+    my $nitems = 0;
+
+    # write the raw text files
+    my $txtfil = ".draw2d-ascii-list";
+    my $fh = open $txtfil, :w;
+
 
     write-list-headers $fh, :$p, :$debug;
+
+    if 1 { #=begin comment
+    #===========
+    # this is the standard list output by room, furniture
+    # write-list-rooms
+    for @rooms -> $r {
+        $fh.say: "  Room {$r.number}: {$r.title}";
+        for $r.furniture -> $f {
+            my $t = $f.title;
+            if $t ~~ /:i '<ff>' / {
+                $fh.say: "      <ff>";
+                next;
+            }
+            ++$nitems; # cumulative number
+
+            my $num   = "{$f.number}";
+            my $id    = $f.id;
+            my $codes = $f.codes2str: :keys; # output "a bb .."
+            $fh.say: "      $num [$id] [$codes] {$f.desc} [{$f.dims}]";
+        }
+    }
+    $fh.say: "\nTotal number items: $nitems";
+    $fh.close;
+    @ofils.push: $txtfil;
+
+    my $psfile = $p.filename: "list", :suffix("ps");
+    # we now have a text file to convert to ps
+    text-to-ps $txtfil, $psfile, :$p, :$debug;
+
+    # convert ps to pdf
+    my $pdf = $psfile;
+    $pdf ~~ s/'.ps'$/.pdf/;
+    ps-to-pdf @ofils, :$psfile, :$pdf;
+    #===========
+    } #=end comment
 
 } # sub write-list-room
 
@@ -1028,4 +1073,3 @@ sub write-list-code($fh, :project(:$p), :$debug) {
     write-list-headers $fh, :$p, :$debug;
 
 } # sub write-list-code
-
