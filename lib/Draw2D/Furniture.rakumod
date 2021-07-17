@@ -297,7 +297,7 @@ sub write-lists(@rooms,
 
     #===========
     # this is the standard list output by room, furniture
-    # write-list
+    # write-list-rooms
     for @rooms -> $r {
         $fh.say: "  Room {$r.number}: {$r.title}";
         for $r.furniture -> $f {
@@ -986,7 +986,6 @@ sub parse-leading($s, $rnum, $fnum, :$ids!, :$debug --> List) {
 } # sub parse-leading
 
 sub write-list-headers($fh, :project(:$p), :$debug) is export {
-    #= write-list-headers $fh, $debug;
     #== headers for ALL files
     # title, etc.
     if $p.title { $fh.say: "Title: {$p.title}"; }
@@ -1008,19 +1007,25 @@ sub write-list-headers($fh, :project(:$p), :$debug) is export {
     #== end headers for ALL files
 } # sub write-list-headers
 
-sub write-list-room(:$debug) {
-    #
+sub write-list-room($fh, :project(:$p), :$debug) {
+    # writes a list in room, furniture order
+    # the msster list
+
+    write-list-headers $fh, :$p, :$debug;
+
 } # sub write-list-room
 
-sub write-list(:$debug) {
-    # writes a list in room, furniture order
-}
-sub write-list-id(:$debug) {
+sub write-list-id($fh, :project(:$p), :$debug) {
     # writes a list in id order
     # for all IDs
-}
 
-sub write-list-code(:$debug) {
+    write-list-headers $fh, :$p, :$debug;
+} # sub write-list-id
+
+sub write-list-code($fh, :project(:$p), :$debug) {
     # writes a separate list for each code
     # in room, furniture order
-}
+
+    write-list-headers $fh, :$p, :$debug;
+
+} # sub write-list-code
