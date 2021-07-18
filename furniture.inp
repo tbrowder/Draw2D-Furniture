@@ -1,0 +1,166 @@
+# this is a formatted input file used to produce
+# scaled drawings for cutout
+
+title: Furniture Measurements for Bluewater Bay
+date: 2020-01-28
+author: Tom Browder
+address: 113 Canterbury Circle
+list-file:     list
+drawings-file: drawings
+#scale: 0.25 # inches per real foot, optional, default: 0.25" per foot
+
+# for Fairpointe condo (4.1875" x 7.25" = 30.359375" sq-in interior
+# representing 900 sq-ft): 0.18366447367111824
+#   (4.1875 * 7.25 / 900) ** 0.5 = scale = 0.18366447367111824
+scale: 0.18366447367111824
+
+# data are in inches: side x side OR diameter
+#   X x Y [ x H ] # side x side [height, optional]
+#   X d   [ x H ] # diameter    [height, optional]
+#   X r   [ x H ] # radius      [height, optional]
+#   X e Y [ x H ] # ellipse a/b [height, optional]
+
+# known codes (not case sensitive)
+   #has %.codes; # all known codes to sort furniture lists by
+                 #   code => list name to add for output 
+                 #   not case sensitive
+code: a Apartment    #   e.g.: a  => Apartment
+code: gb Gulf Breeze #    
+code: gb Goodwill    #   
+code: s Sell         #  
+code: t Trash/Give   # 
+
+room: Master bedroom # room 1
+==============
+
+1.1 Tom's chest of drawers	        20 x 42
+1.2 Missy's chest of drawers	19 x 64
+1.3 desk (by bed)			20 x 36
+1.4 chest (end of bed)		16 x 34
+1.5 queen bed			65 x 86
+1.6 bedside table (1 of 2)      25 d      # (diameter)
+1.7 lounge chair			21 x 49
+
+room: Foyer # room 2
+=====
+
+2.1 chest of drawers		19 x 40
+2.2 chair			17 x 20
+2.3 chair			17 x 20
+2.4 rug				69 x 160
+
+room: Living room (not in new house) # room 3
+==============================
+
+3.1 chair			32 x 30
+3.2 chair			32 x 30
+3.3 chair			27 x 30
+3.4 secretary (desk open)	32   x 36 x 84 # 84 high, 32 deep open
+3.5 secretary (desk closed)     19.5 x 36 x 84 # high, 19.5 deep closed
+
+room: Family room # room 4
+===========
+
+4.1 desk				23 x 41
+4.2  desk chair			20 x 21
+4.3  Grace Lee's chair		26 x 31
+4.4  Windsor chair			23 x 25
+4.5  wing chair			30 x 32
+4.6  drop-leaf oak table (open)	42 x 51
+4.7  coffee table			29 x 37
+4.8  platform rocker		22 x 30
+4.9  small drop-leaf table (closed)	18 x 35
+4.10  small drop-leaf table (open)    40 x 35
+
+4.11 pine table			31 x 60
+4.12 rug natural fiber, narrow black cloth tape border                120 x 168.625 # 10 ft x 14 5/8
+4.13 rug natural fiber, narrow black cloth tape border                 96 x  60     # 8 ft x 5 ft
+
+
+room: Dining room # room 5
+===========
+
+5.1  dining table			74 x 48
+5.2  chair			18 x 20
+5.3  chair			18 x 20
+5.4  chair			18 x 20
+5.5  chair			18 x 20
+5.6  chair			18 x 20
+5.7  chair			18 x 20
+5.8  chair			18 x 20
+5.9  chair			18 x 20
+
+
+5.10  banquet end	24 x 48
+5.11  banquet end		24 x 48
+
+5.12  buffet				24 x 60
+
+room: Bedroom 2 (Tommy's) # room 6
+======================
+
+6.1  twin bed			43 x 81
+6.2  twin bed			43 x 81
+6.3  bed table			17 x 21
+6.4  chest of drawers		21 x 40
+6.5  dressing table			18 x 46
+6.6  chair				19 x 19
+6.7  cane chair			20 x 20
+6.8  cane chair			20 x 20
+
+room: Bedroom 3 (Grace's) # room 7
+======================
+
+7.1  double bed			56 x 80
+7.2  bedside table		16 x 16
+7.3  chest of drawers		19 x 43
+7.4  old chair			16 x 18
+7.5  old chair			17 x 20
+7.6  bedside table (2 of 2)      25 d      # (diameter)
+
+room: Landing # room 8
+=======
+
+8.1 chest of drawers		17 x 40
+8.2 chair (Tom's USAFA)		22 x 23
+
+room: Bonus room # room 9
+==========
+
+9.1 old, larger desk		21 x 41
+9.2 small table			18 x 31
+9.2 small rocking chair		18 x 28
+
+room: Tom's study # room 10
+==========
+10.1 table, pine, glass-topped, 3 drawers
+10.2 bookcase, tall, cherry (1 of 2)
+
+room: Laundry  # room 11
+==========
+
+room: Art room # room 12
+==========
+
+room: Garage # room 13
+==========
+
+13.1 bookcase, tall, cherry (2 of 2)
+13.2 chair, rattan (1 of 2) 
+13.3 chair, rattan (2 of 2) 
+
+
+room: Front porch # room 14
+==========
+
+room: Front yard # room 15
+==========
+
+room: Back yard # room 16
+==========
+
+room: Upstairs bath # room 17
+==========
+
+room: Upstairs attic # room 18
+==========
