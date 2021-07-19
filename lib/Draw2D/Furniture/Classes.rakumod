@@ -143,7 +143,7 @@ role Collections {
 
 class Project does Collections is export {
     # SET UPON CREATION WARN IF DIFFERENT
-    has $.title    is rw; # normally set upon creation, may have spaces
+    has $.title    is rw = ""; # normally set upon creation, may have spaces
     has $.date     is rw; # normally set upon creation
     has $.basename is rw; # normally set upon creation # cannot have spaces
 
@@ -187,11 +187,13 @@ class Project does Collections is export {
                     :$debug,
                     --> Str
                    ) {
+        my $basename = self.basename ?? self.basename 
+                                     !! $!title.lc.words.join("-");
         my $f = "";
         given $type {
-            when /list/ { $f = self.basename ~ "-" ~ self.list-name }
-            when /draw/ { $f = self.basename ~ "-" ~ self.draw-name }
-            when /inp/  { $f = self.basename ~ "-master" }
+            when /list/ { $f = $basename ~ "-" ~ self.list-name }
+            when /draw/ { $f = $basename ~ "-" ~ self.draw-name }
+            when /inp/  { $f = $basename ~ "-master" }
             when /text/ { $f = ".draw2d-ascii" }
             default {
                 die "FATAL: Unknown output file type '$_'";
@@ -246,7 +248,7 @@ class Furniture does Collections is export {
     has $.diameter2 is rw = 0; # for ellipses
     has $.radius    is rw = 0;
     has $.dims      is rw = ''; # for printing
-    has $.dims2     is rw = ''; # for printing
+    #has $.dims2     is rw = ''; # for printing
     # input scale is in page inches per real foot
     has $.scale; # must be input when created
     # internal bbox values in properly-scaled PS points
@@ -259,8 +261,8 @@ class Furniture does Collections is export {
 
     method init() {
         # must have required inputs
-        die "FATAL: incomplete inputs" if !($.width || $.radius || $.diameter2);
-        die "FATAL: incomplete inputs" if !($.id || $.codes || $.desc);
+        note "WARNING: incomplete dimension inputs" if !($.width || $.radius || $.diameter2);
+        note "WARNING: incomplete id, codes, or description inputs" if !($.id || $.codes || $.desc);
         $.sf = 72 / (12 / $.scale);
         if $.radius {
             # apply scale

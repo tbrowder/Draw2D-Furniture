@@ -23,11 +23,9 @@ sub write-drawings(@rooms,
                    :$squeeze,
                   ) is export {
 
-    my $psf = $p.ps(:draw);
-    my $basename = $psf;
-    $basename ~~ s/'.ps'$/.pdf/;
-
-    #my $pdf = $p.pdf(:draw);
+    my $psf = $p.filename: "draw", :suffix("ps");
+    my $pdf = $psf;
+    $pdf ~~ s/'.ps'$/.pdf/;
 
     # start a PostScript doc, add options here
     #   enable clipping
@@ -125,7 +123,7 @@ sub write-drawings(@rooms,
     $ps.output;
 
     # produce the pdf
-    ps-to-pdf @ofils, :$basename; # :$psf, :$pdf;
+    ps-to-pdf @ofils, :$psf, :$pdf, :$debug;
 
     note "DEBUG: saw $nfurn furniture objects" if 1 or $debug;
 } # end sub write-drawings
@@ -286,7 +284,9 @@ sub write-lists(@rooms,
     # TODO here we determine ALL the list-type PS outputs
     #      we want
 
-    write-list-room @rooms, @ofils, :$p, :$debug;
+    write-list-rooms @rooms, :@ofils, :$p, :$debug;
+    write-list-ids @rooms, :@ofils, :$p, :$debug;
+    write-list-codes @rooms, :@ofils, :$p, :$debug;
 
     =begin comment
     # get the file name for output
@@ -327,11 +327,11 @@ sub write-lists(@rooms,
     # convert ps to pdf
     my $pdf = $psfile;
     $pdf ~~ s/'.ps'$/.pdf/;
-    ps-to-pdf @ofils, :$psfile, :$pdf;
+    ps-to-pdf @ofils, :$psfile, :$pdf, :$debug;
     #===========
     =end comment
 
-} # end sub write-list
+} # sub write-lists
 
 #| Given a specially formatted text file, read the file and convert
 #| the data into a list of Room objects and their Furniture object
@@ -519,7 +519,7 @@ sub read-data-file($ifil,
         }
         #=== END OF HEADER INFO LINES ===#
 
-        if 0 or $debug {
+        if 0 and $debug {
             note $p.codes2str: :keys;
             note $p.codes2str: :list;
             die "DEBUG: debug early exit";
@@ -594,7 +594,7 @@ sub read-data-file($ifil,
 
             my $ww = in2ft $wid;
             my $ll = in2ft $len;
-            $furn.dims2  = "{$ww}x{$ll}";
+            #$furn.dims2  = "{$ww}x{$ll}";
 
             # now parse the leading part of the line
             my ($id, $codes, $desc) = parse-leading $leading, $rnum, $fnum, :$ids, :$debug;
@@ -621,10 +621,6 @@ sub read-data-file($ifil,
             }
             }
 
-            #my $res  = $furn.set-id: $id, :$p;
-            #my $res2 = $furn.set-codes: $codes, :$p;
-            #say "DEBUG: res from set-id: $res" if $res;
-            #say "DEBUG: res2 from set-id: $res2" if $res2;
             $furn.desc  = $desc;
         }
         # CIRCLE W/ DIAMETER
@@ -657,7 +653,7 @@ sub read-data-file($ifil,
 
             $furn.radius   = 0.5 * $furn.diameter;
             my $ww = in2ft $furn.diameter;
-            $furn.dims2  = "{$ww}";
+            #$furn.dims2  = "{$ww}";
 
             # now parse the leading part of the line
             my ($id, $codes, $desc) = parse-leading $leading, $rnum, $fnum, :$ids, :$debug;
@@ -683,10 +679,6 @@ sub read-data-file($ifil,
             }
             }
 
-            #my $res  = $furn.set-id: $id, :$p;
-            #my $res2 = $furn.set-codes: $codes, :$p;
-            #say "DEBUG: res from set-id: $res" if $res;
-            #say "DEBUG: res2 from set-id: $res2" if $res2;
             $furn.desc  = $desc;
         }
         # CIRCLE W/ RADIUS
@@ -716,7 +708,7 @@ sub read-data-file($ifil,
             $furn.dims     = $hgt ?? "{$furn.radius}\" radius x {$furn.height}\" height"
                                   !! "{$furn.radius}\" radius";
             my $ww = in2ft 2 * $furn.radius;
-            $furn.dims2  = "{$ww}";
+            #$furn.dims2  = "{$ww}";
 
             # now parse the leading part of the line
             my ($id, $codes, $desc) = parse-leading $leading, $rnum, $fnum, :$ids, :$debug;
@@ -744,10 +736,6 @@ sub read-data-file($ifil,
             }
             }
 
-            #my $res  = $furn.set-id: $id, :$p;
-            #my $res2 = $furn.set-codes: $codes, :$p;
-            #say "DEBUG: res from set-id: $res" if $res;
-            #say "DEBUG: res2 from set-id: $res2" if $res2;
             $furn.desc  = $desc;
         }
         # RECTANGLE
@@ -776,15 +764,15 @@ sub read-data-file($ifil,
             if $len < $wid {
                 ($wid, $len) = ($len, $wid);
             }
+
             $furn.width  = $wid;
             $furn.length = $len;
             $furn.height = $hgt;
             $furn.dims   = $hgt ?? "$wid\" x $len\" x $hgt\""
                                 !! "$wid\" x $len\"";
-
             my $ww = in2ft $wid;
             my $ll = in2ft $len;
-            $furn.dims2  = "{$ww}x{$ll}";
+            #$furn.dims2  = "{$ww}x{$ll}";
 
             # now parse the leading part of the line
             my ($id, $codes, $desc) = parse-leading $leading, $rnum, $fnum, :$ids, :$debug;
@@ -810,15 +798,47 @@ sub read-data-file($ifil,
             }
             }
 
-            #my $res  = $furn.set-id: $id, :$p;
-            #my $res2 = $furn.set-codes: $codes, :$p;
-            #say "DEBUG: res from set-id: $res" if $res;
-            #say "DEBUG: res2 from set-id: $res2" if $res2;
             $furn.desc  = $desc;
         }
         else {
-            say "FATAL on line $lineno: '$line'";
-            die "  Unknown format";
+            # we should still handle the first part
+            note "WARNING: line $lineno, no dimens found: '$line'";
+            # assume it's an undefined rectangle
+            my $s = "rectangular object";
+            note "DEBUG: line $lineno item '$s'" if $debug;
+
+            $furn.width  = 0;
+            $furn.length = 0;
+            $furn.height = 0;
+            $furn.dims   = "?";
+            #$furn.dims2  = "?";
+
+            # now parse the leading part of the line
+            my $leading = $line;
+            my ($id, $codes, $desc) = parse-leading $leading, $rnum, $fnum, :$ids, :$debug;
+            note "  captures => |$id| |$codes| |$desc| |$wid| |$len| |h: $hgt|" if $debug;
+
+            # handle the id
+            if $id and not $p.id-exists($id) {
+                # it's unique
+                $p.set-id: $id;
+                $furn.set-id: $id;
+            }
+            else { die "FATAL: furniture object with non-unique id: $id"; }
+
+            # handle the codes
+            if $codes {
+                note "DEBUG: handling codes:  |$id| |$codes| |$desc| |$wid| |$len| |h: $hgt|" if $debug;
+            for $codes.words -> $c  {
+                if $p.code-exists($c) {
+                    # it's valid
+                    $furn.set-code: $c;
+                }
+                else { die "FATAL: furniture object id '$id' with non-valid code: '$c'"; }
+            }
+            }
+
+            $furn.desc  = $desc;
         }
 
         #   AND it should replace all this this code:
@@ -915,7 +935,10 @@ sub ps-to-pdf(@ofils,
 
     # produce the pdf
     # some additional error checking
-    note "DEBUG: psf '$psf' pdf '$pdf'" if $debug;
+    if $debug {
+        note "DEBUG file names: psf '$psf' pdf '$pdf'";
+        note "DEBUG early exit"; exit;
+    }
 
     die "FATAL: Input file '$psf' not found" if !$psf.IO.f;
     my $cmd  = "ps2pdf";
@@ -1009,7 +1032,7 @@ sub write-list-headers($fh, :project(:$p), :$debug) is export {
     #== end headers for ALL files
 } # sub write-list-headers
 
-sub write-list-room(@rooms, @ofils, :project(:$p), :$debug) {
+sub write-list-rooms(@rooms, :@ofils, :project(:$p), :$debug) {
     # writes a list in room, furniture order
     # the master list
 
@@ -1019,10 +1042,8 @@ sub write-list-room(@rooms, @ofils, :project(:$p), :$debug) {
     my $txtfil = ".draw2d-ascii-list";
     my $fh = open $txtfil, :w;
 
-
     write-list-headers $fh, :$p, :$debug;
 
-    if 1 { #=begin comment
     #===========
     # this is the standard list output by room, furniture
     # write-list-rooms
@@ -1053,23 +1074,23 @@ sub write-list-room(@rooms, @ofils, :project(:$p), :$debug) {
     # convert ps to pdf
     my $pdf = $psfile;
     $pdf ~~ s/'.ps'$/.pdf/;
-    ps-to-pdf @ofils, :$psfile, :$pdf;
+    ps-to-pdf @ofils, :$psfile, :$pdf, :$debug;
     #===========
-    } #=end comment
 
-} # sub write-list-room
+} # sub write-list-rooms
 
-sub write-list-id($fh, :project(:$p), :$debug) {
+sub write-list-ids(@rooms, :@ofils, :project(:$p), :$debug) {
     # writes a list in id order
     # for all IDs
 
-    write-list-headers $fh, :$p, :$debug;
-} # sub write-list-id
+    #write-list-headers $fh, :$p, :$debug;
 
-sub write-list-code($fh, :project(:$p), :$debug) {
+} # sub write-list-ids
+
+sub write-list-codes(@rooms, :@ofils, :project(:$p), :$debug) {
     # writes a separate list for each code
     # in room, furniture order
 
-    write-list-headers $fh, :$p, :$debug;
+    #write-list-headers $fh, :$p, :$debug;
 
-} # sub write-list-code
+} # sub write-list-codes
