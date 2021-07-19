@@ -320,7 +320,7 @@ sub write-lists(@rooms,
     $fh.close;
     @ofils.push: $txtfil;
 
-    my $psfile = $p.filename: "list", :suffix("ps");
+    my $psfile = $p.filename: "list", :list-subtype(""), :suffix("ps");
     # we now have a text file to convert to ps
     text-to-ps $txtfil, $psfile, :$p, :$debug;
 
@@ -929,10 +929,14 @@ sub in2ft($In) {
 #| pdf using the system progeam 'ps2pdf'.
 sub ps-to-pdf(@ofils,
               :psfile(:$psf)!,
-              :pdfile(:$pdf)!,
+              :pdfile(:$pdf) is copy,
               :$debug
              ) {
-
+    if not $pdf {
+        $pdf = $psf;
+        $pdf ~~ s/'.ps'$/.pdf/;
+    }
+    
     # produce the pdf
     # some additional error checking
     if $debug {
@@ -1066,16 +1070,16 @@ sub write-list-rooms(@rooms, :@ofils, :project(:$p), :$debug) {
     $fh.say: "\nTotal number items: $nitems";
     $fh.close;
     @ofils.push: $txtfil;
+    #===========
 
+    
     my $psfile = $p.filename: "list", :suffix("ps");
     # we now have a text file to convert to ps
     text-to-ps $txtfil, $psfile, :$p, :$debug;
-
     # convert ps to pdf
     my $pdf = $psfile;
     $pdf ~~ s/'.ps'$/.pdf/;
     ps-to-pdf @ofils, :$psfile, :$pdf, :$debug;
-    #===========
 
 } # sub write-list-rooms
 

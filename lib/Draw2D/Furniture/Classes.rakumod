@@ -181,7 +181,7 @@ class Project does Collections is export {
                     # e.g., a "dot" file doesn't get a file extension (suffix)
                     :$suffix!, # where /ps|pdf|inp|dot|none/,
 
-                    :$subtype, # where /id|code/, 
+                    :$list-subtype, # where /id|code/, 
 
                     :$code, # must be one of the known codes in the Project's collection
                     :$debug,
@@ -199,7 +199,7 @@ class Project does Collections is export {
                 die "FATAL: Unknown output file type '$_'";
             }
         }
-        if $subtype {
+        if $list-subtype {
             when /id/ { $f ~= "-ids"; }
             when /code/ { 
                 die Q|FATAL: Code output file with no $code entry| if not $code; 
