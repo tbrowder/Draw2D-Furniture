@@ -144,8 +144,8 @@ role Collections {
 class Project does Collections is export {
     # SET UPON CREATION WARN IF DIFFERENT
     has $.title    is rw = ""; # normally set upon creation, may have spaces
-    has $.date     is rw; # normally set upon creation
-    has $.basename is rw; # normally set upon creation # cannot have spaces
+    has $.date     is rw = ""; # normally set upon creation
+    has $.basename is rw = ""; # normally set upon creation # cannot have spaces
 
     # following attribute values cannot have spaces
     has $.list-name is rw = "furniture-list";     # was $ofilL
@@ -179,7 +179,7 @@ class Project does Collections is export {
     method filename($type, # where /list|draw|inp|text/,
                     # we must know the desired suffix, if any, depending on the use of the file,
                     # e.g., a "dot" file doesn't get a file extension (suffix)
-                    :$suffix!, # where /ps|pdf|inp|dot|none/,
+                    :$suffix = "none", # where /ps|pdf|inp|dot|none/,
 
                     :$list-subtype, # where /id|code/, 
 
@@ -199,7 +199,7 @@ class Project does Collections is export {
                 die "FATAL: Unknown output file type '$_'";
             }
         }
-        if $list-subtype {
+        given $list-subtype {
             when /id/ { $f ~= "-ids"; }
             when /code/ { 
                 die Q|FATAL: Code output file with no $code entry| if not $code; 
@@ -207,7 +207,8 @@ class Project does Collections is export {
                 $f ~= "-code-$code"; 
             }
             default {
-                die "FATAL: Unknown output file subtype '$_'";
+                # ignore an empty string
+                die "FATAL: Unknown output file subtype '$_'" if $_;
             }
         }
         given $suffix {

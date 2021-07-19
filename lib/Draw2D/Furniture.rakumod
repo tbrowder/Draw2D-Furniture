@@ -288,49 +288,6 @@ sub write-lists(@rooms,
     write-list-ids @rooms, :@ofils, :$p, :$debug;
     write-list-codes @rooms, :@ofils, :$p, :$debug;
 
-    =begin comment
-    # get the file name for output
-    # write the raw text files
-    my $nitems = 0;
-    my $txtfil = ".draw2d-ascii-list";
-    my $fh = open $txtfil, :w;
-
-    write-list-headers $fh, :$p, :$debug;
-
-    #===========
-    # this is the standard list output by room, furniture
-    # write-list-rooms
-    for @rooms -> $r {
-        $fh.say: "  Room {$r.number}: {$r.title}";
-        for $r.furniture -> $f {
-            my $t = $f.title;
-            if $t ~~ /:i '<ff>' / {
-                $fh.say: "      <ff>";
-                next;
-            }
-            ++$nitems; # cumulative number
-
-            my $num   = "{$f.number}";
-            my $id    = $f.id;
-            my $codes = $f.codes2str: :keys; # output "a bb .."
-            $fh.say: "      $num [$id] [$codes] {$f.desc} [{$f.dims}]";
-        }
-    }
-    $fh.say: "\nTotal number items: $nitems";
-    $fh.close;
-    @ofils.push: $txtfil;
-
-    my $psfile = $p.filename: "list", :list-subtype(""), :suffix("ps");
-    # we now have a text file to convert to ps
-    text-to-ps $txtfil, $psfile, :$p, :$debug;
-
-    # convert ps to pdf
-    my $pdf = $psfile;
-    $pdf ~~ s/'.ps'$/.pdf/;
-    ps-to-pdf @ofils, :$psfile, :$pdf, :$debug;
-    #===========
-    =end comment
-
 } # sub write-lists
 
 #| Given a specially formatted text file, read the file and convert
@@ -1015,7 +972,13 @@ sub parse-leading($s, $rnum, $fnum, :$ids!, :$debug --> List) {
     $id, $codes, $desc
 } # sub parse-leading
 
-sub write-list-headers($fh, :project(:$p), :$debug) is export {
+sub write-list-headers($fh, 
+                       :project(:$p), 
+                       :$debug
+                      ) is export {
+
+    # TODO handle better output file info
+
     #== headers for ALL files
     # title, etc.
     if $p.title { $fh.say: "Title: {$p.title}"; }
@@ -1041,9 +1004,8 @@ sub write-list-rooms(@rooms, :@ofils, :project(:$p), :$debug) {
     # the master list
 
     my $nitems = 0;
-
-    # write the raw text files
-    my $txtfil = ".draw2d-ascii-list";
+    # create the raw ASCII text file
+    my $txtfil = $p.filename: "text", :list-subtype("");
     my $fh = open $txtfil, :w;
 
     write-list-headers $fh, :$p, :$debug;
@@ -1070,22 +1032,27 @@ sub write-list-rooms(@rooms, :@ofils, :project(:$p), :$debug) {
     $fh.say: "\nTotal number items: $nitems";
     $fh.close;
     @ofils.push: $txtfil;
-    #===========
 
-    
-    my $psfile = $p.filename: "list", :suffix("ps");
     # we now have a text file to convert to ps
+    my $psfile = $p.filename: "list", :list-subtype(""), :suffix("ps");
     text-to-ps $txtfil, $psfile, :$p, :$debug;
-    # convert ps to pdf
-    my $pdf = $psfile;
-    $pdf ~~ s/'.ps'$/.pdf/;
-    ps-to-pdf @ofils, :$psfile, :$pdf, :$debug;
+    ps-to-pdf @ofils, :$psfile;
 
 } # sub write-list-rooms
 
 sub write-list-ids(@rooms, :@ofils, :project(:$p), :$debug) {
     # writes a list in id order
     # for all IDs
+
+    my $nitems = 0;
+    # create the raw ASCII text file
+    my $txtfil = $p.filename: "text", :list-subtype("id");
+    my $fh = open $txtfil, :w;
+
+    write-list-headers $fh, :$p, :$debug;
+
+    $fh.close;
+    @ofils.push: $txtfil;
 
     #write-list-headers $fh, :$p, :$debug;
 
@@ -1094,6 +1061,16 @@ sub write-list-ids(@rooms, :@ofils, :project(:$p), :$debug) {
 sub write-list-codes(@rooms, :@ofils, :project(:$p), :$debug) {
     # writes a separate list for each code
     # in room, furniture order
+
+    my $nitems = 0;
+    # create the raw ASCII text file
+    my $txtfil = $p.filename: "text", :list-subtype("code");
+    my $fh = open $txtfil, :w;
+
+    write-list-headers $fh, :$p, :$debug;
+
+    $fh.close;
+    @ofils.push: $txtfil;
 
     #write-list-headers $fh, :$p, :$debug;
 
