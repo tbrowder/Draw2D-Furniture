@@ -45,7 +45,7 @@ role Collections {
     }
     
     method codes2str(:$keys, 
-                     :$no-comma,
+                     :$no-commas,
                      :$list, 
                      :$sepchar = '=>', 
                      :$debug 
@@ -56,7 +56,7 @@ role Collections {
 
         my $s;
         if $keys {
-            my $jchar = $no-comma ?? " " !! ", ";
+            my $jchar = $no-commas ?? " " !! ", ";
             $s = %!codes.elems ?? %!codes.keys.sort.join($jchar) !! "?";
         }
         elsif $list {
