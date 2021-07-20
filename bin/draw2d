@@ -116,6 +116,7 @@ write-drawings(@rooms, @ofils, :$p, :$squeeze, :$debug) if $draw;
 say "Normal end.";
 my $n = +@ofils;
 if $n {
+   @ofils .= unique;
    my $s = $n > 1 ?? 's' !! '';
    say "See output file$s:";
    say "  $_" for @ofils;
