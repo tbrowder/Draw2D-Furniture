@@ -1010,9 +1010,7 @@ sub write-list-rooms(@rooms, :@ofils, :project(:$p), :$debug) {
 
     write-list-headers $fh, :$p, :$debug;
 
-    #===========
     # this is the standard list output by room, furniture
-    # write-list-rooms
     for @rooms -> $r {
         $fh.say: "  Room {$r.number}: {$r.title}";
         for $r.furniture -> $f {
@@ -1022,7 +1020,6 @@ sub write-list-rooms(@rooms, :@ofils, :project(:$p), :$debug) {
                 next;
             }
             ++$nitems; # cumulative number
-
             my $num   = "{$f.number}";
             my $id    = $f.id;
             my $codes = $f.codes2str: :keys; # output "a bb .."
@@ -1032,7 +1029,6 @@ sub write-list-rooms(@rooms, :@ofils, :project(:$p), :$debug) {
     $fh.say: "\nTotal number items: $nitems";
     $fh.close;
     @ofils.push: $txtfil;
-
     # we now have a text file to convert to ps
     my $psfile = $p.filename: "list", :list-subtype(""), :suffix("ps");
     text-to-ps $txtfil, $psfile, :$p, :$debug;
@@ -1043,6 +1039,8 @@ sub write-list-rooms(@rooms, :@ofils, :project(:$p), :$debug) {
 sub write-list-ids(@rooms, :@ofils, :project(:$p), :$debug) {
     # writes a list in id order
     # for all IDs
+
+    # get the complete list with room assignments
 
     my $nitems = 0;
     # create the raw ASCII text file
@@ -1063,15 +1061,54 @@ sub write-list-codes(@rooms, :@ofils, :project(:$p), :$debug) {
     # in room, furniture order
 
     my $nitems = 0;
-    # create the raw ASCII text file
-    my $txtfil = $p.filename: "text", :list-subtype("code");
-    my $fh = open $txtfil, :w;
+    my $codes = $p.codes2str: :keys, :no-commas;
+    note "DEBUG: codes: '$codes'" if $debug;
+    if 0 and $debug {
+        note "DEBUG: early exit";
+        exit;
+    }
 
-    write-list-headers $fh, :$p, :$debug;
+    my @codes = $codes.lc.words;
+    for @codes -> $c {
+        # create the raw ASCII text file
+        my $txtfil = $p.filename: "text", :list-subtype("code"), :code($c);
+        my $fh = open $txtfil, :w;
 
-    $fh.close;
-    @ofils.push: $txtfil;
+        write-list-headers $fh, :$p, :$debug;
 
-    #write-list-headers $fh, :$p, :$debug;
+        for @rooms -> $r {
+            $fh.say: "  Room {$r.number}: {$r.title}";
+            my $has-coded-furn = 0;
+
+            for $r.furniture -> $f {
+                my $t = $f.title;
+                if $t ~~ /:i '<ff>'/ { $fh.say: "      <ff>"; next; }
+
+                my $has-code = $f.code-exists($c) ?? 1 !! 0;
+                next if not $has-code;
+
+                ++$nitems; # cumulative number
+                ++$has-coded-furn;
+
+                my $num   = "{$f.number}";
+                my $id    = $f.id;
+                my $codes = $f.codes2str: :keys; # output "a bb .."
+                $fh.say: "      $num [$id] [$codes] {$f.desc} [{$f.dims}]";
+                #$fh.say: "      [$id] [$codes] {$f.desc} [{$f.dims}]";
+            }
+            if not $has-coded-furn {
+                $fh.say: "      (no furniture with code '$c')";
+            }
+
+        }
+        $fh.say: "\nTotal number items: $nitems";
+        $fh.close;
+        @ofils.push: $txtfil;
+        # we now have a text file to convert to ps
+        my $psfile = $p.filename: "list", :list-subtype("code"), :suffix("ps"), :code($c);
+        text-to-ps $txtfil, $psfile, :$p, :$debug;
+        ps-to-pdf @ofils, :$psfile;
+    }
+
 
 } # sub write-list-codes
