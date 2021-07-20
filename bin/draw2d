@@ -9,7 +9,7 @@ if !@*ARGS {
     Usage: {$*PROGRAM.basename} <formatted input file>
                 OR
                                 <formatted input file>
-                                  [id][scale=X][codes][list|draw][debug]
+                                  [id][scale=X][codes][list|draw][debug[=N]]
 
     (Note: If the first argument is other than a readable file in the proper
     format, the user will be prompted for required inputs to
@@ -42,6 +42,9 @@ my $cli-scale; # ($in-per-ft) a hack for on-the-fly scale changes (only for that
 for @*ARGS {
     when /^ g/  { ;  }
     when /^ l/  { $list=1; $draw=0 }
+    when /^ debug '=' (\d+) / {
+         $debug = +$0;
+    }
     when /^ de/ { $debug   = 1 }
     when /^ d/  { $draw=1; $list=0 }
     when /^ s/  { $squeeze = 1 }
