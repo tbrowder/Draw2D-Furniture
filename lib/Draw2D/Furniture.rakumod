@@ -167,15 +167,30 @@ sub text-to-ps($txtfil, # the ASCII input text file
     # page margins
     my $marg    =  1.0; # inches
     my $xleft   =  $marg * 72;
-    my $xright  =  (8.5 - $marg) * 72;
+    my $xright  =  (8.5 - 0.5 * $marg) * 72;
     my $ytop    =  (11 - $marg) * 72;
     my $ybottom =  $marg * 72 + 20; # allow 25 points for a page number
-
+    my $max-line-len = (8.5 - 1.5) * 72;
     # font variables
-    my $font   = 'Times-Roman';
-    my $fsize  = 12;
-    my $lspace = $fsize * 1.3; # baseline to baseline distance
+    #my $font   = 'Times-Roman';
+    my $font   = 'Courier';
+    my $fsize  = 9;
+    my $lspace = $fsize * 1.2; # baseline to baseline distance
+
+    =begin comment
+    # monowidth chars only!
+    $string-width = (($afm-width * $nchars) * $fsize) / 1000;
+    $string-width * 1000 = ($AFM-width * $nchars) * $fsize;
+    ($string-width * 1000) / $fsize = $AFM-width * $nchars;
+    $nchars = (($string-width * 1000) / $fsize)/$AFM-width;
+    =end comment
+
+    my $string-width = $max-line-len;
+    my $afm-width = 600; # Courier ONLY
+    my $nchars = (($string-width * 1000) / $fsize) / $afm-width;
+
     my $ytopbaseline = $ytop - $lspace;
+    my $max-line-chars = $nchars.Int;
 
     $ps.add_to_page: "/$font $fsize selectfont\n";
 
@@ -219,9 +234,10 @@ sub text-to-ps($txtfil, # the ASCII input text file
     #   wrap the text to proper width (check Text::Utils)
     #   use a PS proc to write
 
-    for $txtfil.IO.lines -> $line {
+    LINE: for $txtfil.IO.lines -> $line is copy {
         my $ff = $line ~~ /:i '<ff>' / ?? 1 !! 0;
         note "DEBUG: ff = $ff" if $debug == 1;
+
         # some analysis here:
         #   if $line contains '<ff>' make a new page
         # otherwise, we need to translate leading space
@@ -236,21 +252,60 @@ sub text-to-ps($txtfil, # the ASCII input text file
         }
         next if $ff;
 
-        # write the line or skip a line space for a blank line
-        if $line !~~ /\S/ {
-            ; # no entry but vspace
-        }
-        elsif $line ~~ /^ (\s+) (.*) $/ {
-            my $spaces = ~$0;
-            my $text   = ~$1;
-            my $xx = $spaces.chars * $fsize;
-            $ps.add_to_page: "{$x + $xx} $y mt ($text) 9 puttext\n";
+        my @lines;
+        my $line-len = $line.chars * $fsize;
+        if $line-len > $max-line-len {
+            # wrap the lines with the initial spaces as indent
+            my $para-indent = 0;
+            if $line ~~ /^ (\s+) (.*) $/ {
+                my $spaces = ~$0;
+                $para-indent = $spaces.chars;
+            }
+            # do the wrap
+            @lines = wrap-paragraph $line,
+            :max-line-length($max-line-chars),
+            :$para-indent,
+            :line-indent(4);
+
+            if $debug and $debug == 4 {
+                note "DEBUG: wrapped para: ======";
+                .say for @lines;
+                note "DEBUG: end wrapped para: ======";
+                #note "DEBUG: early exit"; exit
+            }
+
         }
         else {
-            $ps.add_to_page: "$x $y mt ($line) 9 puttext\n";
+            @lines.push: $line;
         }
-        $y -= $lspace;
-        note "DEBUG: y = $y" if $debug == 1;
+
+        LINES: for @lines -> $fline is copy {
+            reset-row-var;
+            my $res = check-bottom($y);
+            if !$res {
+                # need a new page
+                reset-page-vars;
+                $ps.newpage;
+                $ps.add_to_page: "/$font $fsize selectfont\n";
+            }
+
+
+            # write the line or skip a line space for a blank line
+            if $fline !~~ /\S/ {
+                ; # no entry but vspace
+            }
+            elsif $fline ~~ /^ (\s+) (.*) $/ {
+                my $spaces = ~$0;
+                my $text   = ~$1;
+                my $xx = $spaces.chars * $fsize;
+                $ps.add_to_page: "{$x + $xx} $y mt ($text) 9 puttext\n";
+            }
+            else {
+                $ps.add_to_page: "$x $y mt ($line) 9 puttext\n";
+            }
+            $y -= $lspace;
+            note "DEBUG: y = $y" if $debug == 1;
+        }
     }
 
     note "DEBUG: num pages: $npages" if $debug == 1;
@@ -335,7 +390,16 @@ sub read-data-file($ifil,
         $line = strip-comment $line;
         $line = ' ' if not $line; # IMPORTANT FOR THE REST OF THIS LOOP
 
-        my $has-ending-slash = 0;
+        my $has-ending-slash   = 0;
+        my $has-mid-line-slash = 0;
+        if $line ~~ /$BSLASH \h* \S+ / {
+            ++$has-mid-line-slash;
+        }
+        if $has-mid-line-slash {
+            note "WARNING: line has mid-line backslash: '$line'";
+            note "  it MUST be removed";
+        }
+
         if $line ~~ /$BSLASH \h* $/ {
             ++$has-ending-slash;
             note "backslash on end of line '$line'" if $debug == 1;
@@ -887,7 +951,7 @@ sub in2ft($In) {
 sub ps-to-pdf(@ofils,
               :psfile(:$psf)!,
               :pdfile(:$pdf) is copy,
-              :$debug
+              :$debug!
              ) {
     if not $pdf {
         $pdf = $psf;
@@ -907,8 +971,8 @@ sub ps-to-pdf(@ofils,
     run $cmd, $args.words;
     die "FATAL: Output file $pdf not found" if !$pdf.IO.f;
     @ofils.push: $pdf;
-    $debug ??  @ofils.push($psf) !! unlink($psf);
-}
+    ($debug and $debug == 3) ??  @ofils.push($psf) !! unlink($psf);
+} # sub ps-to-pdf
 
 sub parse-leading($s, $rnum, $fnum, :$ids!, :$debug --> List) {
     # now parse the leading part of the line
@@ -988,13 +1052,21 @@ sub write-list-headers($fh,
     if $p.address { $fh.say("Address: $_") for $p.address; }
     if $p.phone { $fh.say("Phone: $_") for $p.phone; }
     # show codes with title
-    my $cs = $p.codes2str(:list, :sepchar("\t"));
+    my $cs = $p.codes2str(:list, :sepchar(" "));
+    # TODO make this better looking
     if $cs {
         $fh.print: qq:to/HERE/;
-        Code \t Title
-        ==== \t =====;
-        $cs
+        Code : Title
+        ==== + =====;
         HERE
+        my @clines = $cs.lines;
+        for @clines -> $cline {
+            my @w = $cline.words;
+            my $w = @w.shift;
+            $w = sprintf "%-4.4s", $w;
+            my $s = @w.join: " ";
+            $fh.say: "$w : $s";
+        }
     }
     #== end headers for ALL files
 } # sub write-list-headers
@@ -1029,11 +1101,11 @@ sub write-list-rooms(@rooms, :@ofils, :project(:$p), :$debug) {
     # we now have a text file to convert to ps
 
     # for dev don't produce PS or PDF
-    return if $debug > 1;
+    return if $debug == 2;
 
     my $psfile = $p.filename: "list", :list-subtype(""), :suffix("ps");
     text-to-ps $txtfil, $psfile, :$p, :$debug;
-    ps-to-pdf @ofils, :$psfile;
+    ps-to-pdf @ofils, :$psfile, :$debug;
 
 } # sub write-list-rooms
 
@@ -1041,7 +1113,6 @@ sub write-list-codes(@rooms, :@ofils, :project(:$p), :$debug) {
     # writes a separate list for each code
     # in room, furniture order
 
-    my $nitems = 0;
     my $codes = $p.codes2str: :keys, :no-commas;
     note "DEBUG: codes: '$codes'" if $debug == 1;
     if 0 and $debug {
@@ -1057,6 +1128,7 @@ sub write-list-codes(@rooms, :@ofils, :project(:$p), :$debug) {
 
         write-list-headers $fh, :$p, :$debug;
 
+        my $nitems = 0;
         for @rooms -> $r {
             $fh.say: "  Room {$r.number}: {$r.title}";
             my $has-coded-furn = 0;
@@ -1090,7 +1162,7 @@ sub write-list-codes(@rooms, :@ofils, :project(:$p), :$debug) {
 
         my $psfile = $p.filename: "list", :list-subtype("code"), :suffix("ps"), :code($c);
         text-to-ps $txtfil, $psfile, :$p, :$debug;
-        ps-to-pdf @ofils, :$psfile;
+        ps-to-pdf @ofils, :$psfile, :$debug;
     }
 
 } # sub write-list-codes
@@ -1137,6 +1209,6 @@ sub write-list-ids(@rooms, :@ofils, :project(:$p), :$debug) {
 
     my $psfile = $p.filename: "list", :list-subtype("id"), :suffix("ps");
     text-to-ps $txtfil, $psfile, :$p, :$debug;
-    ps-to-pdf @ofils, :$psfile;
+    ps-to-pdf @ofils, :$psfile, :$debug;
 
 } # sub write-list-ids
