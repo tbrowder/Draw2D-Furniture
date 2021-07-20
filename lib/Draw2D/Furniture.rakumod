@@ -42,7 +42,7 @@ sub write-drawings(@rooms,
     # for debugging count furniture items
     my $nfurn = 0;
 
-    if $debug {
+    if $debug == 1 {
         my ($llx, $lly, $urx, $ury) = $ps.get_bounding_box;
         note "DEBUG drawing page bbox: $llx, $lly    $urx, $ury";
     }
@@ -96,7 +96,7 @@ sub write-drawings(@rooms,
     for @rows -> $r {
        reset-row-var;
         ++$i;
-        if $debug {
+        if $debug == 1 {
             note "DEBUG: row $i max-height: {$r.max-height}";
             note "              furn items: {$r.furniture.elems}";
             note " start x/y: $x $y";
@@ -154,7 +154,7 @@ sub text-to-ps($txtfil, # the ASCII input text file
                :file($psfile),
                :file_ext("");
 
-    if $debug {
+    if $debug == 1 {
         my ($llx, $lly, $urx, $ury) = $ps.get_bounding_box;
         note "DEBUG listing page bbox: $llx, $lly    $urx, $ury";
     }
@@ -200,7 +200,7 @@ sub text-to-ps($txtfil, # the ASCII input text file
         # point, can it fit on the current page?
         my $ybot = $yy - $lspace;
         my $res = $ybot >= $ybottom;
-        note "DEBUG check-bottom: y = $yy; ybot = $ybot; ybottom = $ybottom; res = $res" if $debug;
+        note "DEBUG check-bottom: y = $yy; ybot = $ybot; ybottom = $ybottom; res = $res" if $debug == 1;
         return $res;
     }
 
@@ -221,7 +221,7 @@ sub text-to-ps($txtfil, # the ASCII input text file
 
     for $txtfil.IO.lines -> $line {
         my $ff = $line ~~ /:i '<ff>' / ?? 1 !! 0;
-        note "DEBUG: ff = $ff" if $debug;
+        note "DEBUG: ff = $ff" if $debug == 1;
         # some analysis here:
         #   if $line contains '<ff>' make a new page
         # otherwise, we need to translate leading space
@@ -250,10 +250,10 @@ sub text-to-ps($txtfil, # the ASCII input text file
             $ps.add_to_page: "$x $y mt ($line) 9 puttext\n";
         }
         $y -= $lspace;
-        note "DEBUG: y = $y" if $debug;
+        note "DEBUG: y = $y" if $debug == 1;
     }
 
-    note "DEBUG: num pages: $npages" if $debug;
+    note "DEBUG: num pages: $npages" if $debug == 1;
     # go back and add page numbers:
     #   Page x of n
 
@@ -331,16 +331,16 @@ sub read-data-file($ifil,
         # lines with an ending slash are combined with following lines
         # until the first unslashed one
         # note embedded slashes are IGNORED in the combining
-        note "== line $i" if $debug;
+        note "== line $i" if $debug == 1;
         $line = strip-comment $line;
         $line = ' ' if not $line; # IMPORTANT FOR THE REST OF THIS LOOP
 
         my $has-ending-slash = 0;
         if $line ~~ /$BSLASH \h* $/ {
             ++$has-ending-slash;
-            note "backslash on end of line '$line'" if $debug;
+            note "backslash on end of line '$line'" if $debug == 1;
             $line ~~ s/$BSLASH \h* $//;
-            note "  after removal: '$line'" if $debug;
+            note "  after removal: '$line'" if $debug == 1;
             # stash in @flines
             @flines.push: $line;
             next ;
@@ -359,11 +359,11 @@ sub read-data-file($ifil,
     my $lineno = 0;
     LINE: for @lines -> $line is copy {
         ++$lineno;
-        note "DEBUG line $lineno" if $debug;
-        note "DEBUG line: '$line'" if $debug;
+        note "DEBUG line $lineno" if $debug == 1;
+        note "DEBUG line: '$line'" if $debug == 1;
         next LINE if $line !~~ /\S/;
         next LINE if $line ~~ /^ \s* '='+ \s* $/;
-        say "DEBUG2 line: '$line'" if $debug;
+        say "DEBUG2 line: '$line'" if $debug == 1;
 
         if $line ~~ /^ \h* room ':' \h* (.*) \h* $/ {
             # a new room
@@ -383,7 +383,7 @@ sub read-data-file($ifil,
         # these three attributes were set at creation, warn if changed
         if $line ~~ /^ \s* title ':' \s* (.*) \s* $/ {
             my $txt = normalize-string ~$0;
-            note "DEBUG: txt: '$txt'" if $debug;
+            note "DEBUG: txt: '$txt'" if $debug == 1;
             die "FATAL: header info '$txt' not allowed after room info has begun" if $curr-room;
             if $p.title and $p.title ne $txt {
                 note qq:to/HERE/
@@ -443,13 +443,13 @@ sub read-data-file($ifil,
             my $txt = normalize-string ~$1;
 
             # special handling for codes
-            note "DEBUG: handling input code '$key' with text '$txt'" if $debug;
+            note "DEBUG: handling input code '$key' with text '$txt'" if $debug == 1;
             if $key eq "code" {
                 # the code key is the first word of the value
                 my @w = $txt.words;
                 my $c = @w.shift.lc;
                 my $title = @w.join: " ";
-                note "DEBUG: handling Project code '$c' with text '$title'" if $debug;
+                note "DEBUG: handling Project code '$c' with text '$title'" if $debug == 1;
                 $p.set-code($c, :$title);
             }
             else {
@@ -521,7 +521,7 @@ sub read-data-file($ifil,
                        $/ {
             # 1. an elliptical object
             my $s = "elliptical object";
-            note "DEBUG: line $lineno item '$s'" if $debug;
+            note "DEBUG: line $lineno item '$s'" if $debug == 1;
 
             # save the starting position of the match to save the leading part of the
             # line for later parsing
@@ -555,7 +555,7 @@ sub read-data-file($ifil,
 
             # now parse the leading part of the line
             my ($id, $codes, $desc) = parse-leading $leading, $rnum, $fnum, :$ids, :$debug;
-            note "  captures => |$id| |$codes| |$desc| |$wid| |$len| |h: $hgt|" if $debug;
+            note "  captures => |$id| |$codes| |$desc| |$wid| |$len| |h: $hgt|" if $debug == 1;
 
             # handle the id
             if $id and not $p.id-exists($id) {
@@ -567,7 +567,7 @@ sub read-data-file($ifil,
 
             # handle the codes
             if $codes {
-                note "DEBUG: handling codes:  |$id| |$codes| |$desc| |$wid| |$len| |h: $hgt|" if $debug;
+                note "DEBUG: handling codes:  |$id| |$codes| |$desc| |$wid| |$len| |h: $hgt|" if $debug == 1;
             for $codes.words -> $c  {
                 note "checking furn code '$c' for validity|" if 1 or $debug;
                 if $p.code-exists($c) {
@@ -590,7 +590,7 @@ sub read-data-file($ifil,
                        $/ {
             # 2. a circular object with diam
             my $s = "circular object with diam";
-            note "DEBUG: line $lineno item '$s'" if $debug;
+            note "DEBUG: line $lineno item '$s'" if $debug == 1;
 
             # save the starting position of the match to save the leading part of the
             # line for later parsing
@@ -614,7 +614,7 @@ sub read-data-file($ifil,
 
             # now parse the leading part of the line
             my ($id, $codes, $desc) = parse-leading $leading, $rnum, $fnum, :$ids, :$debug;
-            note "  captures => |$id| |$codes| |$desc| |{$furn.diameter}| |h: $hgt|" if $debug;
+            note "  captures => |$id| |$codes| |$desc| |{$furn.diameter}| |h: $hgt|" if $debug == 1;
 
             # handle the id
             if $id and not $p.id-exists($id) {
@@ -626,7 +626,7 @@ sub read-data-file($ifil,
 
             # handle the codes
             if $codes {
-                note "DEBUG: handling codes:  |$id| |$codes| |$desc| |$wid| |$len| |h: $hgt|" if $debug;
+                note "DEBUG: handling codes:  |$id| |$codes| |$desc| |$wid| |$len| |h: $hgt|" if $debug == 1;
             for $codes.words -> $c  {
                 if $p.code-exists($c) {
                     # it's valid
@@ -648,7 +648,7 @@ sub read-data-file($ifil,
                        $/ {
             # 3. a circular object with radius
             my $s = "circular object with radius";
-            note "DEBUG: line $lineno item '$s'" if $debug;
+            note "DEBUG: line $lineno item '$s'" if $debug == 1;
 
             # save the starting position of the match to save the leading part of the
             # line for later parsing
@@ -669,7 +669,7 @@ sub read-data-file($ifil,
 
             # now parse the leading part of the line
             my ($id, $codes, $desc) = parse-leading $leading, $rnum, $fnum, :$ids, :$debug;
-            note "  captures => |$id| |$codes| |$desc| |{$furn.radius}| |h: $hgt|" if $debug;
+            note "  captures => |$id| |$codes| |$desc| |{$furn.radius}| |h: $hgt|" if $debug == 1;
 
             # handle the id
             if $id and not $p.id-exists($id) {
@@ -681,12 +681,12 @@ sub read-data-file($ifil,
 
             # handle the codes
             if $codes {
-                note "DEBUG: handling codes:  |$id| |$codes| |$desc| " if $debug;
+                note "DEBUG: handling codes:  |$id| |$codes| |$desc| " if $debug == 1;
             for $codes.words -> $c  {
-                note "DEBUG: handling code for furn  '$c'" if $debug;
+                note "DEBUG: handling code for furn  '$c'" if $debug == 1;
                 if $p.code-exists($c) {
                     # it's valid
-                    note "DEBUG: code for furn: $c is known by Project" if $debug;
+                    note "DEBUG: code for furn: $c is known by Project" if $debug == 1;
                     $furn.set-code: $c;
                 }
                 else { die "FATAL: furniture object id '$id' with non-valid code: '$c'"; }
@@ -705,7 +705,7 @@ sub read-data-file($ifil,
                     $/ {
             # 4. a rectangular object
             my $s = "rectangular object";
-            note "DEBUG: line $lineno item '$s'" if $debug;
+            note "DEBUG: line $lineno item '$s'" if $debug == 1;
 
             # save the starting position of the match to save the leading part of the
             # line for later parsing
@@ -733,7 +733,7 @@ sub read-data-file($ifil,
 
             # now parse the leading part of the line
             my ($id, $codes, $desc) = parse-leading $leading, $rnum, $fnum, :$ids, :$debug;
-            note "  captures => |$id| |$codes| |$desc| |$wid| |$len| |h: $hgt|" if $debug;
+            note "  captures => |$id| |$codes| |$desc| |$wid| |$len| |h: $hgt|" if $debug == 1;
 
             # handle the id
             if $id and not $p.id-exists($id) {
@@ -745,7 +745,7 @@ sub read-data-file($ifil,
 
             # handle the codes
             if $codes {
-                note "DEBUG: handling codes:  |$id| |$codes| |$desc| |$wid| |$len| |h: $hgt|" if $debug;
+                note "DEBUG: handling codes:  |$id| |$codes| |$desc| |$wid| |$len| |h: $hgt|" if $debug == 1;
             for $codes.words -> $c  {
                 if $p.code-exists($c) {
                     # it's valid
@@ -762,7 +762,7 @@ sub read-data-file($ifil,
             note "WARNING: line $lineno, no dimens found: '$line'";
             # assume it's an undefined rectangle
             my $s = "rectangular object";
-            note "DEBUG: line $lineno item '$s'" if $debug;
+            note "DEBUG: line $lineno item '$s'" if $debug == 1;
 
             $furn.width  = 0;
             $furn.length = 0;
@@ -773,7 +773,7 @@ sub read-data-file($ifil,
             # now parse the leading part of the line
             my $leading = $line;
             my ($id, $codes, $desc) = parse-leading $leading, $rnum, $fnum, :$ids, :$debug;
-            note "  captures => |$id| |$codes| |$desc| |$wid| |$len| |h: $hgt|" if $debug;
+            note "  captures => |$id| |$codes| |$desc| |$wid| |$len| |h: $hgt|" if $debug == 1;
 
             # handle the id
             if $id and not $p.id-exists($id) {
@@ -785,7 +785,7 @@ sub read-data-file($ifil,
 
             # handle the codes
             if $codes {
-                note "DEBUG: handling codes:  |$id| |$codes| |$desc| |$wid| |$len| |h: $hgt|" if $debug;
+                note "DEBUG: handling codes:  |$id| |$codes| |$desc| |$wid| |$len| |h: $hgt|" if $debug == 1;
             for $codes.words -> $c  {
                 if $p.code-exists($c) {
                     # it's valid
@@ -845,7 +845,7 @@ sub make-rows(@rows,   # should be empty
     for @rooms -> $r {
         for $r.furniture -> $f {
             my $title = $f.title;
-            note "DEBUG: title: |$title|" if $debug;
+            note "DEBUG: title: |$title|" if $debug == 1;
             next if $title ~~ /:i '<ff>'/;
             $x += $space if $row.furniture.elems;
             if !check-right($f, $x) {
@@ -893,10 +893,10 @@ sub ps-to-pdf(@ofils,
         $pdf = $psf;
         $pdf ~~ s/'.ps'$/.pdf/;
     }
-    
+
     # produce the pdf
     # some additional error checking
-    if $debug {
+    if $debug and $debug == 1 {
         note "DEBUG file names: psf '$psf' pdf '$pdf'";
         note "DEBUG early exit"; exit;
     }
@@ -963,7 +963,7 @@ sub parse-leading($s, $rnum, $fnum, :$ids!, :$debug --> List) {
         note "WARNING: Furniture line number $num has no leading ID number.";
     }
 
-    note "DEBUG: parsing leading: id/codes |$id| |$codes|" if $debug;
+    note "DEBUG: parsing leading: id/codes |$id| |$codes|" if $debug == 1;
 
     $codes = normalize-string $codes;
 
@@ -972,8 +972,8 @@ sub parse-leading($s, $rnum, $fnum, :$ids!, :$debug --> List) {
     $id, $codes, $desc
 } # sub parse-leading
 
-sub write-list-headers($fh, 
-                       :project(:$p), 
+sub write-list-headers($fh,
+                       :project(:$p),
                        :$debug
                       ) is export {
 
@@ -1027,31 +1027,15 @@ sub write-list-rooms(@rooms, :@ofils, :project(:$p), :$debug) {
     $fh.close;
     @ofils.push: $txtfil;
     # we now have a text file to convert to ps
+
+    # for dev don't produce PS or PDF
+    return if $debug > 1;
+
     my $psfile = $p.filename: "list", :list-subtype(""), :suffix("ps");
     text-to-ps $txtfil, $psfile, :$p, :$debug;
     ps-to-pdf @ofils, :$psfile;
 
 } # sub write-list-rooms
-
-sub write-list-ids(@rooms, :@ofils, :project(:$p), :$debug) {
-    # writes a list in id order
-    # for all IDs
-
-    # get the complete list with room assignments
-
-    my $nitems = 0;
-    # create the raw ASCII text file
-    my $txtfil = $p.filename: "text", :list-subtype("id");
-    my $fh = open $txtfil, :w;
-
-    write-list-headers $fh, :$p, :$debug;
-
-    $fh.close;
-    @ofils.push: $txtfil;
-
-    #write-list-headers $fh, :$p, :$debug;
-
-} # sub write-list-ids
 
 sub write-list-codes(@rooms, :@ofils, :project(:$p), :$debug) {
     # writes a separate list for each code
@@ -1059,7 +1043,7 @@ sub write-list-codes(@rooms, :@ofils, :project(:$p), :$debug) {
 
     my $nitems = 0;
     my $codes = $p.codes2str: :keys, :no-commas;
-    note "DEBUG: codes: '$codes'" if $debug;
+    note "DEBUG: codes: '$codes'" if $debug == 1;
     if 0 and $debug {
         note "DEBUG: early exit";
         exit;
@@ -1100,9 +1084,59 @@ sub write-list-codes(@rooms, :@ofils, :project(:$p), :$debug) {
         $fh.close;
         @ofils.push: $txtfil;
         # we now have a text file to convert to ps
+
+        # for dev don't produce PS or PDF
+        return if $debug > 1;
+
         my $psfile = $p.filename: "list", :list-subtype("code"), :suffix("ps"), :code($c);
         text-to-ps $txtfil, $psfile, :$p, :$debug;
         ps-to-pdf @ofils, :$psfile;
     }
 
 } # sub write-list-codes
+
+sub write-list-ids(@rooms, :@ofils, :project(:$p), :$debug) {
+    # writes a list in id order
+    # for all IDs
+
+    # get the complete list with room assignments
+
+    my $nitems = 0;
+    my %ids; # id => $furn
+    for @rooms -> $r {
+        for @($r.furniture) -> $f {
+            my $id = $f.id;
+            %ids{$id} = $f;
+        }
+    }
+
+    # create the raw ASCII text file
+    my $txtfil = $p.filename: "text", :list-subtype("id");
+    my $fh = open $txtfil, :w;
+
+    write-list-headers $fh, :$p, :$debug;
+
+    for %ids.keys.sort -> $id {
+        my $f = %ids{$id};
+        my $t = $f.title;
+        if $t ~~ /:i '<ff>'/ { $fh.say: "      <ff>"; next; }
+
+        ++$nitems; # cumulative number
+
+        my $num   = "{$f.number}";
+        my $codes = $f.codes2str: :keys; # output "a bb .."
+        $fh.say: "      $num [$id] [$codes] {$f.desc} [{$f.dims}]";
+    }
+
+    $fh.close;
+    @ofils.push: $txtfil;
+    # we now have a text file to convert to ps
+
+    # for dev don't produce PS or PDF
+    return if $debug > 1;
+
+    my $psfile = $p.filename: "list", :list-subtype("id"), :suffix("ps");
+    text-to-ps $txtfil, $psfile, :$p, :$debug;
+    ps-to-pdf @ofils, :$psfile;
+
+} # sub write-list-ids
