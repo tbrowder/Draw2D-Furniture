@@ -7,6 +7,7 @@ author: Tom Browder
 address: 113 Canterbury Circle
 list-file:     list
 drawings-file: drawings
+# for normal house plans at 1/4 inch per foot:
 #scale: 0.25 # inches per real foot, optional, default: 0.25" per foot
 
 # for Fairpointe condo (4.1875" x 7.25" = 30.359375" sq-in interior
@@ -15,10 +16,10 @@ drawings-file: drawings
 scale: 0.18366447367111824
 
 # data are in inches: side x side OR diameter
-#   X x Y [ x H ] # side x side [height, optional]
+#   X e Y [ x H ] # ellipse a/b [height, optional]
 #   X d   [ x H ] # diameter    [height, optional]
 #   X r   [ x H ] # radius      [height, optional]
-#   X e Y [ x H ] # ellipse a/b [height, optional]
+#   X x Y [ x H ] # side x side [height, optional]
 
 # known codes (not case sensitive)
    #has %.codes; # all known codes to sort furniture lists by
