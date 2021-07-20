@@ -1015,10 +1015,7 @@ sub write-list-rooms(@rooms, :@ofils, :project(:$p), :$debug) {
         $fh.say: "  Room {$r.number}: {$r.title}";
         for $r.furniture -> $f {
             my $t = $f.title;
-            if $t ~~ /:i '<ff>' / {
-                $fh.say: "      <ff>";
-                next;
-            }
+            if $t ~~ /:i '<ff>'/ { $fh.say: "      <ff>"; next; }
             ++$nitems; # cumulative number
             my $num   = "{$f.number}";
             my $id    = $f.id;
@@ -1094,12 +1091,10 @@ sub write-list-codes(@rooms, :@ofils, :project(:$p), :$debug) {
                 my $id    = $f.id;
                 my $codes = $f.codes2str: :keys; # output "a bb .."
                 $fh.say: "      $num [$id] [$codes] {$f.desc} [{$f.dims}]";
-                #$fh.say: "      [$id] [$codes] {$f.desc} [{$f.dims}]";
             }
             if not $has-coded-furn {
                 $fh.say: "      (no furniture with code '$c')";
             }
-
         }
         $fh.say: "\nTotal number items: $nitems";
         $fh.close;
@@ -1109,6 +1104,5 @@ sub write-list-codes(@rooms, :@ofils, :project(:$p), :$debug) {
         text-to-ps $txtfil, $psfile, :$p, :$debug;
         ps-to-pdf @ofils, :$psfile;
     }
-
 
 } # sub write-list-codes
