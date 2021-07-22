@@ -44,6 +44,10 @@ role Collections {
         %!codes{$code}:exists ?? True !! False
     }
     
+    method code-name($code --> Str) {
+        %!codes{$code}
+    }
+ 
     method codes2str(:$keys, 
                      :$no-commas,
                      :$list, 
@@ -259,6 +263,9 @@ class Furniture does Collections is export {
 
     # new attrs in api 2
     has $.desc  is rw;
+
+    has $.room       is rw; # room number
+    has $.room-title is rw; 
 
     method init() {
         # must have required inputs

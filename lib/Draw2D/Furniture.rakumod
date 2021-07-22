@@ -168,12 +168,13 @@ sub text-to-ps($txtfil, # the ASCII input text file
     my $marg    =  1.0; # inches
     my $xleft   =  $marg * 72;
     my $xright  =  (8.5 - 0.5 * $marg) * 72;
+    my $xcenter =  $xleft + ($xright - $xleft) * 0.5;
     my $ytop    =  (11 - $marg) * 72;
     my $ybottom =  $marg * 72 + 20; # allow 25 points for a page number
     my $max-line-len = (8.5 - 1.5) * 72;
     # font variables
     #my $font   = 'Times-Roman';
-    my $font   = 'Courier';
+    my $font   = 'CourierBold';
     my $fsize  = 9;
     my $lspace = $fsize * 1.2; # baseline to baseline distance
 
@@ -186,7 +187,7 @@ sub text-to-ps($txtfil, # the ASCII input text file
     =end comment
 
     my $string-width = $max-line-len;
-    my $afm-width = 600; # Courier ONLY
+    my $afm-width = 600; # Courier family ONLY
     my $nchars = (($string-width * 1000) / $fsize) / $afm-width;
 
     my $ytopbaseline = $ytop - $lspace;
@@ -293,17 +294,32 @@ sub text-to-ps($txtfil, # the ASCII input text file
             # write the line or skip a line space for a blank line
             if $fline !~~ /\S/ {
                 ; # no entry but vspace
+                $y -= $lspace;
+            }
+            elsif $fline ~~ /^ \h* 'doc-title:' (.*) $/ {
+                # this should be the first line of text
+                my $text = normalize-string ~$0;
+                # use Times bold, 12 point
+                $ps.add_to_page: qq:to/HERE/;
+                gsave
+                /Times-Bold 12 selectfont
+                $xcenter $y mt ($text) 10 puttext
+                grestore\n
+                HERE
+                $y -= 12 * 1.2;
             }
             elsif $fline ~~ /^ (\s+) (.*) $/ {
                 my $spaces = ~$0;
                 my $text   = ~$1;
                 my $xx = $spaces.chars * $fsize;
                 $ps.add_to_page: "{$x + $xx} $y mt ($text) 9 puttext\n";
+                $y -= $lspace;
             }
             else {
                 $ps.add_to_page: "$x $y mt ($line) 9 puttext\n";
+                $y -= $lspace;
             }
-            $y -= $lspace;
+            #$y -= $lspace;
             note "DEBUG: y = $y" if $debug == 1;
         }
     }
@@ -569,8 +585,13 @@ sub read-data-file($ifil,
         #     furn-parse $line, :furn-actions($furn);
         #
         #   It should replace all this code:
+
         my $furn = Furniture.new: :scale($p.scale), # in-per-ft),
                       :number("{$rnum}.{$fnum}");
+        # save room data with the furn object
+        $furn.room       = $curr-room.number;
+        $furn.room-title = $curr-room.title;
+
         my ($wid, $len, $dia, $rad, $hgt);
 
         #   AND it should replace all this code:
@@ -1068,6 +1089,7 @@ sub write-list-headers($fh,
             $fh.say: "$w : $s";
         }
     }
+    $fh.say();
     #== end headers for ALL files
 } # sub write-list-headers
 
@@ -1080,19 +1102,22 @@ sub write-list-rooms(@rooms, :@ofils, :project(:$p), :$debug) {
     my $txtfil = $p.filename: "text", :list-subtype("");
     my $fh = open $txtfil, :w;
 
+    my $doc-title = "Furniture List by Room";
+    write-list-doc-title $fh, :$doc-title, :$debug;
+
     write-list-headers $fh, :$p, :$debug;
 
     # this is the standard list output by room, furniture
     for @rooms -> $r {
-        $fh.say: "  Room {$r.number}: {$r.title}";
+        $fh.say: "Room {$r.number}: {$r.title}";
         for $r.furniture -> $f {
             my $t = $f.title;
             if $t ~~ /:i '<ff>'/ { $fh.say: "      <ff>"; next; }
             ++$nitems; # cumulative number
-            my $num   = "{$f.number}";
+            my $num   = $f.number;
             my $id    = $f.id;
             my $codes = $f.codes2str: :keys; # output "a bb .."
-            $fh.say: "      $num [$id] [$codes] {$f.desc} [{$f.dims}]";
+            $fh.say: "    $num [$id] [$codes] {$f.desc} [{$f.dims}]";
         }
     }
     $fh.say: "\nTotal number items: $nitems";
@@ -1126,11 +1151,19 @@ sub write-list-codes(@rooms, :@ofils, :project(:$p), :$debug) {
         my $txtfil = $p.filename: "text", :list-subtype("code"), :code($c);
         my $fh = open $txtfil, :w;
 
+        my $s = $p.code-name: $c;
+        my $doc-title = qq:to/HERE/;
+        Furniture List by Room for Code {$c.uc}
+        $s
+        HERE
+
+        write-list-doc-title $fh, :$doc-title, :$debug;
+
         write-list-headers $fh, :$p, :$debug;
 
         my $nitems = 0;
         for @rooms -> $r {
-            $fh.say: "  Room {$r.number}: {$r.title}";
+            $fh.say: "Room {$r.number}: {$r.title}";
             my $has-coded-furn = 0;
 
             for $r.furniture -> $f {
@@ -1143,10 +1176,10 @@ sub write-list-codes(@rooms, :@ofils, :project(:$p), :$debug) {
                 ++$nitems; # cumulative number
                 ++$has-coded-furn;
 
-                my $num   = "{$f.number}";
+                my $num   = $f.number;
                 my $id    = $f.id;
                 my $codes = $f.codes2str: :keys; # output "a bb .."
-                $fh.say: "      $num [$id] [$codes] {$f.desc} [{$f.dims}]";
+                $fh.say: "    $num [$id] [$codes] {$f.desc} [{$f.dims}]";
             }
             if not $has-coded-furn {
                 $fh.say: "      (no furniture with code '$c')";
@@ -1186,18 +1219,21 @@ sub write-list-ids(@rooms, :@ofils, :project(:$p), :$debug) {
     my $txtfil = $p.filename: "text", :list-subtype("id");
     my $fh = open $txtfil, :w;
 
+    my $doc-title = "Furniture List by Furniture ID Number";
+    write-list-doc-title $fh, :$doc-title, :$debug;
+
     write-list-headers $fh, :$p, :$debug;
 
-    for %ids.keys.sort -> $id {
+    for %ids.keys.sort(*.Version) -> $id {
         my $f = %ids{$id};
         my $t = $f.title;
         if $t ~~ /:i '<ff>'/ { $fh.say: "      <ff>"; next; }
 
         ++$nitems; # cumulative number
 
-        my $num   = "{$f.number}";
+        my $num   = $f.number;
         my $codes = $f.codes2str: :keys; # output "a bb .."
-        $fh.say: "      $num [$id] [$codes] {$f.desc} [{$f.dims}]";
+        $fh.say: "[$id] {$f.desc} [{$f.dims}] (Room: {$f.room})";
     }
 
     $fh.close;
@@ -1212,3 +1248,13 @@ sub write-list-ids(@rooms, :@ofils, :project(:$p), :$debug) {
     ps-to-pdf @ofils, :$psfile, :$debug;
 
 } # sub write-list-ids
+
+sub write-list-doc-title($fh, :$doc-title, :$debug) {
+    my @lines = $doc-title.lines;
+    for $doc-title.lines -> $line {
+        $fh.say: "doc-title: $doc-title";
+    }
+} # sub write-list-doc-title
+
+
+

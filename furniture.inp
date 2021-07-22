@@ -23,20 +23,20 @@ scale: 0.18366447367111824
 
 # known codes (not case sensitive)
    #has %.codes; # all known codes to sort furniture lists by
-                 #   code => list name to add for output 
+                 #   code => list name to add for output
                  #   not case sensitive
 code: a Apartment    #   e.g.: a  => Apartment
-code: m  Gulf Breeze #    
-code: gw Goodwill    #   
-code: s Sell         #  
-code: t Trash/Give   # 
+code: m  Gulf Breeze #
+code: gw Goodwill    #
+code: s Sell         #
+code: t Trash/Give   #
 
 room: Master bedroom # room 1
 ==============
 
 1.1 Tom's chest of drawers	        20 x 42
 1.2 Missy's chest of drawers	19 x 64
-1.3 desk (by bed)			20 x 36
+1.3 [a] desk (by bed)			20 x 36
 1.4 chest (end of bed)		16 x 34
 1.5 queen bed			65 x 86
 1.6 bedside table (1 of 2)      25 d      # (diameter)
@@ -147,8 +147,8 @@ room: Garage # room 13
 ==========
 
 13.1 bookcase, tall, cherry (2 of 2)
-13.2 chair, rattan (1 of 2) 
-13.3 chair, rattan (2 of 2) 
+13.2 chair, rattan (1 of 2)
+13.3 chair, rattan (2 of 2)
 
 
 room: Front porch # room 14
