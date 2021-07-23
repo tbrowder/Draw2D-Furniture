@@ -19,9 +19,13 @@ sub create-master-file(Project $p) is export {
 sub write-drawings(@rooms,
                    @ofils,
                    Project :project(:$p)!,
+                   :%scales, # key (scale); value (place)
                    :$debug,
                    :$squeeze,
                   ) is export {
+
+    # TODO allow multiple scales, one drawing per scale
+    # TODO show scale on drawing
 
     my $psf = $p.filename: "draw", :suffix("ps");
     my $pdf = $psf;
@@ -636,7 +640,7 @@ sub read-data-file($ifil,
 
             my $ww = in2ft $wid;
             my $ll = in2ft $len;
-            #$furn.dims2  = "{$ww}x{$ll}";
+            $furn.dims2  = "{$ww}x{$ll}";
 
             # now parse the leading part of the line
             my ($id, $codes, $desc) = parse-leading $leading, $rnum, $fnum, :$ids, :$debug;
@@ -695,7 +699,7 @@ sub read-data-file($ifil,
 
             $furn.radius   = 0.5 * $furn.diameter;
             my $ww = in2ft $furn.diameter;
-            #$furn.dims2  = "{$ww}";
+            $furn.dims2  = "{$ww}";
 
             # now parse the leading part of the line
             my ($id, $codes, $desc) = parse-leading $leading, $rnum, $fnum, :$ids, :$debug;
@@ -750,7 +754,7 @@ sub read-data-file($ifil,
             $furn.dims     = $hgt ?? "{$furn.radius}\" radius x {$furn.height}\" height"
                                   !! "{$furn.radius}\" radius";
             my $ww = in2ft 2 * $furn.radius;
-            #$furn.dims2  = "{$ww}";
+            $furn.dims2  = "{$ww}";
 
             # now parse the leading part of the line
             my ($id, $codes, $desc) = parse-leading $leading, $rnum, $fnum, :$ids, :$debug;
@@ -814,7 +818,7 @@ sub read-data-file($ifil,
                                 !! "$wid\" x $len\"";
             my $ww = in2ft $wid;
             my $ll = in2ft $len;
-            #$furn.dims2  = "{$ww}x{$ll}";
+            $furn.dims2  = "{$ww}x{$ll}";
 
             # now parse the leading part of the line
             my ($id, $codes, $desc) = parse-leading $leading, $rnum, $fnum, :$ids, :$debug;
@@ -853,7 +857,7 @@ sub read-data-file($ifil,
             $furn.length = 0;
             $furn.height = 0;
             $furn.dims   = "?";
-            #$furn.dims2  = "?";
+            $furn.dims2  = "?";
 
             # now parse the leading part of the line
             my $leading = $line;
@@ -905,7 +909,7 @@ sub make-rows(@rows,   # should be empty
               @rooms,  # all rooms with their furniture
               $maxwid, # distance between left/right page margins
               $space,
-              :$debug) {
+              :$debug = 0) {
 
     # TODO wrap long lines with wrap-paragraph
     @rows   = [];
@@ -959,9 +963,12 @@ sub in2ft($In) {
         $ft = $In div 12;
         $in = $In mod 12;
     }
-    elsif $In ~~ Num|Rat {
-        $ft = $In / 12;
-        $in = $In % 12;
+    #elsif $In ~~ Num|Rat {
+    else {
+        $ft = $In.Int div 12;
+        $in = $In.Int mod 12;
+        $in += $In - $In.Int;
+        $in = ($in % 12).ceiling;
     }
 
     return "{$ft}'{$in}";

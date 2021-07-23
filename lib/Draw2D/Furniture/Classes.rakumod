@@ -253,7 +253,7 @@ class Furniture does Collections is export {
     has $.diameter2 is rw = 0; # for ellipses
     has $.radius    is rw = 0;
     has $.dims      is rw = ''; # for printing
-    #has $.dims2     is rw = ''; # for printing
+    has $.dims2     is rw = ''; # for printing drawings
     # input scale is in page inches per real foot
     has $.scale; # must be input when created
     # internal bbox values in properly-scaled PS points
