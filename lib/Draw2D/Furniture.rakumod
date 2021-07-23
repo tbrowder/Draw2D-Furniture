@@ -20,7 +20,8 @@ sub write-drawings(@rooms,
                    @ofils,
                    Project :project(:$p)!,
                    :%scales, # key (scale); value (place)
-                   :$debug,
+                   :$code,   # for header info
+                   :$debug = 0,
                    :$squeeze,
                   ) is export {
 
@@ -57,57 +58,42 @@ sub write-drawings(@rooms,
 
     # page constants
     # page margins
-    my $marg    =  0.4; # inches
-    my $space   =  0.2 * 72; # vert and horiz space between figures
-    my $xleft   =  $marg * 72;
-    my $xright  =  (8.5 - $marg) * 72;
-    my $ytop    =  (11 - $marg) * 72;
-    my $ybottom =  $marg * 72;
+    my $top-marg   =  0.4; # inches
+    # use top marg for title, page, scale info
+
+    my $marg       =  0.4; # inches
+    my $space      =  0.2 * 72; # vert and horiz space between figures
+    my $xleft      =  $marg * 72;
+    my $xright     =  (8.5 - $marg) * 72;
+    my $ytop       =  (11 - $marg - $top-marg) * 72;
+    my $ybottom    =  $marg * 72;
 
     # page variables
-    my ($x, $y);
-
-    # start a page
-    sub reset-page-vars {
-        # resets to upper left of the page
-        $x = $xleft;
-        $y = $ytop;
-    }
-    # start a row
-    sub reset-row-var {
-        # resets to left of the page
-        $x = $xleft;
-    }
-    sub check-bottom(Row $r, $y --> Bool) {
-        # given a row instance and its y start
-        # point, can it fit on # the current row?
-        my $ybot = $y - $r.max-height;
-        return $ybot >= $ybottom;
-    }
+    my (Real $x, Real $y, UInt $npages) = 0, 0, 0;
 
     # collect furniture by page rows
     my @rows;
     make-rows @rows, @rooms, $xright - $xleft, $space;
     my $nrows = @rows.elems;
     die "FATAL: no rows collected!" if !$nrows;
-    note "DEBUG: num furniture rows: {$nrows}" if 1 or $debug;
+    note "DEBUG: num furniture rows: {$nrows}" if 0 or $debug;
 
     # step through all the furniture and number each as in the index
     # keep track of:
     #   last baseline
-    reset-page-vars;
+    reset-page-vars $x, $y, :$npages, :$xleft, :$ytop;
     my $i = 0;
-    for @rows -> $r {
-       reset-row-var;
+    for @rows -> Row $r {
+        reset-row-var $x, :$xleft;
         ++$i;
         if $debug == 1 {
             note "DEBUG: row $i max-height: {$r.max-height}";
             note "              furn items: {$r.furniture.elems}";
             note " start x/y: $x $y";
         }
-        if !check-bottom($r, $y) {
+        if !check-bottom($r, $y, $ybottom) {
             # need a new page
-            reset-page-vars;
+            reset-page-vars $x, $y, :$npages, :$xleft, :$ytop;
             $ps.newpage;
         }
         for $r.furniture -> $f {
@@ -123,20 +109,34 @@ sub write-drawings(@rooms,
 
         $y -= $r.max-height + $space;
     }
+
+    # TODO add page numbers in top title area
+    note "DEBUG: num pages: $npages" if $debug == 1;
+    # go back and add page numbers:
+    #   Page x of n
+    =begin comment
+    for 1..$npages -> $page {
+        my $s = "Page $page of $npages";
+        $ps.add_to_page: $page, qq:to/HERE/;
+        /Times-Roman 10 selectfont $xright $ybottom 25 sub mt ($s) 11 puttext
+        HERE
+    }
+    =end comment
+
     # close and output the file
     $ps.output;
 
     # produce the pdf
     ps-to-pdf @ofils, :$psf, :$pdf, :$debug;
 
-    note "DEBUG: saw $nfurn furniture objects" if 1 or $debug;
+    note "DEBUG: saw $nfurn furniture objects" if 0 or $debug;
 } # end sub write-drawings
 
 #| A function to convert an ASCII text file into PostScript.
 sub text-to-ps($txtfil, # the ASCII input text file
                $psfile, # the PS output file name
                Project :project(:$p)!,
-               :$debug
+               :$debug = 0,
               ) is export {
 
     # write the ps file,
@@ -183,6 +183,7 @@ sub text-to-ps($txtfil, # the ASCII input text file
     my $lspace = $fsize * 1.2; # baseline to baseline distance
 
     =begin comment
+    # from Adobe's AFM doc
     # monowidth chars only!
     $string-width = (($afm-width * $nchars) * $fsize) / 1000;
     $string-width * 1000 = ($AFM-width * $nchars) * $fsize;
@@ -200,34 +201,12 @@ sub text-to-ps($txtfil, # the ASCII input text file
     $ps.add_to_page: "/$font $fsize selectfont\n";
 
     # page variables
-    my ($x, $y);
-
-    my $npages = 0;
-    # start a page
-    sub reset-page-vars {
-        # resets to upper left of the page
-        $x = $xleft;
-        $y = $ytopbaseline;
-        ++$npages;
-    }
-    # start a row
-    sub reset-row-var {
-        # resets to left of the page
-        $x = $xleft;
-    }
-    sub check-bottom($yy --> Bool) {
-        # given a text row and its y start
-        # point, can it fit on the current page?
-        my $ybot = $yy - $lspace;
-        my $res = $ybot >= $ybottom;
-        note "DEBUG check-bottom: y = $yy; ybot = $ybot; ybottom = $ybottom; res = $res" if $debug == 1;
-        return $res;
-    }
+    my (Real $x, Real $y, UInt $npages) = 0, 0, 0;
 
     # step through all rows of text
     # keep track of:
     #   last baseline
-    reset-page-vars;
+    reset-page-vars $x, $y, :$npages, :$xleft, :ytop($ytopbaseline);
     $ps.add_to_page: "/$font $fsize selectfont\n";
 
     # read the text input file and convert each line into a PostScript
@@ -247,11 +226,11 @@ sub text-to-ps($txtfil, # the ASCII input text file
         #   if $line contains '<ff>' make a new page
         # otherwise, we need to translate leading space
         #   chars to an x indent space
-        reset-row-var;
-        my $res = check-bottom($y);
+        reset-row-var $x, :$xleft;
+        my $res = check-bottom($y, $lspace, $ybottom);
         if $ff || !$res {
             # need a new page
-            reset-page-vars;
+            reset-page-vars $x, $y, :$npages, :$xleft, :ytop($ytopbaseline);
             $ps.newpage;
             $ps.add_to_page: "/$font $fsize selectfont\n";
         }
@@ -285,15 +264,14 @@ sub text-to-ps($txtfil, # the ASCII input text file
         }
 
         LINES: for @lines -> $fline is copy {
-            reset-row-var;
-            my $res = check-bottom($y);
+            reset-row-var $x, :$xleft;
+            my $res = check-bottom($y, $lspace, $ybottom);
             if !$res {
                 # need a new page
-                reset-page-vars;
+                reset-page-vars $x, $y, :$npages, :$xleft, :ytop($ytopbaseline);
                 $ps.newpage;
                 $ps.add_to_page: "/$font $fsize selectfont\n";
             }
-
 
             # write the line or skip a line space for a blank line
             if $fline !~~ /\S/ {
@@ -331,7 +309,6 @@ sub text-to-ps($txtfil, # the ASCII input text file
     note "DEBUG: num pages: $npages" if $debug == 1;
     # go back and add page numbers:
     #   Page x of n
-
     for 1..$npages -> $page {
         my $s = "Page $page of $npages";
         $ps.add_to_page: $page, qq:to/HERE/;
@@ -353,7 +330,7 @@ sub text-to-ps($txtfil, # the ASCII input text file
 sub write-lists(@rooms,
                 @ofils,
                 Project :project(:$p)!,
-                :$debug
+                :$debug = 0,
                ) is export {
 
     # TODO here we determine ALL the list-type PS outputs
@@ -385,7 +362,7 @@ sub read-data-file($ifil,
                    Project :project(:$p)!,
                    :$ids!, # if true, throws on no id on input for a child
                    :$list-codes,
-                   :$debug
+                   :$debug = 0,
                    --> List
                   ) is export {
     my @headers;
@@ -979,7 +956,7 @@ sub in2ft($In) {
 sub ps-to-pdf(@ofils,
               :psfile(:$psf)!,
               :pdfile(:$pdf) is copy,
-              :$debug!
+              :$debug!,
              ) {
     if not $pdf {
         $pdf = $psf;
@@ -1002,7 +979,7 @@ sub ps-to-pdf(@ofils,
     ($debug and $debug == 3) ??  @ofils.push($psf) !! unlink($psf);
 } # sub ps-to-pdf
 
-sub parse-leading($s, $rnum, $fnum, :$ids!, :$debug --> List) {
+sub parse-leading($s, $rnum, $fnum, :$ids!, :$debug = 0, --> List) {
     # now parse the leading part of the line
     #   my ($id, $codes, $desc) = parse-leading $leading, :$debug;
     #
@@ -1066,7 +1043,7 @@ sub parse-leading($s, $rnum, $fnum, :$ids!, :$debug --> List) {
 
 sub write-list-headers($fh,
                        :project(:$p),
-                       :$debug
+                       :$debug = 0,
                       ) is export {
 
     # TODO handle better output file info
@@ -1100,7 +1077,7 @@ sub write-list-headers($fh,
     #== end headers for ALL files
 } # sub write-list-headers
 
-sub write-list-rooms(@rooms, :@ofils, :project(:$p), :$debug) {
+sub write-list-rooms(@rooms, :@ofils, :project(:$p), :$debug = 0,) {
     # writes a list in room, furniture order
     # the master list
 
@@ -1141,7 +1118,7 @@ sub write-list-rooms(@rooms, :@ofils, :project(:$p), :$debug) {
 
 } # sub write-list-rooms
 
-sub write-list-codes(@rooms, :@ofils, :project(:$p), :$debug) {
+sub write-list-codes(@rooms, :@ofils, :project(:$p), :$debug!) {
     # writes a separate list for each code
     # in room, furniture order
 
@@ -1263,5 +1240,37 @@ sub write-list-doc-title($fh, :$doc-title, :$debug) {
     }
 } # sub write-list-doc-title
 
+multi sub check-bottom(Row $r, Real $y, Real $ybottom, :$debug --> Bool) {
+    note "DEBUG: in Row check-bottom: y = $y, ybottom = $ybottom" if 0 or $debug;
 
+    # used in write-drawings
+    # given a row instance and its y start
+    # point, can it fit on # the current row?
+    my $ybot = $y - $r.max-height;
+    $ybot >= $ybottom ?? True !! False
+} # sub check-bottom
 
+multi sub check-bottom(Real:D $y, Real:D $lspace, Real:D $ybottom, :$debug = 0 --> Bool) {
+    note "DEBUG: in text check-bottom: y = $y, lspace = $lspace, ybottom = $ybottom" if 0 or $debug;
+
+    # used in text-to-ps
+    # given a text row and its y start
+    # point, can it fit on the current page?
+    my $ybot = $y - $lspace;
+    my $res = $ybot >= $ybottom ?? True !! False;
+    note "DEBUG check-bottom: y = $y; ybot = $ybot; ybottom = $ybottom; res = $res" if $debug == 1;
+    $res
+} # sub check-bottom
+
+sub reset-page-vars(Real $x is rw, Real $y is rw, UInt :$npages! is rw, Real :$xleft!, Real :$ytop!) {
+    # resets page vars to upper left of the page
+    $x = $xleft;
+    $y = $ytop;
+    ++$npages;
+} # sub reset-page-vars
+
+sub reset-row-var(Real $x is rw, Real :$xleft!) {
+    # start a row
+    # resets to left of the page
+    $x = $xleft;
+} # sub reset-row-var

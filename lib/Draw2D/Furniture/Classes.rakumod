@@ -29,16 +29,20 @@ role Collections {
                 last;
             }
         }
+        else {
+            $s = "?";
+        }
+
         $s 
     }
 
-    method id-exists($id, :$debug --> Bool) {
+    method id-exists($id, :$debug = 0 --> Bool) {
         # true if id exists in caller's hash
         #%(self.ids{$id}):exists ?? True !! False
         %!ids{$id}:exists ?? True !! False
     }
 
-    method code-exists($code, :$debug --> Bool) {
+    method code-exists($code, :$debug = 0 --> Bool) {
         # true if a single code exists in caller's hash
         #%(self.codes{$code}):exists
         %!codes{$code}:exists ?? True !! False
@@ -52,7 +56,7 @@ role Collections {
                      :$no-commas,
                      :$list, 
                      :$sepchar = '=>', 
-                     :$debug 
+                     :$debug = 0 
                      --> Str
                     )  {
         # my $codes = $f.codes2str: :keys; # output "a bb .."
@@ -77,7 +81,7 @@ role Collections {
     }
 
     method set-id($id,           # a unique number for the Project and child
-                  :$debug
+                  :$debug = 0
                   --> Str
                  ) {
         # used by the Project object to keep all ids used by furniture children
@@ -112,7 +116,7 @@ role Collections {
     method set-code($code! is copy,  # a space-separated string of one or more codes (multiple codes should only be used by a child
                     :$title,         # for use by the Project object)
                                      # if this is used, the $code entry must be a single value
-                    :$debug 
+                    :$debug = 0
            #         --> Str
                    ) {
         # used by the Project object to keep all codes used by furniture children
@@ -185,10 +189,10 @@ class Project does Collections is export {
                     # e.g., a "dot" file doesn't get a file extension (suffix)
                     :$suffix = "none", # where /ps|pdf|inp|dot|none/,
 
-                    :$list-subtype, # where /id|code/, 
+                    Str :$list-subtype = "", # where /id|code/, 
 
                     :$code, # must be one of the known codes in the Project's collection
-                    :$debug,
+                    :$debug = 0,
                     --> Str
                    ) {
         my $basename = self.basename ?? self.basename 
@@ -203,7 +207,9 @@ class Project does Collections is export {
                 die "FATAL: Unknown output file type '$_'";
             }
         }
+
         given $list-subtype {
+            die "FATAL: Empty base file name value" if not $f;
             when /id/ { $f ~= "-ids"; }
             when /code/ { 
                 die Q|FATAL: Code output file with no $code entry| if not $code; 
@@ -290,11 +296,11 @@ class Furniture does Collections is export {
     }
 
     =begin comment
-    method set-id($id, :project(:$p), :$debug --> Str) {
+    method set-id($id, :project(:$p), :$debug = 0 --> Str) {
         #   my $res  = $furn.set-id: $id, :project($p);
     }
 
-    method set-code($codes, :project(:$p), :$debug --> Str) {
+    method set-code($codes, :project(:$p), :$debug = 0 --> Str) {
         # codes as input "a ab" (space-separated list)
         #   my $res2 = $furn.set-codes: $codes, project($p);
     }

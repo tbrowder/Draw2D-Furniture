@@ -7,6 +7,7 @@ author: Tom Browder
 address: 113 Canterbury Circle
 list-file:     list
 drawings-file: drawings
+
 # for normal house plans at 1/4 inch per foot:
 scale: 0.25 # inches per real foot, optional, default: 0.25" per foot
 
@@ -34,13 +35,13 @@ code: t Trash/Give   #
 room: Master bedroom # room 1
 ==============
 
-1.1 Tom's chest of drawers	        20 x 42
-1.2 Missy's chest of drawers	19 x 64
+1.1 chest, Tom's chest of drawers	        20 x 42
+1.2 chest, Missy's chest of drawers	19 x 64
 1.3 [a] desk (by bed)			20 x 36
 1.4 chest (end of bed)		16 x 34
-1.5 queen bed			65 x 86
-1.6 bedside table (1 of 2)      25 d      # (diameter)
-1.7 lounge chair			21 x 49
+1.5 bed, queen bed			65 x 86
+1.6 table, bedside table (1 of 2)      26 d      # (diameter)
+1.7 chair, lounge chair			21 x 49
 
 room: Foyer # room 2
 =====
@@ -63,17 +64,17 @@ room: Family room # room 4
 ===========
 
 4.1 desk				23 x 41
-4.2  desk chair			20 x 21
-4.3  Grace Lee's chair		26 x 31
-4.4  Windsor chair			23 x 25
-4.5  wing chair			30 x 32
-4.6  drop-leaf oak table (open)	42 x 51
-4.7  coffee table			29 x 37
+4.2 chair,  desk chair			20 x 21
+4.3  chair, Grace Lee's chair		26 x 31
+4.4  chair, Windsor chair			23 x 25
+4.5  chair, wing chair			30 x 32
+4.6  table, drop-leaf oak table (open)	42 x 51
+4.7  table, coffee table			29 x 37
 4.8  platform rocker		22 x 30
-4.9  small drop-leaf table (closed)	18 x 35
-4.10  small drop-leaf table (open)    40 x 35
+4.9  table, small drop-leaf table (closed)	18 x 35
+4.10  table, small drop-leaf table (open)    40 x 35
 
-4.11 pine table			31 x 60
+4.11 table, pine table			31 x 60
 4.12 rug natural fiber, narrow black cloth tape border                120 x 168.625 # 10 ft x 14 5/8
 4.13 rug natural fiber, narrow black cloth tape border                 96 x  60     # 8 ft x 5 ft
 
@@ -81,7 +82,7 @@ room: Family room # room 4
 room: Dining room # room 5
 ===========
 
-5.1  dining table			74 x 48
+5.1  table, dining table			74 x 48
 5.2  chair			18 x 20
 5.3  chair			18 x 20
 5.4  chair			18 x 20
@@ -100,24 +101,24 @@ room: Dining room # room 5
 room: Bedroom 2 (Tommy's) # room 6
 ======================
 
-6.1  twin bed			43 x 81
-6.2  twin bed			43 x 81
-6.3  bed table			17 x 21
-6.4  chest of drawers		21 x 40
-6.5  dressing table			18 x 46
-6.6  chair				19 x 19
-6.7  cane chair			20 x 20
-6.8  cane chair			20 x 20
+6.1  [a] bed, twin bed w/ mattress			43 x 81
+6.2  [a] bed, twin bed w/ mattress			43 x 81
+6.3  table, bedside table			17 x 21
+6.4  [a] chest of drawers		21 x 40
+6.5  table, dressing table			18 x 46
+6.6  [s] chair, pink upholdtered	19 x 19
+6.7  chair, cane chair			20 x 20
+6.8  chair, cane chair			20 x 20
 
 room: Bedroom 3 (Grace's) # room 7
 ======================
 
-7.1  double bed			56 x 80
-7.2  bedside table		16 x 16
+7.1  [s] bed, double bed			56 x 80
+7.2  [s] table, bedside table		16 x 19 x 27
 7.3  chest of drawers		19 x 43
-7.4  old chair			16 x 18
-7.5  old chair			17 x 20
-7.6  bedside table (2 of 2)      25 d      # (diameter)
+7.4  [s] chair, old chair			16 x 18
+7.5  chair, old chair			17 x 20
+7.6  table, bedside table (2 of 2)      25 d      # (diameter)
 
 room: Landing # room 8
 =======
@@ -128,9 +129,11 @@ room: Landing # room 8
 room: Bonus room # room 9
 ==========
 
-9.1 old, larger desk		21 x 41
-9.2 small table			18 x 31
-9.3 small rocking chair		18 x 28
+#??? 9.1 desk, old, larger		21 x 41
+9.2 table, small 		18 x 31
+9.3 [s] chair, small antique child's rocking 	18 x 28
+
+9.4 bookcase 43 x 10.5 x 50.5
 
 room: Tom's study # room 10
 ==========
@@ -162,6 +165,10 @@ room: Back yard # room 16
 
 room: Upstairs bath # room 17
 ==========
+
+17.1 stand, wicker 17 x 12 x 30
+17.2 caddy, small wicker 12 x 8 x 24
+
 
 room: Upstairs attic # room 18
 ==========
