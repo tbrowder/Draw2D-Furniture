@@ -137,8 +137,9 @@ room: Bonus room # room 9
 
 room: Tom's study # room 10
 ==========
-10.1 table, pine, glass-topped, 3 drawers
-10.2 bookcase, tall, cherry (1 of 2)
+10.1 table, pine, glass-topped, 3 drawers 72 x 32 x 30
+10.2 bookcase, tall (1 of 2 with 13.1) 48 x 12 x 60
+10.3 table, small rattan, open 20.5 x 14 x 28
 
 room: Laundry  # room 11
 ==========
@@ -149,9 +150,12 @@ room: Art room # room 12
 room: Garage # room 13
 ==========
 
-13.1 bookcase, tall, cherry (2 of 2)
-13.2 chair, rattan (1 of 2)
-13.3 chair, rattan (2 of 2)
+13.1 bookcase, tall (2 of 2 with 10.2) 48 x 12 x 60
+13.2 chair, rattan (1 of 2 with 13.3)
+13.3 chair, rattan (2 of 2 with 13.2)
+
+13.4 bookcase, small 2-shelf (1 of 2 with 13.5) 28 x 12 x 30
+13.5 bookcase, small 2-shelf (2 of 2 with 13.4) 28 x 12 x 30
 
 
 room: Front porch # room 14
