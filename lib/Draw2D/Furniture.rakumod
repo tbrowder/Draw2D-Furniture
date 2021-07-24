@@ -246,10 +246,18 @@ sub text-to-ps($txtfil, # the ASCII input text file
                 $para-indent = $spaces.chars;
             }
             # do the wrap
-            @lines = wrap-paragraph $line,
+            # TODO this fails in PostScript with unbalanced quote
+            #      delimeters
+            #      try escaping after the fold by traversing the folded lines
+            my @flines = wrap-paragraph $line,
             :max-line-length($max-line-chars),
             :$para-indent,
             :line-indent(4);
+            for @flines -> $line is copy {
+                $line ~~ s:g/'('/\\(/;
+                $line ~~ s:g/')'/\\)/;
+                @lines.push: $line;
+            }
 
             if $debug and $debug == 4 {
                 note "DEBUG: wrapped para: ======";
@@ -257,7 +265,6 @@ sub text-to-ps($txtfil, # the ASCII input text file
                 note "DEBUG: end wrapped para: ======";
                 #note "DEBUG: early exit"; exit
             }
-
         }
         else {
             @lines.push: $line;
@@ -580,8 +587,8 @@ sub read-data-file($ifil,
         # ELLIPSE W/ MAJOR x MINOR AXES
         if $line ~~ / # first collect dimensional and object type at the end of the string
                          [
-                            || \h+ (<number>) \h+ 'e' \h+ (<number>) \h+ 'x' \h+ (<number>)
-                            || \h+ (<number>) \h+ 'e' \h+ (<number>)
+                            || \h+ (<number>) \h* 'e' \h* (<number>) \h* 'x' \h* (<number>)
+                            || \h+ (<number>) \h* 'e' \h* (<number>)
                          ]
                          \h*
                        $/ {
@@ -649,8 +656,8 @@ sub read-data-file($ifil,
         # CIRCLE W/ DIAMETER
         elsif $line ~~ / # first collect dimensional and object type at the end of the string
                          [
-                            || \h+ (<number>) \h+ 'd' \h+ 'x' \h+ (<number>)
-                            || \h+ (<number>) \h+ 'd'
+                            || \h+ (<number>) \h* 'd' \h* 'x' \h* (<number>)
+                            || \h+ (<number>) \h* 'd'
                          ]
                          \h*
                        $/ {
@@ -707,8 +714,8 @@ sub read-data-file($ifil,
         # CIRCLE W/ RADIUS
         elsif $line ~~ / # first collect dimensional and object type at the end of the string
                          [
-                            || \h+ (<number>) \h+ 'r' \h+ 'x' \h+ (<number>)
-                            || \h+ (<number>) \h+ 'r'
+                            || \h* (<number>) \h* 'r' \h* 'x' \h* (<number>)
+                            || \h* (<number>) \h* 'r'
                          ]
                          \h*
                        $/ {
@@ -764,8 +771,8 @@ sub read-data-file($ifil,
         # RECTANGLE
         elsif $line ~~ / # first collect dimensional and object type at the end of the string
                       [
-                         || \h+ (<number>) \h+ 'x' \h+ (<number>) \h+ 'x' \h+ (<number>)
-                         || \h+ (<number>) \h+ 'x' \h+ (<number>)
+                         || \h+ (<number>) \h* 'x' \h* (<number>) \h* 'x' \h* (<number>)
+                         || \h+ (<number>) \h* 'x' \h* (<number>)
                       ]
                       \h*
                     $/ {
@@ -1225,7 +1232,7 @@ sub write-list-ids(@rooms, :@ofils, :project(:$p), :$debug) {
     # we now have a text file to convert to ps
 
     # for dev don't produce PS or PDF
-    return if $debug > 1;
+    return if 3 > $debug > 1;
 
     my $psfile = $p.filename: "list", :list-subtype("id"), :suffix("ps");
     text-to-ps $txtfil, $psfile, :$p, :$debug;
