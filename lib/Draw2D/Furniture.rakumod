@@ -98,8 +98,8 @@ sub write-drawings(@rooms,
         }
         for $r.furniture -> $f {
             ++$nfurn;
-            my $num = "{$f.number}";
-            my $dim = "{$f.dims}";
+            #my $num = "{$f.number}";
+            #my $dim = "{$f.dims}";
 
             # draw it at the current ulx, uly
             $f.ps-draw: $ps, :ulx($x), :uly($y);
@@ -234,7 +234,7 @@ sub text-to-ps($txtfil, # the ASCII input text file
             $ps.newpage;
             $ps.add_to_page: "/$font $fsize selectfont\n";
         }
-        next if $ff;
+        next LINE if $ff;
 
         my @lines;
         my $line-len = $line.chars * $fsize;
@@ -343,9 +343,9 @@ sub write-lists(@rooms,
     # TODO here we determine ALL the list-type PS outputs
     #      we want
 
-    write-list-rooms @rooms, :@ofils, :$p, :$debug;
-    write-list-ids @rooms, :@ofils, :$p, :$debug;
-    write-list-codes @rooms, :@ofils, :$p, :$debug;
+    write-list-rooms(@rooms, :@ofils, :$p, :$debug);
+    write-list-ids(@rooms, :@ofils, :$p, :$debug);
+    write-list-codes(@rooms, :@ofils, :$p, :$debug);
 
 } # sub write-lists
 
@@ -642,7 +642,7 @@ sub read-data-file($ifil,
             if $codes {
                 note "DEBUG: handling codes:  |$id| |$codes| |$desc| |$wid| |$len| |h: $hgt|" if $debug == 1;
             for $codes.words -> $c  {
-                note "checking furn code '$c' for validity|" if 1 or $debug;
+                note "checking furn code '$c' for validity|" if $debug;
                 if $p.code-exists($c) {
                     # it's valid
                     $furn.set-code: $c;
@@ -1006,6 +1006,7 @@ sub parse-leading($s, $rnum, $fnum, :$ids!, :$debug = 0, --> List) {
         die "FATAL: This furniture line (number $num) has no leading ID number";
     }
     elsif $id !~~ /<number>/ {
+        note "DEBUG: id in parse leading: $id";
         ++$no-id;
     }
 
@@ -1039,11 +1040,11 @@ sub parse-leading($s, $rnum, $fnum, :$ids!, :$debug = 0, --> List) {
         note "WARNING: Furniture line number $num has no leading ID number.";
     }
 
-    note "DEBUG: parsing leading: id/codes |$id| |$codes|" if $debug == 1;
+    note "DEBUG: parsing leading: id/codes |$id| |$codes|" if 1 or $debug == 1;
 
     $codes = normalize-string $codes;
 
-    die "FATAL: code has [] '$codes'" if $codes ~~ /'['|']'/;
+    die "FATAL: code has [] '$codes'" if $codes ~~ /'[' | ']'/;
 
     $id, $codes, $desc
 } # sub parse-leading
@@ -1085,8 +1086,8 @@ sub write-list-headers($fh,
 } # sub write-list-headers
 
 sub write-list-rooms(@rooms, :@ofils, :project(:$p), :$debug = 0,) {
+    # the MASTER list
     # writes a list in room, furniture order
-    # the master list
 
     my $nitems = 0;
     # create the raw ASCII text file
@@ -1099,16 +1100,21 @@ sub write-list-rooms(@rooms, :@ofils, :project(:$p), :$debug = 0,) {
     write-list-headers $fh, :$p, :$debug;
 
     # this is the standard list output by room, furniture
-    for @rooms -> $r {
+    ROOM: for @rooms -> $r {
         $fh.say: "Room {$r.number}: {$r.title}";
         for $r.furniture -> $f {
             my $t = $f.title;
-            if $t ~~ /:i '<ff>'/ { $fh.say: "      <ff>"; next; }
+            if $t ~~ /:i '<ff>'/ { 
+                # NOTE: this is the ONLY list where we show the 
+                #       <ff> to trigger a text-to-PS response
+                $fh.say: "      <ff>"; 
+                next ROOM; 
+            }
             ++$nitems; # cumulative number
             my $num   = $f.number;
             my $id    = $f.id;
             my $codes = $f.codes2str: :keys; # output "a bb .."
-            $fh.say: "    $num [$id] [$codes] {$f.desc} [{$f.dims}]";
+            $fh.say: "    $id [$codes] {$f.desc} [{$f.dims}]";
         }
     }
     $fh.say: "\nTotal number items: $nitems";
@@ -1153,13 +1159,17 @@ sub write-list-codes(@rooms, :@ofils, :project(:$p), :$debug!) {
         write-list-headers $fh, :$p, :$debug;
 
         my $nitems = 0;
-        for @rooms -> $r {
+        ROOM: for @rooms -> $r {
             $fh.say: "Room {$r.number}: {$r.title}";
             my $has-coded-furn = 0;
 
             for $r.furniture -> $f {
                 my $t = $f.title;
-                if $t ~~ /:i '<ff>'/ { $fh.say: "      <ff>"; next; }
+                if $t ~~ /:i '<ff>'/ { 
+                    # the MASTER list is the only one to retain the ff for PS
+                    #$fh.say: "      <ff>"; 
+                    next ROOM; 
+                }
 
                 my $has-code = $f.code-exists($c) ?? 1 !! 0;
                 next if not $has-code;
@@ -1170,7 +1180,7 @@ sub write-list-codes(@rooms, :@ofils, :project(:$p), :$debug!) {
                 my $num   = $f.number;
                 my $id    = $f.id;
                 my $codes = $f.codes2str: :keys; # output "a bb .."
-                $fh.say: "    $num [$id] [$codes] {$f.desc} [{$f.dims}]";
+                $fh.say: "    $id [$codes] {$f.desc} [{$f.dims}] (Room: {$f.room})";
             }
             if not $has-coded-furn {
                 $fh.say: "      (no furniture with code '$c')";
@@ -1218,13 +1228,17 @@ sub write-list-ids(@rooms, :@ofils, :project(:$p), :$debug) {
     for %ids.keys.sort(*.Version) -> $id {
         my $f = %ids{$id};
         my $t = $f.title;
-        if $t ~~ /:i '<ff>'/ { $fh.say: "      <ff>"; next; }
+        if $t ~~ /:i '<ff>'/ { 
+            # the MASTER list is the only one to retain the ff for PS
+            #$fh.say: "      <ff>"; 
+            next; 
+        }
 
         ++$nitems; # cumulative number
 
         my $num   = $f.number;
         my $codes = $f.codes2str: :keys; # output "a bb .."
-        $fh.say: "[$id] {$f.desc} [{$f.dims}] (Room: {$f.room})";
+        $fh.say: "$id [$codes] {$f.desc} [{$f.dims}] (Room: {$f.room})";
     }
 
     $fh.close;

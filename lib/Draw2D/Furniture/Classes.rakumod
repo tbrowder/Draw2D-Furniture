@@ -272,6 +272,7 @@ class Furniture does Collections is export {
 
     has $.room       is rw; # room number
     has $.room-title is rw; 
+    has $.type       is rw; # e.g., chair, chest, etc.
 
     method init() {
         # must have required inputs
@@ -329,7 +330,7 @@ class Furniture does Collections is export {
         # put dimen rep $d pt below center
         my $s = qq:to/HERE/;
         /Times-Bold 9 selectfont
-        $cx $cy $d add mt ({$.number}) 3 puttext
+        $cx $cy $d add mt ({$.id}) 3 puttext % this the furniture unique ID
         /Times-Roman 7 selectfont
         $cx $cy $d sub mt ({$.dims2}) 7 puttext
         HERE
