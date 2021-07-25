@@ -463,6 +463,10 @@ sub read-data-file($ifil,
             $p.title = $txt;
             next LINE;
         }
+        if $line ~~ /^ \h* 'no-type' ':' \h* (\d) \h* $/ {
+            $p.no-type = +$0;
+            next LINE;
+        }
         if $line ~~ /^ \s* date ':' \s* (.*) $/ {
             my $txt = normalize-string ~$0;
             die "FATAL: header info '$txt' not allowed after room info has begun" if $curr-room;

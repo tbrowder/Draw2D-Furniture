@@ -1,6 +1,8 @@
 Revision history for Draw2D-Furniture
 
 {{$NEXT}}
+    - Individual output file type selection (default is the master list)
+    - Capitalize furniture type is default (may be turned off at command line)
     - Improved documentation
     - Added more tests
     - Create an interim ASCII text file used to create the PostScipt file (helpful

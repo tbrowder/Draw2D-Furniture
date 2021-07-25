@@ -7,6 +7,7 @@ author: Tom Browder
 address: 113 Canterbury Circle
 list-file:     list
 drawings-file: drawings
+no-type: 0
 
 # for normal house plans at 1/4 inch per foot:
 scale: 0.25 # inches per real foot, optional, default: 0.25" per foot
@@ -65,12 +66,12 @@ room: Family room # room 4
 
 4.1 desk				23 x 41
 4.2 chair,  desk chair			20 x 21
-4.3  chair, Grace Lee's chair		26 x 31
-4.4  chair, Windsor chair			23 x 25
-4.5  chair, wing chair			30 x 32
+4.3  chair, small wing, Grace Lee's chair		26 x 31
+4.4  chair, small wood, Windsor chair			23 x 25
+4.5  chair, large wing			30 x 32
 4.6  table, drop-leaf oak table (open)	42 x 51
 4.7  table, coffee table			29 x 37
-4.8  platform rocker		22 x 30
+4.8  rocker, wooden, platform		22 x 30
 4.9  table, small drop-leaf table (closed)	18 x 35
 4.10  table, small drop-leaf table (open)    40 x 35
 
@@ -78,6 +79,13 @@ room: Family room # room 4
 4.12 rug natural fiber, narrow black cloth tape border                120 x 168.625 # 10 ft x 14 5/8
 4.13 rug natural fiber, narrow black cloth tape border                 96 x  60     # 8 ft x 5 ft
 
+4.14 couch, 
+4.15 chair, leather recliner, Tom's
+
+4.21 chair, kitchen, woven-bottom (1 of 4)
+4.22 chair, kitchen, woven-bottom (2 of 4)
+4.23 chair, kitchen, woven-bottom (3 of 4)
+4.24 chair, kitchen, woven-bottom (4 of 4)
 
 room: Dining room # room 5
 ===========
@@ -132,14 +140,20 @@ room: Bonus room # room 9
 #??? 9.1 desk, old, larger		21 x 41
 9.2 table, small 		18 x 31
 9.3 [s] chair, small antique child's rocking 	18 x 28
-
-9.4 bookcase 43 x 10.5 x 50.5
+9.4 bookcase, tall cherry (1 of 2, with 13.4) 43 x 10.5 x 50.5
 
 room: Tom's study # room 10
 ==========
 10.1 table, pine, glass-topped, 3 drawers 72 x 32 x 30
-10.2 bookcase, tall (1 of 2 with 13.1) 48 x 12 x 60
+10.2 bookcase, tall pine (1 of 2 with 13.1) 48 x 12 x 60
 10.3 table, small rattan, open 20.5 x 14 x 28
+10.4 cabinet, file, 2-drawer, horizontal, legal 30.5x18x27
+10.5 cabinet, file, 4-drawer, vertical, letter 22x15x52
+10.6 cabinet, file, 1-drawer, letter, w/rollers 15.5x14.5x21.5
+10.7 cabinet, office supplies  37.5x21x54
+10.8 bookcase, small 2-shelf (1 of 2 with 13.5) 28 x 12 x 30
+10.9 bookcase, small 2-shelf (2 of 2 with 13.4) 28 x 12 x 30
+
 
 room: Laundry  # room 11
 ==========
@@ -150,12 +164,10 @@ room: Art room # room 12
 room: Garage # room 13
 ==========
 
-13.1 bookcase, tall (2 of 2 with 10.2) 48 x 12 x 60
-13.2 chair, rattan (1 of 2 with 13.3)
+13.1 bookcase, tall pine (2 of 2 with 10.2) 48 x 12 x 60
+13.2 chair, rattan (1 of 2 with 13.3) 
 13.3 chair, rattan (2 of 2 with 13.2)
-
-13.4 bookcase, small 2-shelf (1 of 2 with 13.5) 28 x 12 x 30
-13.5 bookcase, small 2-shelf (2 of 2 with 13.4) 28 x 12 x 30
+13.4 bookcase, tall cherry (1 of 2, with 9.4) 43 x 10.5 x 50.5
 
 
 room: Front porch # room 14

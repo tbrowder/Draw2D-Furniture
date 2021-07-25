@@ -160,9 +160,10 @@ class Project does Collections is export {
     has $.draw-name is rw = "furniture-drawings"; # was $ofilD
 
     # following have defaults:
+    has $.no-type   is rw = 0; # if > 0, furn type is NOT shown in CAPS
     has $.in-per-ft is rw = 0.25; # scale
-    has $.units is rw     = 'in-per-ft';
-    has $.scale is rw     = 0.25; # in-per-ft
+    has $.units     is rw = 'in-per-ft';
+    has $.scale     is rw = 0.25; # in-per-ft
 
     has @.author  is rw; # multi-valued (one per line)
     has @.address is rw; # multi-valued (one per line)

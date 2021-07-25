@@ -1,3 +1,4 @@
+no-type: 0 # make true to eliminate furniture type in CAPS
 code: a Apartment    #   e.g.: a  => Apartment
 code: m  Gulf Breeze #
 code: gw Goodwill    #
