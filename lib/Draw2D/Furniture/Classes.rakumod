@@ -54,6 +54,7 @@ role Collections {
  
     method codes2str(:$keys, 
                      :$no-commas,
+                     :$no-comma,
                      :$list, 
                      :$sepchar = '=>', 
                      :$debug = 0 
@@ -64,7 +65,7 @@ role Collections {
 
         my $s;
         if $keys {
-            my $jchar = $no-commas ?? " " !! ", ";
+            my $jchar = ($no-commas or $no-comma)?? " " !! ", ";
             $s = %!codes.elems ?? %!codes.keys.sort.join($jchar) !! "?";
         }
         elsif $list {
@@ -164,6 +165,7 @@ class Project does Collections is export {
     has $.in-per-ft is rw = 0.25; # scale
     has $.units     is rw = 'in-per-ft';
     has $.scale     is rw = 0.25; # in-per-ft
+    has %.scales    is rw; 
 
     has @.author  is rw; # multi-valued (one per line)
     has @.address is rw; # multi-valued (one per line)
@@ -171,6 +173,10 @@ class Project does Collections is export {
     has @.email   is rw; # multi-valued (one per line)
     has @.phone   is rw; # multi-valued (one per line)
     has @.mobile  is rw; # multi-valued (one per line)
+
+    method insert-scale(:$scale!, :$site) {
+        %!scales{$scale} = $site // "Site unknown";
+    }
 
     method push($attr-key, $value) {
         given $attr-key {
@@ -193,6 +199,7 @@ class Project does Collections is export {
                     Str :$list-subtype = "", # where /id|code/, 
 
                     :$code, # must be one of the known codes in the Project's collection
+                    :$scale is copy,
                     :$debug = 0,
                     --> Str
                    ) {
@@ -201,7 +208,11 @@ class Project does Collections is export {
         my $f = "";
         given $type {
             when /list/ { $f = $basename ~ "-" ~ self.list-name }
-            when /draw/ { $f = $basename ~ "-" ~ self.draw-name }
+            when /draw/ { 
+                $f = $basename ~ "-" ~ self.draw-name;
+                $scale = sprintf "%0.4f", $scale;
+                $f ~= "-scale-$scale";
+            }
             when /inp/  { $f = $basename ~ "-master" }
             when /text/ { $f = ".draw2d-ascii" }
             default {
@@ -275,11 +286,16 @@ class Furniture does Collections is export {
     has $.room-title is rw; 
     has $.type       is rw = ''; # e.g., chair, chest, etc.
 
-    method init() {
+    method init(:$scale) {
         # must have required inputs
         note "WARNING: incomplete dimension inputs" if !($.width || $.radius || $.diameter2);
         note "WARNING: incomplete id, codes, or description inputs" if !($.id || $.codes || $.desc);
-        $.sf = 72 / (12 / $.scale);
+        if $scale {
+            $.sf = 72 / (12 / $scale);
+        }
+        else {
+            $.sf = 72 / (12 / $.scale);
+        }
         if $.radius {
             # apply scale
             $.w = $.radius * 2 * $.sf;

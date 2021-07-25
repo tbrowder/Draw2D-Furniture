@@ -19,16 +19,18 @@ sub create-master-file(Project $p) is export {
 sub write-drawings(@rooms,
                    @ofils,
                    Project :project(:$p)!,
-                   :%scales, # key (scale); value (place)
                    :$code,   # for header info
                    :$debug = 0,
                    :$squeeze,
                   ) is export {
 
     # TODO allow multiple scales, one drawing per scale
-    # TODO show scale on drawing
+    # TODO show scale and site info on drawing
+    for $p.scales.kv -> $scale, $site {
+        note "DEBUG: ready to draw, scale: $scale; site $site";
 
-    my $psf = $p.filename: "draw", :suffix("ps");
+    my $psf = $p.filename: "draw", :$scale, :suffix("ps");
+
     my $pdf = $psf;
     $pdf ~~ s/'.ps'$/.pdf/;
 
@@ -73,7 +75,7 @@ sub write-drawings(@rooms,
 
     # collect furniture by page rows
     my @rows;
-    make-rows @rows, @rooms, $xright - $xleft, $space;
+    make-rows @rows, @rooms, $xright - $xleft, $space, :$scale;
     my $nrows = @rows.elems;
     die "FATAL: no rows collected!" if !$nrows;
     note "DEBUG: num furniture rows: {$nrows}" if 0 or $debug;
@@ -130,6 +132,8 @@ sub write-drawings(@rooms,
     ps-to-pdf @ofils, :$psf, :$pdf, :$debug;
 
     note "DEBUG: saw $nfurn furniture objects" if 0 or $debug;
+    } # end of scales loop
+
 } # end sub write-drawings
 
 #| A function to convert an ASCII text file into PostScript.
@@ -532,10 +536,11 @@ sub read-data-file($ifil,
             next LINE;
         }
 
-        if $line ~~ /^ \s* scale ':' \s* (\S*) \s* $/ {
+        if $line ~~ /^ \h* scale ':' \h* (\S*) \h*  [\h+ (\N+)]?  $/ {
             die "FATAL: header info '{~$0}' not allowed after room info has begun" if $curr-room;
-            #$p.in-per-ft = +$0;
-            $p.scale = +$0;
+            my $scale = +$0;
+            my $site  = ~$1 // "Site unknown";
+            $p.insert-scale: :$scale, :$site;
             next LINE;
         }
         if $line ~~ /^ \s* 'list-file:' \s* (\S*) \s* $/ {
@@ -904,6 +909,7 @@ sub make-rows(@rows,   # should be empty
               @rooms,  # all rooms with their furniture
               $maxwid, # distance between left/right page margins
               $space,
+              :$scale, # for init, if used
               :$debug = 0) {
 
     # TODO wrap long lines with wrap-paragraph
@@ -928,6 +934,9 @@ sub make-rows(@rows,   # should be empty
     reset-row-var;
     for @rooms -> $r {
         for $r.furniture -> $f {
+            if $scale {
+                $f.init: :$scale;
+            }
             my $title = $f.title;
             note "DEBUG: title: |$title|" if $debug == 1;
             next if $title ~~ /:i '<ff>'/;
@@ -974,7 +983,7 @@ sub in2ft($In) {
 sub ps-to-pdf(@ofils,
               :psfile(:$psf)!,
               :pdfile(:$pdf) is copy,
-              :$debug = 0,
+              :$debug is copy = 0,
              ) {
     if not $pdf {
         $pdf = $psf;
@@ -994,6 +1003,9 @@ sub ps-to-pdf(@ofils,
     run $cmd, $args.words;
     die "FATAL: Output file $pdf not found" if !$pdf.IO.f;
     @ofils.push: $pdf;
+
+    note "DEBUG set to 3 in ps-to-pdf";
+    $debug = 3;
     ($debug and $debug == 3) ??  @ofils.push($psf) !! unlink($psf);
 } # sub ps-to-pdf
 
@@ -1110,7 +1122,6 @@ sub write-list-rooms(@rooms, :@ofils, :project(:$p), :$debug = 0) {
     # the MASTER list
     # writes a list in room, furniture order
 
-    my $nitems = 0;
     # create the raw ASCII text file
     my $txtfil = $p.filename: "text", :list-subtype("");
     my $fh = open $txtfil, :w;
@@ -1121,7 +1132,9 @@ sub write-list-rooms(@rooms, :@ofils, :project(:$p), :$debug = 0) {
     write-list-headers $fh, :$p, :$debug;
 
     # this is the standard list output by room, furniture
+    my $nitems = 0;
     ROOM: for @rooms -> $r {
+        my $ritems = 0;
         $fh.say: "Room {$r.number}: {$r.title}";
         for $r.furniture -> $f {
             my $t = $f.title;
@@ -1132,6 +1145,7 @@ sub write-list-rooms(@rooms, :@ofils, :project(:$p), :$debug = 0) {
                 next ROOM; 
             }
             ++$nitems; # cumulative number
+            ++$ritems;
             my $num   = $f.number;
             my $id    = $f.id;
             my $codes = $f.codes2str: :keys; # output "a bb .."
@@ -1140,6 +1154,7 @@ sub write-list-rooms(@rooms, :@ofils, :project(:$p), :$debug = 0) {
             $fh.print: " {$f.type} -" if $f.type;
             $fh.say:   " {$f.desc} [{$f.dims}]";
         }
+        $fh.say: "\nTotal items in room: $ritems";
     }
     $fh.say: "\nTotal number items: $nitems";
     $fh.close;

@@ -6,6 +6,8 @@ code: s Sell         #
 code: t Trash/Give   #
 title: Test for Draw2d::Furniture
 basename: test-draw2d
+scale: 0.25    114 Shoreline
+scale: 0.18366447367111824    Fairpointe, Apt C
 ==============
 room: Master bedroom
  # comment

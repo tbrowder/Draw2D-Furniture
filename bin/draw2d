@@ -10,7 +10,7 @@ my $ids        = 0; # output id list only
 my $codes      = 0; # output id list only
 my $draw       = 0;
 my $all        = 0; # all lists and drawings
-my $list       = 1; # only master list
+my $list       = 0; # the master list
 
 my $no-type    = 0; # don't show the TYPE of furniture in caps
 my $list-order = 0; # on master list show furniture by input list order, not by ID order
@@ -124,6 +124,11 @@ if !$ifil.IO.f {
     You should run that file as input to 'draw2d' often to ensure formatting is correct.
     HERE
     exit
+}
+
+if not ($list or $draw or $ids or $codes) {
+    # default
+    $list = 1;
 }
 
 my $p = Project.new;
