@@ -67,7 +67,7 @@ sub write-drawings(@rooms,
     my $space      =  0.2 * 72; # vert and horiz space between figures
     my $xleft      =  $marg * 72;
     my $xright     =  (8.5 - $marg) * 72;
-    my $ytop       =  (11 - $marg - $top-marg) * 72;
+    my $ytop       =  2 + (11 - $marg - $top-marg *2) * 72;
     my $ybottom    =  $marg * 72;
 
     # page variables
@@ -84,9 +84,19 @@ sub write-drawings(@rooms,
     # keep track of:
     #   last baseline
     reset-page-vars $x, $y, :$npages, :$xleft, :$ytop;
+
+    # page header
+    my $Scale = sprintf "%0.4f", $scale;
+    my $hinfo = "Site: $site       Scale: $Scale in/ft";
+    my $yhdr = $ytop + 35;
+    $ps.add_to_page: $npages, qq:to/HERE/;
+    /Times-Bold 14 selectfont {$xleft+10} {$yhdr} mt ($hinfo) 9 puttext
+    HERE
+
     my $i = 0;
     for @rows -> Row $r {
         reset-row-var $x, :$xleft;
+
         ++$i;
         if $debug == 1 {
             note "DEBUG: row $i max-height: {$r.max-height}";
@@ -97,12 +107,14 @@ sub write-drawings(@rooms,
             # need a new page
             reset-page-vars $x, $y, :$npages, :$xleft, :$ytop;
             $ps.newpage;
+
+            # page header
+            $ps.add_to_page: $npages, qq:to/HERE/;
+            /Times-Bold 14 selectfont {$xleft+10} {$yhdr} mt ($hinfo) 9 puttext
+            HERE
         }
         for $r.furniture -> $f {
             ++$nfurn;
-            #my $num = "{$f.number}";
-            #my $dim = "{$f.dims}";
-
             # draw it at the current ulx, uly
             $f.ps-draw: $ps, :ulx($x), :uly($y);
             # increment x
@@ -116,14 +128,14 @@ sub write-drawings(@rooms,
     note "DEBUG: num pages: $npages" if $debug == 1;
     # go back and add page numbers:
     #   Page x of n
-    =begin comment
+    #=begin comment
     for 1..$npages -> $page {
         my $s = "Page $page of $npages";
         $ps.add_to_page: $page, qq:to/HERE/;
-        /Times-Roman 10 selectfont $xright $ybottom 25 sub mt ($s) 11 puttext
+        /Times-Roman 10 selectfont $xright 10 sub $ytop 35 add mt ($s) 11 puttext
         HERE
     }
-    =end comment
+    #=end comment
 
     # close and output the file
     $ps.output;
@@ -1138,11 +1150,11 @@ sub write-list-rooms(@rooms, :@ofils, :project(:$p), :$debug = 0) {
         $fh.say: "Room {$r.number}: {$r.title}";
         for $r.furniture -> $f {
             my $t = $f.title;
-            if $t ~~ /:i '<ff>'/ { 
-                # NOTE: this is the ONLY list where we show the 
+            if $t ~~ /:i '<ff>'/ {
+                # NOTE: this is the ONLY list where we show the
                 #       <ff> to trigger a text-to-PS response
-                $fh.say: "      <ff>"; 
-                next ROOM; 
+                $fh.say: "      <ff>";
+                next ROOM;
             }
             ++$nitems; # cumulative number
             ++$ritems;
@@ -1154,7 +1166,8 @@ sub write-list-rooms(@rooms, :@ofils, :project(:$p), :$debug = 0) {
             $fh.print: " {$f.type} -" if $f.type;
             $fh.say:   " {$f.desc} [{$f.dims}]";
         }
-        $fh.say: "\nTotal items in room: $ritems";
+        $fh.say: "  Total items in room: $ritems";
+        $fh.say();
     }
     $fh.say: "\nTotal number items: $nitems";
     $fh.close;
@@ -1204,10 +1217,10 @@ sub write-list-codes(@rooms, :@ofils, :project(:$p), :$debug = 0) {
 
             for $r.furniture -> $f {
                 my $t = $f.title;
-                if $t ~~ /:i '<ff>'/ { 
+                if $t ~~ /:i '<ff>'/ {
                     # the MASTER list is the only one to retain the ff for PS
-                    #$fh.say: "      <ff>"; 
-                    next ROOM; 
+                    #$fh.say: "      <ff>";
+                    next ROOM;
                 }
 
                 my $has-code = $f.code-exists($c) ?? 1 !! 0;
@@ -1271,10 +1284,10 @@ sub write-list-ids(@rooms, :@ofils, :project(:$p), :$debug = 0) {
     for %ids.keys.sort(*.Version) -> $id {
         my $f = %ids{$id};
         my $t = $f.title;
-        if $t ~~ /:i '<ff>'/ { 
+        if $t ~~ /:i '<ff>'/ {
             # the MASTER list is the only one to retain the ff for PS
-            #$fh.say: "      <ff>"; 
-            next; 
+            #$fh.say: "      <ff>";
+            next;
         }
 
         ++$nitems; # cumulative number
