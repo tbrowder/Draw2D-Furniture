@@ -272,7 +272,7 @@ class Furniture does Collections is export {
 
     has $.room       is rw; # room number
     has $.room-title is rw; 
-    has $.type       is rw; # e.g., chair, chest, etc.
+    has $.type       is rw = ''; # e.g., chair, chest, etc.
 
     method init() {
         # must have required inputs

@@ -138,7 +138,6 @@ sub text-to-ps($txtfil, # the ASCII input text file
                Project :project(:$p)!,
                :$debug = 0,
               ) is export {
-
     # write the ps file,
     # start a doc, add options here:
     #   enable clipping but no border
@@ -337,15 +336,19 @@ sub text-to-ps($txtfil, # the ASCII input text file
 sub write-lists(@rooms,
                 @ofils,
                 Project :project(:$p)!,
+                :$list,
+                :$ids,
+                :$codes,
+                :$no-type,
                 :$debug = 0,
                ) is export {
 
     # TODO here we determine ALL the list-type PS outputs
     #      we want
 
-    write-list-rooms(@rooms, :@ofils, :$p, :$debug);
-    write-list-ids(@rooms, :@ofils, :$p, :$debug);
-    write-list-codes(@rooms, :@ofils, :$p, :$debug);
+    write-list-rooms(@rooms, :@ofils, :$p, :$debug) if $list;
+    write-list-ids(@rooms, :@ofils, :$p, :$debug) if $ids;
+    write-list-codes(@rooms, :@ofils, :$p, :$debug) if $codes;
 
 } # sub write-lists
 
@@ -367,8 +370,7 @@ my regex number { :r
 
 sub read-data-file($ifil,
                    Project :project(:$p)!,
-                   :$ids!, # if true, throws on no id on input for a child
-                   :$list-codes,
+                   :$no-type,
                    :$debug = 0,
                    --> List
                   ) is export {
@@ -627,9 +629,10 @@ sub read-data-file($ifil,
             $furn.dims2  = "{$ww}x{$ll}";
 
             # now parse the leading part of the line
-            my ($id, $codes, $desc) = parse-leading $leading, $rnum, $fnum, :$ids, :$debug;
-            note "  captures => |$id| |$codes| |$desc| |$wid| |$len| |h: $hgt|" if $debug == 1;
+            my ($id, $codes, $type, $desc) = parse-leading $leading, $rnum, $fnum, :$no-type, :$debug;
+            note "  captures => |$id| |$codes| |$type| |$desc| |$wid| |$len| |h: $hgt|" if $debug == 1;
 
+            $furn.type = $type;
             # handle the id
             if $id and not $p.id-exists($id) {
                 # it's unique
@@ -686,9 +689,10 @@ sub read-data-file($ifil,
             $furn.dims2  = "{$ww}";
 
             # now parse the leading part of the line
-            my ($id, $codes, $desc) = parse-leading $leading, $rnum, $fnum, :$ids, :$debug;
-            note "  captures => |$id| |$codes| |$desc| |{$furn.diameter}| |h: $hgt|" if $debug == 1;
+            my ($id, $codes, $type, $desc) = parse-leading $leading, $rnum, $fnum, :$no-type, :$debug;
+            note "  captures => |$id| |$codes| |$type| |$desc| |{$furn.diameter}| |h: $hgt|" if $debug == 1;
 
+            $furn.type = $type;
             # handle the id
             if $id and not $p.id-exists($id) {
                 # it's unique
@@ -741,9 +745,10 @@ sub read-data-file($ifil,
             $furn.dims2  = "{$ww}";
 
             # now parse the leading part of the line
-            my ($id, $codes, $desc) = parse-leading $leading, $rnum, $fnum, :$ids, :$debug;
-            note "  captures => |$id| |$codes| |$desc| |{$furn.radius}| |h: $hgt|" if $debug == 1;
+            my ($id, $codes, $type, $desc) = parse-leading $leading, $rnum, $fnum, :$no-type, :$debug;
+            note "  captures => |$id| |$codes| |$type| |$desc| |{$furn.radius}| |h: $hgt|" if $debug == 1;
 
+            $furn.type = $type;
             # handle the id
             if $id and not $p.id-exists($id) {
                 # it's unique
@@ -805,9 +810,10 @@ sub read-data-file($ifil,
             $furn.dims2  = "{$ww}x{$ll}";
 
             # now parse the leading part of the line
-            my ($id, $codes, $desc) = parse-leading $leading, $rnum, $fnum, :$ids, :$debug;
-            note "  captures => |$id| |$codes| |$desc| |$wid| |$len| |h: $hgt|" if $debug == 1;
+            my ($id, $codes, $type, $desc) = parse-leading $leading, $rnum, $fnum, :$no-type, :$debug;
+            note "  captures => |$id| |$codes| |$type| |$desc| |$wid| |$len| |h: $hgt|" if $debug == 1;
 
+            $furn.type = $type;
             # handle the id
             if $id and not $p.id-exists($id) {
                 # it's unique
@@ -845,9 +851,10 @@ sub read-data-file($ifil,
 
             # now parse the leading part of the line
             my $leading = $line;
-            my ($id, $codes, $desc) = parse-leading $leading, $rnum, $fnum, :$ids, :$debug;
-            note "  captures => |$id| |$codes| |$desc| |$wid| |$len| |h: $hgt|" if $debug == 1;
+            my ($id, $codes, $type, $desc) = parse-leading $leading, $rnum, $fnum, :$no-type, :$debug;
+            note "  captures => |$id| |$codes| |$type| |$desc| |$wid| |$len| |h: $hgt|" if $debug == 1;
 
+            $furn.type = $type;
             # handle the id
             if $id and not $p.id-exists($id) {
                 # it's unique
@@ -963,7 +970,7 @@ sub in2ft($In) {
 sub ps-to-pdf(@ofils,
               :psfile(:$psf)!,
               :pdfile(:$pdf) is copy,
-              :$debug!,
+              :$debug = 0,
              ) {
     if not $pdf {
         $pdf = $psf;
@@ -986,14 +993,15 @@ sub ps-to-pdf(@ofils,
     ($debug and $debug == 3) ??  @ofils.push($psf) !! unlink($psf);
 } # sub ps-to-pdf
 
-sub parse-leading($s, $rnum, $fnum, :$ids!, :$debug = 0, --> List) {
+sub parse-leading($s, $rnum, $fnum, :$no-type!, :$debug = 0, --> List) {
     # now parse the leading part of the line
     #   my ($id, $codes, $desc) = parse-leading $leading, :$debug;
     #
     # example leading input lines:
-    #   <number>? <codes>? name rest of description
+    #   <number>? <codes>? type, name rest of description
     my $id    = "";
     my $codes = "";
+    my $type  = "";
     my $desc  = $s;
 
     my $num = "$rnum.$fnum";
@@ -1002,7 +1010,7 @@ sub parse-leading($s, $rnum, $fnum, :$ids!, :$debug = 0, --> List) {
     my @w = $s.words;
     $id = @w.shift;
     $desc = join $SPACE, @w;
-    if $ids and $id !~~ /<number>/ {
+    if $id !~~ /<number>/ {
         die "FATAL: This furniture line (number $num) has no leading ID number";
     }
     elsif $id !~~ /<number>/ {
@@ -1039,14 +1047,23 @@ sub parse-leading($s, $rnum, $fnum, :$ids!, :$debug = 0, --> List) {
         $desc = $id ~ " $desc";
         note "WARNING: Furniture line number $num has no leading ID number.";
     }
+    # get the "type" unless unwanted
+    if not $no-type {
+        my @w  = $desc.words;
+        $type  = @w.shift;
+        $type .= uc;
+        $type ~~ s:g/','//;
+        $desc  = @w.join: " ";
+    }
 
-    note "DEBUG: parsing leading: id/codes |$id| |$codes|" if 1 or $debug == 1;
+
+    note "DEBUG: parsing leading: id/codes/type |$id| |$codes| |$type|" if $debug == 1;
 
     $codes = normalize-string $codes;
 
     die "FATAL: code has [] '$codes'" if $codes ~~ /'[' | ']'/;
 
-    $id, $codes, $desc
+    $id, $codes, $type, $desc
 } # sub parse-leading
 
 sub write-list-headers($fh,
@@ -1085,7 +1102,7 @@ sub write-list-headers($fh,
     #== end headers for ALL files
 } # sub write-list-headers
 
-sub write-list-rooms(@rooms, :@ofils, :project(:$p), :$debug = 0,) {
+sub write-list-rooms(@rooms, :@ofils, :project(:$p), :$debug = 0) {
     # the MASTER list
     # writes a list in room, furniture order
 
@@ -1114,7 +1131,10 @@ sub write-list-rooms(@rooms, :@ofils, :project(:$p), :$debug = 0,) {
             my $num   = $f.number;
             my $id    = $f.id;
             my $codes = $f.codes2str: :keys; # output "a bb .."
-            $fh.say: "    $id [$codes] {$f.desc} [{$f.dims}]";
+            my $type  = $f.type; # may be empty string
+            $fh.print: "    $id [$codes]";
+            $fh.print: " {$f.type} -" if $f.type;
+            $fh.say:   " {$f.desc} [{$f.dims}]";
         }
     }
     $fh.say: "\nTotal number items: $nitems";
@@ -1131,7 +1151,7 @@ sub write-list-rooms(@rooms, :@ofils, :project(:$p), :$debug = 0,) {
 
 } # sub write-list-rooms
 
-sub write-list-codes(@rooms, :@ofils, :project(:$p), :$debug!) {
+sub write-list-codes(@rooms, :@ofils, :project(:$p), :$debug = 0) {
     # writes a separate list for each code
     # in room, furniture order
 
@@ -1180,7 +1200,11 @@ sub write-list-codes(@rooms, :@ofils, :project(:$p), :$debug!) {
                 my $num   = $f.number;
                 my $id    = $f.id;
                 my $codes = $f.codes2str: :keys; # output "a bb .."
-                $fh.say: "    $id [$codes] {$f.desc} [{$f.dims}] (Room: {$f.room})";
+                my $type  = $f.type; # may be empty string
+                $fh.print: "    $id [$codes]";
+                $fh.print: " {$f.type} -" if $f.type;
+                $fh.say:   " {$f.desc} [{$f.dims}] (Room: {$f.room})";
+
             }
             if not $has-coded-furn {
                 $fh.say: "      (no furniture with code '$c')";
@@ -1201,7 +1225,7 @@ sub write-list-codes(@rooms, :@ofils, :project(:$p), :$debug!) {
 
 } # sub write-list-codes
 
-sub write-list-ids(@rooms, :@ofils, :project(:$p), :$debug) {
+sub write-list-ids(@rooms, :@ofils, :project(:$p), :$debug = 0) {
     # writes a list in id order
     # for all IDs
 
@@ -1238,7 +1262,10 @@ sub write-list-ids(@rooms, :@ofils, :project(:$p), :$debug) {
 
         my $num   = $f.number;
         my $codes = $f.codes2str: :keys; # output "a bb .."
-        $fh.say: "$id [$codes] {$f.desc} [{$f.dims}] (Room: {$f.room})";
+        my $type  = $f.type; # may be empty string
+        $fh.print: "$id [$codes]";
+        $fh.print: " {$f.type} -" if $f.type;
+        $fh.say:   " {$f.desc} [{$f.dims}] (Room: {$f.room})";
     }
 
     $fh.close;
@@ -1254,14 +1281,14 @@ sub write-list-ids(@rooms, :@ofils, :project(:$p), :$debug) {
 
 } # sub write-list-ids
 
-sub write-list-doc-title($fh, :$doc-title, :$debug) {
+sub write-list-doc-title($fh, :$doc-title, :$debug = 0) {
     my @lines = $doc-title.lines;
     for $doc-title.lines -> $line {
         $fh.say: "doc-title: $doc-title";
     }
 } # sub write-list-doc-title
 
-multi sub check-bottom(Row $r, Real $y, Real $ybottom, :$debug --> Bool) {
+multi sub check-bottom(Row $r, Real $y, Real $ybottom, :$debug = 0 --> Bool) {
     note "DEBUG: in Row check-bottom: y = $y, ybottom = $ybottom" if 0 or $debug;
 
     # used in write-drawings

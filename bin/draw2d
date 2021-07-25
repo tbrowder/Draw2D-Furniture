@@ -4,56 +4,82 @@ use Draw2D::Furniture;
 use Draw2D::Furniture::Classes;
 
 my $ifil = '';
+my $P = $*PROGRAM.basename;
+
+my $ids        = 0; # output id list only
+my $codes      = 0; # output id list only
+my $draw       = 0;
+my $all        = 0; # all lists and drawings
+my $list       = 1; # only master list
+
+my $no-type    = 0; # don't show the TYPE of furniture in caps
+my $list-order = 0; # on master list show furniture by input list order, not by ID order
+my $debug      = 0;
+my $show-codes = 0; # show codes and exit
+my $cli-scale; # ($in-per-ft) a hack for on-the-fly scale changes (only for that run)
+
+my $squeeze = 0; # shows data in the upper left corner of images
 if !@*ARGS {
     say qq:to/HERE/;
-    Usage: {$*PROGRAM.basename} <formatted input file>
+    Usage: $P <formatted input file>
                 OR
-                                <formatted input file>
-                                  [id][scale=X][codes][list|draw][debug[=N]]
+           $P <formatted input file>
+                  [ids][codes][all][draw]
+                  [show-codes][scale=X][list-order][debug[=N]]
+                  [no-type]
 
-    (Note: If the first argument is other than a readable file in the proper
-    format, the user will be prompted for required inputs to
-    produce such a file.)
+    Note: If the first argument is other than a readable file in the 
+          proper format, the user will be prompted for required inputs 
+          to produce such a file. INCOMPLETE AT THE MOMENT)
+
+    The default output is a msster list of all furniture by
+    room and in unique ID order within each room. Other output types
+    are individually selectable or all types may be selected. All
+    outputs are in PDF format.
 
     The optional scale is a number representing page inches per
     real feet. The default is 0.25 (i.e., 1/4 inch per foot, a
     value commonly used in house blueprints).
 
+    The 'list-order' option shows furniture, by room, in the
+    order in the read-only master input file.
+
+    The 'no-type' option turns off the all-caps TYPE of each object.
+
     Produces:
 
       1. A pdf document listing rooms and furniture
 
-      2. An optional pdf file with furniture numbers and other data
+      2. Optional lists by ID and individual codes.
+
+      3. An optional pdf file with furniture numbers and other data
          (which may overflow) for cutting out. Items are scaled 1/4\"
          to the foot to match typical house blueprints.  A different
-         scale may be entered into the formatted input file (NYI).
+         scale may be entered into the formatted input file or the
+         cmmand line.
     HERE
 
     exit;
 }
 
-my $draw    = 0;
-my $list    = 1;
-my $debug   = 0;
-my $codes   = 0; # show codes and exit
-my $ids     = 0; # mandatory IDs if true
-my $squeeze = 0; # shows data in the upper left corner of images
-my $cli-scale; # ($in-per-ft) a hack for on-the-fly scale changes (only for that run)
 for @*ARGS {
-    when /^ g/  { ;  }
-    when /^ l/  { $list=1; $draw=0 }
     when /^ debug '=' (\d+) / {
          $debug = +$0;
     }
-    when /^ de/ { $debug   = 1 }
-    when /^ d/  { $draw=1; $list=0 }
-    when /^ s/  { $squeeze = 1 }
+    when /^ de / { $debug   = 1 }
+    when /^ s  / { $squeeze = 1 }
     when /^ 'scale=' (\S+) / {
          #$in-per-ft = +$0; # default is 0.25
-         $cli-scale = +$0; # default is 0.25
+         $cli-scale  = +$0; # default is 0.25
     }
-    when /^i / { $ids  = 1 }
-    when /^c / { $codes  = 1 }
+    when /^ n/  { $no-type = 1 }
+    # output types
+    when /^ d / { $draw  = 1 }
+    when /^ i / { $ids   = 1 }
+    when /^ c / { $codes = 1 }
+    when /^ l / { $list  = 1 }
+    when /^ a / { $list=$codes=$ids=$draw=1 }
+
     default { $ifil = $_ }
 }
 
@@ -101,19 +127,16 @@ if !$ifil.IO.f {
 }
 
 my $p = Project.new;
-
 if $cli-scale.defined {
     $p.scale = $cli-scale;
 }
 
 my @ofils; # list of output files generated
 my @rooms; # list of room objects containing furniture objects
-my $list-codes = $codes ?? 1 !! 0;
-@rooms = read-data-file $ifil, :$p, :$ids, :$list-codes, :$debug;
-exit if $list-codes;
+@rooms = read-data-file $ifil, :$p, :$no-type, :$debug;
+exit if $show-codes;
 
-write-lists(@rooms, @ofils, :$p, :$debug) if $list;
-
+write-lists(@rooms, @ofils, :$p, :$list, :$ids, :$codes, :$no-type, :$debug);
 write-drawings(@rooms, @ofils, :$p, :$squeeze, :$debug) if $draw;
 
 say "Normal end.";

@@ -10,9 +10,9 @@ room: Master bedroom
  # comment
 # 29 total pieces below
 # 6 pieces
-12 [s] Missy's chest of drawers {M's drsr}	19 x 64.1
-13 [m] bedside table			        25 d      # diameter
-14 [s] lounge chair			        21 x 49
+12 [s] chest Missy's chest of drawers {M's drsr}	19 x 64.1
+13 [m] table, bedside table			        25 d      # diameter
+14 [s] chair, lounge chair			        21 x 49
 15 [a] table, drop-leaf oak (open)	42 e 51 # ellipse
 16 [m] rocker, platform            22 x 30
 11 [a] desk (by bed)			        20 r      # radius
@@ -23,21 +23,21 @@ room: Master bedroom
 room: Bogus room
 # 7 pieces
 2.1 [gw] desk (by bed)			        20 r      x 10   # radius, height
-2.2 [s] Missy's chest of drawers {M's drsr}     19.1 x 64 x 11   # height
-2.3 [s] another chest of drawers (T's drsr)     19   x 64 x 11   # height
+2.2 [s] chest, Missy's chest of drawers {M's drsr}     19.1 x 64 x 11   # height
+2.3 [s] chest, another chest of drawers (T's drsr)     19   x 64 x 11   # height
 
-2.4  [t] bedside table			        25 d      x 12   # diameter, height
-2.5  [s] lounge chair			        21 x 49   x 13   # height
+2.4  [t] table, bedside table			        25 d      x 12   # diameter, height
+2.5  [s] chair, lounge chair			        21 x 49   x 13   # height
 2.6  [gw] table, drop-leaf oak (open) 42 e 51           x 14   # ellipse, height
 2.7  [m] rocker, platform	        22 x 30.2         x 15   # height
 
 ## #   long descrip, id
 # 4 pieces
-3.3 [s] long, antique couch with apricot spots, Golden flowers, \
+3.3 [s] couch, long, antique couch with apricot spots, Golden flowers, \
     and many other cool features, org cost $10,000 in 1968 23 x 134
-4.7 [t] line with embedded backslash more text..., org cost $10,000 in 1968 23 x 134
-5   [t] a line with embedded backslash more text..., org cost $10,000 in 1968 23 x 134
-2.8 [t] another line with embedded backslash more text..., org cost $10,000 in 1968 23 x 134
+4.7 [t] table, line with embedded backslash more text..., org cost $10,000 in 1968 23 x 134
+5   [t] table, a line with embedded backslash more text..., org cost $10,000 in 1968 23 x 134
+2.8 [t] chair, another line with embedded backslash more text..., org cost $10,000 in 1968 23 x 134
 
 ## spaces not required for dimen handling (but at least one space before the first dimen)
 ## show all possibilities for valid dimen formats (use for tests)
