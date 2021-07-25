@@ -10,12 +10,12 @@ drawings-file: drawings
 no-type: 0
 
 # for normal house plans at 1/4 inch per foot:
-scale: 0.25 # inches per real foot, optional, default: 0.25" per foot
+scale: 0.25    114 Shoreline # inches per real foot, optional, default: 0.25" per foot
 
 # for Fairpointe condo (4.1875" x 7.25" = 30.359375" sq-in interior
 # representing 900 sq-ft): 0.18366447367111824
 #   (4.1875 * 7.25 / 900) ** 0.5 = scale = 0.18366447367111824
-#scale: 0.18366447367111824
+scale: 0.18366447367111824    Fairpointe, Apt C
 
 # data are in inches: side x side OR diameter
 #   X e Y [ x H ] # ellipse a/b [height, optional]
@@ -79,13 +79,13 @@ room: Family room # room 4
 4.12 rug natural fiber, narrow black cloth tape border                120 x 168.625 # 10 ft x 14 5/8
 4.13 rug natural fiber, narrow black cloth tape border                 96 x  60     # 8 ft x 5 ft
 
-4.14 couch, 
-4.15 chair, leather recliner, Tom's
-
-4.21 chair, kitchen, woven-bottom (1 of 4)
-4.22 chair, kitchen, woven-bottom (2 of 4)
-4.23 chair, kitchen, woven-bottom (3 of 4)
-4.24 chair, kitchen, woven-bottom (4 of 4)
+4.14 couch, 3-cshion upholstered, light tan 84x39.5x36
+4.15 chair, leather recliner, Tom's (upright) 33.5x41x42
+4.16 chest, small, Grace's toy chest, made by her father 25x14x12
+4.21 chair, kitchen, woven-bottom (1 of 4) 20x19x41
+4.22 chair, kitchen, woven-bottom (2 of 4) 20x19x41
+4.23 chair, kitchen, woven-bottom (3 of 4) 20x19x41
+4.24 chair, kitchen, woven-bottom (4 of 4) 20x19x41
 
 room: Dining room # room 5
 ===========
@@ -165,8 +165,8 @@ room: Garage # room 13
 ==========
 
 13.1 bookcase, tall pine (2 of 2 with 10.2) 48 x 12 x 60
-13.2 chair, rattan (1 of 2 with 13.3) 
-13.3 chair, rattan (2 of 2 with 13.2)
+13.2 chair, rattan (1 of 2 with 13.3) 31x30x30
+13.3 chair, rattan (2 of 2 with 13.2) 31x30x30
 13.4 bookcase, tall cherry (1 of 2, with 9.4) 43 x 10.5 x 50.5
 
 
