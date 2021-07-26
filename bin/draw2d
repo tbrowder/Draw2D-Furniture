@@ -8,14 +8,14 @@ my $P = $*PROGRAM.basename;
 
 my $ids        = 0; # output id list only
 my $codes      = 0; # output id list only
-my $draw       = 0;
+my $draw       = 0; # output drawings only
 my $all        = 0; # all lists and drawings
-my $list       = 0; # the master list
+my $list       = 0; # the master list only (default if no output is selected)
 
-my $no-type    = 0; # don't show the TYPE of furniture in caps
-my $list-order = 0; # on master list show furniture by input list order, not by ID order
+my $no-type    = 0; # if true, don't show the TYPE of furniture in caps
+my $list-order = 0; # if true, on master list show furniture by input list order, not by ID order
 my $debug      = 0;
-my $show-codes = 0; # show codes and exit
+my $show-codes = 0; # if true, show codes and exit
 my $cli-scale; # ($in-per-ft) a hack for on-the-fly scale changes (only for that run)
 
 my $squeeze = 0; # shows data in the upper left corner of images
@@ -24,15 +24,15 @@ if !@*ARGS {
     Usage: $P <formatted input file>
                 OR
            $P <formatted input file>
-                  [ids][codes][all][draw]
+                  [list][ids][codes][all][draw]
                   [show-codes][scale=X][list-order][debug[=N]]
                   [no-type]
 
-    Note: If the first argument is other than a readable file in the 
-          proper format, the user will be prompted for required inputs 
+    Note: If the first argument is other than a readable file in the
+          proper format, the user will be prompted for required inputs
           to produce such a file. INCOMPLETE AT THE MOMENT)
 
-    The default output is a msster list of all furniture by
+    The default output is a master list of all furniture by
     room and in unique ID order within each room. Other output types
     are individually selectable or all types may be selected. All
     outputs are in PDF format.
@@ -46,17 +46,18 @@ if !@*ARGS {
 
     The 'no-type' option turns off the all-caps TYPE of each object.
 
-    Produces:
+    Produces (with appropriate option):
 
       1. A pdf document listing rooms and furniture
 
-      2. Optional lists by ID and individual codes.
+      2. Lists by ID and individual codes
 
-      3. An optional pdf file with furniture numbers and other data
-         (which may overflow) for cutting out. Items are scaled 1/4\"
-         to the foot to match typical house blueprints.  A different
-         scale may be entered into the formatted input file or the
-         cmmand line.
+      3. An PDF file with furniture numbers and other data
+         (which may overflow) for cutting out and placing on
+         building plans. By default, items are scaled 1/4\"
+         to the foot to match typical US house blueprints.
+         A different scale may be entered into the formatted
+         input file or the command line.
     HERE
 
     exit;
@@ -69,7 +70,6 @@ for @*ARGS {
     when /^ de / { $debug   = 1 }
     when /^ s  / { $squeeze = 1 }
     when /^ 'scale=' (\S+) / {
-         #$in-per-ft = +$0; # default is 0.25
          $cli-scale  = +$0; # default is 0.25
     }
     when /^ n/  { $no-type = 1 }
@@ -98,22 +98,44 @@ if !$ifil.IO.f {
     my $creator  = prompt "Created by: ";
     my $date     = now.DateTime.Str;
     my $p = Project.new: :$title, :$basename, :$creator, :$date;
-    if $cli-scale.defined {
-        $p.scale = $cli-scale;
-    }
 
+    my $scale    = prompt "Scale (if not 1/4 in/ft): ";
+    my $site     = prompt "Site name: ";
+
+    my @addr;
     $resp = prompt "Do you want to add contact data (Y/n) => ";
     if $resp ~~ /^ :i y / {
-        say "Okay.";
-        my $addr = prompt qq:to/HERE/;
-        You can add contact date i
-        HERE
+        say "Okay. You can add contact data at the following prompts.";
+        say "Enter an empty line to finish.";
+        while True {
+            my $addr = prompt "address line: ";
+            last if $addr !~~ /\S+/;
+            @addr.push: $addr;
+        }
+        # put the lines into the project instance
     }
 
+    my @notes;
     $resp = prompt "Do you want to add any notes or other information (Y/n) => ";
     if $resp ~~ /^ :i y / {
-        say "Okay.";
+        say "Okay. You can add notes at the following prompts.";
+        say "Enter an empty line to finish.";
+        while True {
+            my $note = prompt "note line: ";
+            last if $note !~~ /\S+/;
+            @notes.push: $note;
+        }
+        # put the lines into the project instance
     }
+    if 1 {
+        note "DEBUG address lines:";
+        .say for @addr;
+        note "DEBUG note lines:";
+        .say for @notes;
+        note "DEBUG early exit before saving and writing inp file."; exit;
+
+    }
+
 
     create-master-file $p;
 
