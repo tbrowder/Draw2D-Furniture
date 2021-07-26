@@ -24,8 +24,8 @@ sub write-drawings(@rooms,
                    :$squeeze,
                   ) is export {
 
-    # TODO allow multiple scales, one drawing per scale
-    # TODO show scale and site info on drawing
+    # create one drawngs set for each scale and site
+    # begin scale loop
     for $p.scales.kv -> $scale, $site {
         note "DEBUG: ready to draw, scale: $scale; site $site";
 
@@ -36,6 +36,7 @@ sub write-drawings(@rooms,
 
     # start a PostScript doc, add options here
     #   enable clipping
+    #   portrait mode
     my $ps = PostScript::File.new:
                :paper<Letter>,
                :clipping(1),
@@ -43,7 +44,6 @@ sub write-drawings(@rooms,
                :landscape(0),
                :file($psf), # the PS output file
                :file_ext("");
-
     die "FATAL: no PS object" if not $ps;
 
     # for debugging count furniture items
@@ -67,7 +67,9 @@ sub write-drawings(@rooms,
     my $space      =  0.2 * 72; # vert and horiz space between figures
     my $xleft      =  $marg * 72;
     my $xright     =  (8.5 - $marg) * 72;
-    my $ytop       =  2 + (11 - $marg - $top-marg *2) * 72;
+    my $xwidth     =  $xright - $xleft;
+    my $xcenter    =  $xleft + 0.5 * $xwidth;
+    my $ytop       =  2 + (11 - $marg - $top-marg * 2) * 72;
     my $ybottom    =  $marg * 72;
 
     # page variables
@@ -85,14 +87,24 @@ sub write-drawings(@rooms,
     #   last baseline
     reset-page-vars $x, $y, :$npages, :$xleft, :$ytop;
 
-    # page header
-    my $Scale = sprintf "%0.4f", $scale;
-    my $hinfo = "Site: $site       Scale: $Scale in/ft";
-    my $yhdr = $ytop + 35;
-    $ps.add_to_page: $npages, qq:to/HERE/;
-    /Times-Bold 14 selectfont {$xleft+10} {$yhdr} mt ($hinfo) 9 puttext
+    # page header to be used for each page
+    my $Scale = sprintf "%0.4f", $scale; # for display only
+    $Scale ~~ s:g/0$//;
+    my $yhdrbaseline = $ytop + 35;
+    my $yhdrbot      = $yhdrbaseline - 15;
+    my $pheader = qq:to/HERE/;
+    gsave
+    /Times-Bold 14 selectfont
+    {$xleft+10} {$ytop+35} mt (Site: $site) 9 puttext % left-justified on the baseline
+    /Times-Roman 12 selectfont
+    $xcenter $yhdrbaseline mt (Scale: $Scale in/ft) 9 puttext % left-justified on the baseline
+    % enclose the title box:
+    % draw a bottom title border
+    $xleft $yhdrbot mt $xright $yhdrbot lineto st
+    grestore
     HERE
 
+    $ps.add_to_page: $npages, $pheader;
     my $i = 0;
     for @rows -> Row $r {
         reset-row-var $x, :$xleft;
@@ -107,11 +119,8 @@ sub write-drawings(@rooms,
             # need a new page
             reset-page-vars $x, $y, :$npages, :$xleft, :$ytop;
             $ps.newpage;
-
-            # page header
-            $ps.add_to_page: $npages, qq:to/HERE/;
-            /Times-Bold 14 selectfont {$xleft+10} {$yhdr} mt ($hinfo) 9 puttext
-            HERE
+            # then the page header
+            $ps.add_to_page: $npages, $pheader;
         }
         for $r.furniture -> $f {
             ++$nfurn;
@@ -124,18 +133,17 @@ sub write-drawings(@rooms,
         $y -= $r.max-height + $space;
     }
 
-    # TODO add page numbers in top title area
     note "DEBUG: num pages: $npages" if $debug == 1;
     # go back and add page numbers:
     #   Page x of n
-    #=begin comment
     for 1..$npages -> $page {
         my $s = "Page $page of $npages";
         $ps.add_to_page: $page, qq:to/HERE/;
-        /Times-Roman 10 selectfont $xright 10 sub $ytop 35 add mt ($s) 11 puttext
+        gsave
+        /Times-Roman 12 selectfont $xright 10 sub $ytop 35 add mt ($s) 11 puttext % right-justified
+        grestore
         HERE
     }
-    #=end comment
 
     # close and output the file
     $ps.output;
@@ -227,11 +235,11 @@ sub text-to-ps($txtfil, # the ASCII input text file
     # read the text input file and convert each line into a PostScript
     # command in the output file
 
-    # TODO provide for wrapping long lines somehow
+    # provide for wrapping long lines
     #   save the indention size
     #   fix max line length based on dist to right margin
     #   wrap the text to proper width (check Text::Utils)
-    #   use a PS proc to write
+    #   use a PS proc to write?
 
     LINE: for $txtfil.IO.lines -> $line is copy {
         my $ff = $line ~~ /:i '<ff>' / ?? 1 !! 0;
@@ -261,9 +269,8 @@ sub text-to-ps($txtfil, # the ASCII input text file
                 $para-indent = $spaces.chars;
             }
             # do the wrap
-            # TODO this fails in PostScript with unbalanced quote
-            #      delimeters
-            #      try escaping after the fold by traversing the folded lines
+            # this fails in PostScript with unbalanced quote delimiters
+            # fix by escaping after the fold by traversing the folded lines
             my @flines = wrap-paragraph $line,
             :max-line-length($max-line-chars),
             :$para-indent,
@@ -359,9 +366,7 @@ sub write-lists(@rooms,
                 :$debug = 0,
                ) is export {
 
-    # TODO here we determine ALL the list-type PS outputs
-    #      we want
-
+    # here we determine ALL the list-type PS outputs we want
     write-list-rooms(@rooms, :@ofils, :$p, :$debug) if $list;
     write-list-ids(@rooms, :@ofils, :$p, :$debug) if $ids;
     write-list-codes(@rooms, :@ofils, :$p, :$debug) if $codes;
@@ -924,7 +929,6 @@ sub make-rows(@rows,   # should be empty
               :$scale, # for init, if used
               :$debug = 0) {
 
-    # TODO wrap long lines with wrap-paragraph
     @rows   = [];
     my $row = Row.new;
     @rows.push: $row;
@@ -1099,9 +1103,7 @@ sub write-list-headers($fh,
                        :$debug = 0,
                       ) is export {
 
-    # TODO handle better output file info
-
-    #== headers for ALL files
+    #== headers for ALL text files
     # title, etc.
     if $p.title { $fh.say: "Title: {$p.title}"; }
     if $p.author { $fh.say: "Author: {$p.author}"; }
