@@ -1,0 +1,33 @@
+Files involved in the process
+
++ file: text input file
+    basename.inp
+
++ file: list of objects
+
+  sub write-list-file
+
+  create tmp text file of ps info for the list outputs
+    .draw2d-ascii-list
+    .draw2d-ascii-list-id
+    .draw2d-ascii-list-code* # one for each code
+
+  sub text-to-pdf
+    convert to ps
+      basename-furniture-list[-id|code*].ps
+
+  sub ps-to-pdf
+    convert to pdf
+      basename-furniture-list[-id|code*].pdf
+      basename-furniture-list.pdf
+  
++ file: drawings
+  
+  sub write-drawings-file
+
+  create ps file
+    basename-furniture-drawings.ps
+  convert to pdf
+    basename-furniture-drawings.pdf
+
+
