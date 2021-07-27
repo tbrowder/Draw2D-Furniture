@@ -2,6 +2,7 @@
 
 use Draw2D::Furniture;
 use Draw2D::Furniture::Classes;
+use Draw2D::Furniture::Fonts;
 
 my $ifil = '';
 my $P = $*PROGRAM.basename;
@@ -12,6 +13,7 @@ my $draw       = 0; # output drawings only
 my $all        = 0; # all lists and drawings
 my $list       = 0; # the master list only (default if no output is selected)
 
+my $font       = 'Courier-Bold';
 my $no-type    = 0; # if true, don't show the TYPE of furniture in caps
 my $list-order = 0; # if true, on master list show furniture by input list order, not by ID order
 my $debug      = 0;
@@ -26,11 +28,11 @@ if !@*ARGS {
            $P <formatted input file>
                   [list][ids][codes][all][draw]
                   [show-codes][scale=X][list-order][debug[=N]]
-                  [no-type]
+                  [no-type][font=X][Fonts]
 
     Note: If the first argument is other than a readable file in the
           proper format, the user will be prompted for required inputs
-          to produce such a file. INCOMPLETE AT THE MOMENT)
+          to produce such a file. (INCOMPLETE AT THE MOMENT)
 
     The default output is a master list of all furniture by
     room and in unique ID order within each room. Other output types
@@ -45,6 +47,11 @@ if !@*ARGS {
     order in the read-only master input file.
 
     The 'no-type' option turns off the all-caps TYPE of each object.
+
+    The 'font=X' option selects one of the standard fonts provided
+    with PostScript or one of the other free fonts available 
+    from various sources. Use the 'Fonts' option to
+    show the list of usable fonts.
 
     Produces (with appropriate option):
 
@@ -64,6 +71,7 @@ if !@*ARGS {
 }
 
 for @*ARGS {
+    note "DEBUG arg: '$_'";
     when /^ debug '=' (\d+) / {
          $debug = +$0;
     }
@@ -72,6 +80,19 @@ for @*ARGS {
     when /^ 'scale=' (\S+) / {
          $cli-scale  = +$0; # default is 0.25
     }
+    when /^ 'font=' (\S+) / {
+        $font = ~$0;
+        unless %known-fonts{$font}:exists {
+            show-fonts;
+            exit;
+        }
+        note "DEBUG: found font=$font"
+    }
+    when /^ F / {
+        show-fonts;
+        exit;
+    }
+
     when /^ n/  { $no-type = 1 }
     # output types
     when /^ d / { $draw  = 1 }
@@ -129,13 +150,11 @@ if !$ifil.IO.f {
     }
     if 1 {
         note "DEBUG address lines:";
-        .say for @addr;
+        .note for @addr;
         note "DEBUG note lines:";
-        .say for @notes;
+        .note for @notes;
         note "DEBUG early exit before saving and writing inp file."; exit;
-
     }
-
 
     create-master-file $p;
 

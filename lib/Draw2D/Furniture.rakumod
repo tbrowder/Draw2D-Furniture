@@ -57,6 +57,9 @@ sub write-drawings(@rooms,
     # setup any prolog such as my
     # procs: box, circle, puttext, clip, fonts
     $ps.add_procset: "MyFunctions", $procset;
+    # TODO add new fonts in their own "procset"
+    #      e.g., "C", $procset2
+    #            "D", $procset3
 
     # page constants
     # page margins
@@ -86,6 +89,12 @@ sub write-drawings(@rooms,
     # keep track of:
     #   last baseline
     reset-page-vars $x, $y, :$npages, :$xleft, :$ytop;
+
+    # TODO fix border around top page title block
+    #      note: use clipping to keep border stroke within the desired area
+    #      e.g., gs np x y mt ...define rectangle... clip st gr
+    # TODO add 3 point whitespace for drawing area inside its thin black border
+    # TODO add new monospaced fonts to ps procs
 
     # page header to be used for each page
     my $Scale = sprintf "%0.4f", $scale; # for display only
@@ -160,6 +169,7 @@ sub write-drawings(@rooms,
 sub text-to-ps($txtfil, # the ASCII input text file
                $psfile, # the PS output file name
                Project :project(:$p)!,
+               :$font = 'Courier-Bold', # default
                :$debug = 0,
               ) is export {
     # write the ps file,
@@ -189,6 +199,7 @@ sub text-to-ps($txtfil, # the ASCII input text file
     # setup any prolog such as my
     # procs: box, circle, puttext, clip, fonts
     $ps.add_procset: "MyFunctions", $procset;
+    # TODO add other fonts as a procset in Fonts.rakumod
 
     # page constants
     # page margins
@@ -201,9 +212,9 @@ sub text-to-ps($txtfil, # the ASCII input text file
     my $max-line-len = (8.5 - 1.5) * 72;
     # font variables
     #my $font   = 'Times-Roman';
-    my $font   = 'CourierBold';
-    my $fsize  = 9;
-    my $lspace = $fsize * 1.2; # baseline to baseline distance
+    #my $font    = 'Courier-Bold';
+    my $fsize   = 9;
+    my $lspace  = $fsize * 1.2; # baseline to baseline distance
 
     =begin comment
     # from Adobe's AFM doc
@@ -365,6 +376,8 @@ sub write-lists(@rooms,
                 :$no-type,
                 :$debug = 0,
                ) is export {
+
+    # TODO use Times-Roman for PS text files (lists)
 
     # here we determine ALL the list-type PS outputs we want
     write-list-rooms(@rooms, :@ofils, :$p, :$debug) if $list;
