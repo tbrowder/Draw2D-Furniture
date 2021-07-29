@@ -3,8 +3,9 @@ unit module Draw2D::Furniture;
 use PostScript::File:from<Perl5>;
 use Text::Utils :strip-comment, :normalize-string, :wrap-paragraph;
 
-use Draw2D::Furniture::Vars;
 use Draw2D::Furniture::Classes;
+use Draw2D::Furniture::ProcsetMisc;
+use Draw2D::Furniture::ProcsetFonts;
 
 constant $SPACE  = Q| |; # space for text
 constant $BSLASH = '\\'; # backslash for text
@@ -56,10 +57,9 @@ sub write-drawings(@rooms,
 
     # setup any prolog such as my
     # procs: box, circle, puttext, clip, fonts
-    $ps.add_procset: "MyFunctions", $procset;
+    $ps.add_procset: "MyFunctions", $procset-funcs;
     # TODO add new fonts in their own "procset"
-    #      e.g., "C", $procset2
-    #            "D", $procset3
+    $ps.add_procset: "MyFonts", $procset-fonts;
 
     # page constants
     # page margins

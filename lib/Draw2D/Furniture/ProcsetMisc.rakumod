@@ -1,7 +1,7 @@
-unit module Draw2D::Furniture::Vars;
+unit module Draw2D::Furniture::ProcsetMisc;
 
 #  procset 'MyFunctions':
-constant $procset is export = q:to/HERE/;
+constant $procset-funcs is export = q:to/HERE/;
     %% my procs
     % local definitions:
     /Times-Roman 8 selectfont
