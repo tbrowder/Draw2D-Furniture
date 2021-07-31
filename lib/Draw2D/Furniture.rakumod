@@ -4,8 +4,8 @@ use PostScript::File:from<Perl5>;
 use Text::Utils :strip-comment, :normalize-string, :wrap-paragraph;
 
 use Draw2D::Furniture::Classes;
-use Draw2D::Furniture::ProcsetMisc;
-use Draw2D::Furniture::ProcsetFonts;
+use Draw2D::Furniture::Procset-Misc;
+use Draw2D::Furniture::Procset-Fonts;
 
 constant $SPACE  = Q| |; # space for text
 constant $BSLASH = '\\'; # backslash for text
@@ -30,137 +30,138 @@ sub write-drawings(@rooms,
     for $p.scales.kv -> $scale, $site {
         note "DEBUG: ready to draw, scale: $scale; site $site";
 
-    my $psf = $p.filename: "draw", :$scale, :suffix("ps");
+        # note the default scale is used if not specifically entered (0.25)
+        my $psf = $p.filename: "draw", :$scale, :suffix("ps");
 
-    my $pdf = $psf;
-    $pdf ~~ s/'.ps'$/.pdf/;
+        my $pdf = $psf;
+        $pdf ~~ s/'.ps'$/.pdf/;
 
-    # start a PostScript doc, add options here
-    #   enable clipping
-    #   portrait mode
-    my $ps = PostScript::File.new:
-               :paper<Letter>,
-               :clipping(1),
-               :clip_command<stroke>,
-               :landscape(0),
-               :file($psf), # the PS output file
-               :file_ext("");
-    die "FATAL: no PS object" if not $ps;
+        # start a PostScript doc, add options here
+        #   enable clipping
+        #   portrait mode
+        my $ps = PostScript::File.new:
+            :paper<Letter>,
+            :clipping(1),
+            :clip_command<stroke>,
+            :landscape(0),
+            :file($psf), # the PS output file
+            :file_ext("");
+        die "FATAL: no PS object" if not $ps;
 
-    # for debugging count furniture items
-    my $nfurn = 0;
+        # for debugging count furniture items
+        my $nfurn = 0;
 
-    if $debug == 1 {
-        my ($llx, $lly, $urx, $ury) = $ps.get_bounding_box;
-        note "DEBUG drawing page bbox: $llx, $lly    $urx, $ury";
-    }
-
-    # setup any prolog such as my
-    # procs: box, circle, puttext, clip, fonts
-    $ps.add_procset: "MyFunctions", $procset-funcs;
-    # TODO add new fonts in their own "procset"
-    $ps.add_procset: "MyFonts", $procset-fonts;
-
-    # page constants
-    # page margins
-    my $top-marg   =  0.4; # inches
-    # use top marg for title, page, scale info
-
-    my $marg       =  0.4; # inches
-    my $space      =  0.2 * 72; # vert and horiz space between figures
-    my $xleft      =  $marg * 72;
-    my $xright     =  (8.5 - $marg) * 72;
-    my $xwidth     =  $xright - $xleft;
-    my $xcenter    =  $xleft + 0.5 * $xwidth;
-    my $ytop       =  2 + (11 - $marg - $top-marg * 2) * 72;
-    my $ybottom    =  $marg * 72;
-
-    # page variables
-    my (Real $x, Real $y, UInt $npages) = 0, 0, 0;
-
-    # collect furniture by page rows
-    my @rows;
-    make-rows @rows, @rooms, $xright - $xleft, $space, :$scale;
-    my $nrows = @rows.elems;
-    die "FATAL: no rows collected!" if !$nrows;
-    note "DEBUG: num furniture rows: {$nrows}" if 0 or $debug;
-
-    # step through all the furniture and number each as in the index
-    # keep track of:
-    #   last baseline
-    reset-page-vars $x, $y, :$npages, :$xleft, :$ytop;
-
-    # TODO fix border around top page title block
-    #      note: use clipping to keep border stroke within the desired area
-    #      e.g., gs np x y mt ...define rectangle... clip st gr
-    # TODO add 3 point whitespace for drawing area inside its thin black border
-    # TODO add new monospaced fonts to ps procs
-
-    # page header to be used for each page
-    my $Scale = sprintf "%0.4f", $scale; # for display only
-    $Scale ~~ s:g/0$//;
-    my $yhdrbaseline = $ytop + 35;
-    my $yhdrbot      = $yhdrbaseline - 15;
-    my $pheader = qq:to/HERE/;
-    gsave
-    /Times-Bold 14 selectfont
-    {$xleft+10} {$ytop+35} mt (Site: $site) 9 puttext % left-justified on the baseline
-    /Times-Roman 12 selectfont
-    $xcenter $yhdrbaseline mt (Scale: $Scale in/ft) 9 puttext % left-justified on the baseline
-    % enclose the title box:
-    % draw a bottom title border
-    $xleft $yhdrbot mt $xright $yhdrbot lineto st
-    grestore
-    HERE
-
-    $ps.add_to_page: $npages, $pheader;
-    my $i = 0;
-    for @rows -> Row $r {
-        reset-row-var $x, :$xleft;
-
-        ++$i;
         if $debug == 1 {
-            note "DEBUG: row $i max-height: {$r.max-height}";
-            note "              furn items: {$r.furniture.elems}";
-            note " start x/y: $x $y";
-        }
-        if !check-bottom($r, $y, $ybottom) {
-            # need a new page
-            reset-page-vars $x, $y, :$npages, :$xleft, :$ytop;
-            $ps.newpage;
-            # then the page header
-            $ps.add_to_page: $npages, $pheader;
-        }
-        for $r.furniture -> $f {
-            ++$nfurn;
-            # draw it at the current ulx, uly
-            $f.ps-draw: $ps, :ulx($x), :uly($y);
-            # increment x
-            $x += $f.w + $space
+            my ($llx, $lly, $urx, $ury) = $ps.get_bounding_box;
+            note "DEBUG drawing page bbox: $llx, $lly    $urx, $ury";
         }
 
-        $y -= $r.max-height + $space;
-    }
+        # setup any prolog such as my
+        # procs: box, circle, puttext, clip, fonts
+        $ps.add_procset: "MyMisc", $procset-misc;
+        # TODO add new fonts in their own "procset"
+        $ps.add_procset: "MyFonts", $procset-fonts;
 
-    note "DEBUG: num pages: $npages" if $debug == 1;
-    # go back and add page numbers:
-    #   Page x of n
-    for 1..$npages -> $page {
-        my $s = "Page $page of $npages";
-        $ps.add_to_page: $page, qq:to/HERE/;
+        # page constants
+        # page margins
+        my $top-marg   =  0.4; # inches
+        # use top marg for title, page, scale info
+
+        my $marg       =  0.4; # inches
+        my $space      =  0.2 * 72; # vert and horiz space between figures
+        my $xleft      =  $marg * 72;
+        my $xright     =  (8.5 - $marg) * 72;
+        my $xwidth     =  $xright - $xleft;
+        my $xcenter    =  $xleft + 0.5 * $xwidth;
+        my $ytop       =  2 + (11 - $marg - $top-marg * 2) * 72;
+        my $ybottom    =  $marg * 72;
+
+        # page variables
+        my (Real $x, Real $y, UInt $npages) = 0, 0, 0;
+
+        # collect furniture by page rows
+        my @rows;
+        make-rows @rows, @rooms, $xright - $xleft, $space, :$scale;
+        my $nrows = @rows.elems;
+        die "FATAL: no rows collected!" if !$nrows;
+        note "DEBUG: num furniture rows: {$nrows}" if 0 or $debug;
+
+        # step through all the furniture and number each as in the index
+        # keep track of:
+        #   last baseline
+        reset-page-vars $x, $y, :$npages, :$xleft, :$ytop;
+
+        # TODO fix border around top page title block
+        #      note: use clipping to keep border stroke within the desired area
+        #      e.g., gs np x y mt ...define rectangle... clip st gr
+        # TODO add 3 point whitespace for drawing area inside its thin black border
+        # TODO add new monospaced fonts to ps procs
+
+        # page header to be used for each page
+        my $Scale = sprintf "%0.4f", $scale; # for display only
+        $Scale ~~ s:g/0$//;
+        my $yhdrbaseline = $ytop + 35;
+        my $yhdrbot      = $yhdrbaseline - 15;
+        my $pheader = qq:to/HERE/;
         gsave
-        /Times-Roman 12 selectfont $xright 10 sub $ytop 35 add mt ($s) 11 puttext % right-justified
+        /Times-Bold 14 selectfont
+        {$xleft+10} {$ytop+35} mt (Site: $site) 9 puttext % left-justified on the baseline
+        /Times-Roman 12 selectfont
+        $xcenter $yhdrbaseline mt (Scale: $Scale in/ft) 9 puttext % left-justified on the baseline
+        % enclose the title box:
+        % draw a bottom title border
+        $xleft $yhdrbot mt $xright $yhdrbot lineto st
         grestore
         HERE
-    }
 
-    # close and output the file
-    $ps.output;
+        $ps.add_to_page: $npages, $pheader;
+        my $i = 0;
+        for @rows -> Row $r {
+            reset-row-var $x, :$xleft;
 
-    # produce the pdf
-    ps-to-pdf @ofils, :$psf, :$pdf, :$debug;
+            ++$i;
+            if $debug == 1 {
+                note "DEBUG: row $i max-height: {$r.max-height}";
+                note "              furn items: {$r.furniture.elems}";
+                note " start x/y: $x $y";
+            }
+            if !check-bottom($r, $y, $ybottom) {
+                # need a new page
+                reset-page-vars $x, $y, :$npages, :$xleft, :$ytop;
+                $ps.newpage;
+                # then the page header
+                $ps.add_to_page: $npages, $pheader;
+            }
+            for $r.furniture -> $f {
+                ++$nfurn;
+                # draw it at the current ulx, uly
+                $f.ps-draw: $ps, :ulx($x), :uly($y);
+                # increment x
+                $x += $f.w + $space
+            }
 
-    note "DEBUG: saw $nfurn furniture objects" if 0 or $debug;
+            $y -= $r.max-height + $space;
+        }
+
+        note "DEBUG: num pages: $npages" if $debug == 1;
+        # go back and add page numbers:
+        #   Page x of n
+        for 1..$npages -> $page {
+            my $s = "Page $page of $npages";
+            $ps.add_to_page: $page, qq:to/HERE/;
+            gsave
+            /Times-Roman 12 selectfont $xright 10 sub $ytop 35 add mt ($s) 11 puttext % right-justified
+            grestore
+            HERE
+        }
+
+        # close and output the file
+        $ps.output;
+
+        # produce the pdf
+        ps-to-pdf @ofils, :$psf, :$pdf, :$debug;
+
+        note "DEBUG: saw $nfurn furniture objects" if 0 or $debug;
     } # end of scales loop
 
 } # end sub write-drawings
@@ -198,7 +199,7 @@ sub text-to-ps($txtfil, # the ASCII input text file
 
     # setup any prolog such as my
     # procs: box, circle, puttext, clip, fonts
-    $ps.add_procset: "MyFunctions", $procset;
+    $ps.add_procset: "MyMisc", $procset-misc;
     # TODO add other fonts as a procset in Fonts.rakumod
 
     # page constants
