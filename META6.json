@@ -19,7 +19,6 @@
   "provides": {
     "Draw2D::Furniture": "lib/Draw2D/Furniture.rakumod",
     "Draw2D::Furniture::Classes": "lib/Draw2D/Furniture/Classes.rakumod",
-    "Draw2D::Furniture::Fonts": "lib/Draw2D/Furniture/Fonts.rakumod",
     "Draw2D::Furniture::Procset-Fonts": "lib/Draw2D/Furniture/Procset-Fonts.rakumod",
     "Draw2D::Furniture::Procset-Misc": "lib/Draw2D/Furniture/Procset-Misc.rakumod"
   },
