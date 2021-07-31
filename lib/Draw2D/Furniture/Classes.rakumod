@@ -210,7 +210,7 @@ class Project does Collections is export {
             when /list/ { $f = $basename ~ "-" ~ self.list-name }
             when /draw/ { 
                 $f = $basename ~ "-" ~ self.draw-name;
-                $scale = sprintf "%0.4f", $scale;
+                $scale = $scale ?? sprintf("%0.4f", $scale) !! 0.25;
                 $f ~= "-scale-$scale";
             }
             when /inp/  { $f = $basename ~ "-master" }
