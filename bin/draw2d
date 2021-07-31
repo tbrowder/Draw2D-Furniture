@@ -2,7 +2,7 @@
 
 use Draw2D::Furniture;
 use Draw2D::Furniture::Classes;
-use Draw2D::Furniture::Fonts;
+use Draw2D::Furniture::Procset-Fonts;
 
 my $ifil = '';
 my $P = $*PROGRAM.basename;
