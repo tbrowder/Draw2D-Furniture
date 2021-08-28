@@ -1,41 +1,24 @@
 RAKU     := raku
 LIBPATH  := lib
 
-# set below to 1 for no effect, 1 for debugging messages
-DEBUG := MyMODULE_DEBUG=0
+furn := furniture.inp
 
-# set below to 0 for no effect, 1 to die on first failure
-EARLYFAIL := PERL6_TEST_DIE_ON_FAIL=0
+exe := ./bin/draw2d 
+
 
 .PHONY: test bad good clean
 
-default: test
+default: simple
 
-TESTS     := t/*.t
-BADTESTS  := bad/*.t
-GOODTESTS := good/*.t
+simple:
+	$(RAKU) -I$(LIBPATH) $(exe) $(furn)
 
-# the original test suite (i.e., 'make test')
-test:
-	for f in $(TESTS) ; do \
-	    $(DEBUG) $(EARLYFAIL) PERL6LIB=$(LIBPATH) prove -v --exec=$(RAKU) $$f ; \
-	done
+draw:
+	$(RAKU) -I$(LIBPATH) $(exe) $(furn) draw
 
-bad:
-	for f in $(BADTESTS) ; do \
-	    $(DEBUG) $(EARLYFAIL) PERL6LIB=$(LIBPATH) prove -v --exec=$(RAKU) $$f ; \
-	done
+both:
+	$(RAKU) -I$(LIBPATH) $(exe) $(furn) list draw
 
-good:
-	for f in $(GOODTESTS) ; do \
-	    $(DEBUG) $(EARLYFAIL) PERL6LIB=$(LIBPATH) prove -v --exec=$(RAKU) $$f ; \
-	done
+all:
+	$(RAKU) -I$(LIBPATH) $(exe) $(furn) all
 
-doc:
-	PERL6LIB=$(LIBPATH) $(RAKU) -Ilib bin/draw2d-output t/data/furniture-input.txt
-
-doc2:
-	PERL6LIB=$(LIBPATH) $(RAKU) -Ilib bin/draw2d-output t/data/furniture-input.txt debug
-
-clean:
-	@rm furniture-drawings.* furniture-list.*
