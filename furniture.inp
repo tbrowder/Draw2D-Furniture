@@ -74,10 +74,10 @@ room: Living room (not in new house) # room 3
 room: Family room # room 4
 ===========
 
-4.1 [ ] desk				23 x 41
+4.1 [ ] desk				        23 x 41
 4.2 [ ] chair,  desk chair			20 x 21
-4.3  [ ] chair, small wing, Grace Lee's chair		26 x 31
-4.4  [ ] chair, small wood, Windsor chair			23 x 25
+4.3  [ ] chair, small wing, Grace Lee's chair	26 x 31
+4.4  [ ] chair, small wood, Windsor chair	23 x 25
 4.5  [ ] chair, large wing			30 x 32
 4.6  [ ] table, drop-leaf oak table (open)	42 x 51
 4.7  [ ] table, coffee table			29 x 37
@@ -102,6 +102,7 @@ room: Family room # room 4
 4.26 [ ] stool, bar (1 of 4) 18.5x12x26.5
 4.27 [ ] stool, bar (2 of 4) 18.5x12x26.5
 4.28 [ ] stool, bar (3 of 4) 18.5x12x26.5
+# fourth stool is in the art room
 
 room: Dining room # room 5
 ===========
@@ -140,27 +141,46 @@ room: Bedroom 2 (Tommy's) # room 6
 room: Bedroom 3 (Grace's) # room 7
 ======================
 
-7.1  [s] bed, double bed			56 x 80
+7.1  [s] bed, double bed			56 x 80 x 56.5
 7.2  [s] table, bedside table		16 x 19 x 27
-7.3  [ ] chest of drawers		19 x 43
-7.4  [s] chair, old chair			16 x 18
-7.5  [ ] chair, old chair			17 x 20
-7.6  [ ] table, bedside table (2 of 2)      25 d      # (diameter)
-7.7  [ ] chest, (in closet) small bedside, cherry (2 of 2, with 6.9)
+7.3  [ ] chest of drawers		19 x 43 x 43.5
+7.4  [s] chair, old chair			16 x 18 x 35.5
+7.5  [ ] chair, old chair			17 x 20 x 33.5
+7.6  [ ] table, bedside table (2 of 2, with 1.6)      25 d x 28     # (diameter)
+7.7  [ ] chest, (in closet) small bedside, cherry (2 of 2, with 6.9) 19x15.5x27
+
+7.8   [ ] basket, waste, wicker                11.5 d x 13
+7.9   [ ] basket, storage, wicker              21.5 d x 16
+7.10  [ ] hamper, wicker, with lid (in closet) 21x13x18
+7.11  [ ] rack, luggage, folding               22.5x13.5x20
+7.12  [ ] desk, atop a chest                   30.5x16x40
+7.13  [ ] fan, floor (in closet)               17 d x 35
+
 
 room: Landing # room 8
 =======
 
-8.1 [ ] chest of drawers		17 x 40
-8.2 [ ] chair (Tom's USAFA)		22 x 23
+8.1 [ ] chest of drawers		17 x 40 x 37
+8.2 [ ] chair (Tom's USAFA)		22 x 23 x 34.5
+8.3 [ ] clock, wall                     12.5 x 19
 
 room: Bonus room # room 9
 ==========
 
 #??? 9.1 desk, old, larger		21 x 41
+9.1 [ ] couch, pull-out, small          58.5x36
 9.2 [ ] table, small 		18 x 31
 9.3 [s] chair, small antique child's rocking 	18 x 28
 9.4 [ ] bookcase, tall cherry (1 of 2, with 13.4) 43 x 10.5 x 50.5
+9.5  [ ] desk, antique, pine, child's 25.5x21
+9.6  [ ] chair, desk (with 9.5) 
+9.7  [ ] table, antique spool 32x18.5
+9.8  [ ] stool, wooden 12x12
+9.9  [ ] chest, rattan, with glass top 48x48
+9.10 [ ] chair, rocking, cane-bottom 18x28
+9.11 [ ] stool, foot, needlepoint 14.5x9
+9.12 [ ] chair, cane-bottom, antique    17x20
+9.13 [ ] basket, waste, decorative 
 
 room: Tom's study # room 10
 ==========
