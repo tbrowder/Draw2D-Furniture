@@ -53,13 +53,15 @@ sub write-drawings(@rooms,
 
         if $debug == 1 {
             my ($llx, $lly, $urx, $ury) = $ps.get_bounding_box;
-            note "DEBUG drawing page bbox: $llx, $lly    $urx, $ury";
+            note "DEBUG: drawing page bbox: $llx, $lly    $urx, $ury";
         }
 
         # setup any prolog such as my
         # procs: box, circle, puttext, clip, fonts
+        note "DEBUG: adding procset 'MyMisc'" if $debug;
         $ps.add_procset: "MyMisc", $procset-misc;
         # TODO add new fonts in their own "procset"
+        note "DEBUG: adding procset 'MyFonts'" if $debug;
         $ps.add_procset: "MyFonts", $procset-fonts;
 
         # page constants
@@ -81,6 +83,7 @@ sub write-drawings(@rooms,
 
         # collect furniture by page rows
         my @rows;
+        note "DEBUG: entering sub make-rows..." if $debug;
         make-rows @rows, @rooms, $xright - $xleft, $space, :$scale;
         my $nrows = @rows.elems;
         die "FATAL: no rows collected!" if !$nrows;
