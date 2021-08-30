@@ -175,7 +175,7 @@ room: Bonus room # room 9
 9.1 [ ] couch, pull-out, small          58.5x36
 9.2 [ ] table, small 		18 x 31
 9.3 [s] chair, small antique child's rocking 	18 x 28
-9.4 [ ] bookcase, tall cherry (1 of 2, with 13.4) 43 x 10.5 x 50.5
+9.4 [ ] bookcase, tall cherry (1 of 2, with 12.7) 43 x 10.5 x 50.5
 9.5  [ ] desk, antique, pine, child's 25.5x21
 9.6  [ ] chair, desk (with 9.5) 
 9.7  [ ] table, antique spool 32x18.5
@@ -206,6 +206,12 @@ room: Art room # room 12
 ==========
 
 12.1 [ ] stool, bar (4 of 4) 18.5x12x26.5
+12.2 [ ] chest, tall, with drawers
+12.3 [ ] table, fold-up
+12.4 [ ] chair, wooden, fold-up
+12.5 [ ] table, sewing machine
+12.6 [ ] sewing machine
+12.7 [ ] bookcase, tall cherry (1 of 2, with 9.4) 43 x 10.5 x 50.5
 
 room: Garage # room 13
 ==========
@@ -213,17 +219,28 @@ room: Garage # room 13
 13.1 [ ] bookcase, tall pine (2 of 2 with 10.2) 48 x 12 x 60
 13.2 [ ] chair, rattan (1 of 2 with 13.3) 31x30x30
 13.3 [ ] chair, rattan (2 of 2 with 13.2) 31x30x30
-13.4 [ ] bookcase, tall cherry (1 of 2, with 9.4) 43 x 10.5 x 50.5
 
 
 room: Front porch # room 14
 ==========
 
+14.1. [ ] bench, slatted
+14.2  [ ] chair, rocking
+14.3  [ ] chair, rocking
+14.4  [ ] table, small
+14.5  [ ] planter, wooden, square
+
 room: Front yard # room 15
 ==========
 
+15.1 [ ] swing
+15.2 [ ] chair
+15.3 [ ] chair
+
 room: Back yard # room 16
 ==========
+
+16.1 [ ] grill
 
 room: Upstairs bath # room 17
 ==========
@@ -231,6 +248,9 @@ room: Upstairs bath # room 17
 17.1 [ ] stand, wicker 17 x 12 x 30
 17.2 [ ] caddy, small wicker 12 x 8 x 24
 
-
 room: Upstairs attic # room 18
 ==========
+
+room: Garage attic # room 19
+==========
+
