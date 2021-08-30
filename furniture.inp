@@ -236,6 +236,8 @@ room: Front yard # room 15
 15.1 [ ] swing
 15.2 [ ] chair
 15.3 [ ] chair
+table, small
+
 
 room: Back yard # room 16
 ==========
@@ -246,10 +248,17 @@ chair, wrought iron
 chair, wrought iron
 chair, wrought iron
 chair, wrought iron
-bench, wrought iron
+
+chair, bouncy, wrought iron
 table, circular, for umbrella, wrought iron
 umbrella
 table, small, wrought iron
+
+bench, wrought iron
+
+recliner, pool
+recliner, pool
+table, small, pool-side
 
 
 room: Upstairs bath # room 17
@@ -257,6 +266,10 @@ room: Upstairs bath # room 17
 
 17.1 [ ] stand, wicker 17 x 12 x 30
 17.2 [ ] caddy, small wicker 12 x 8 x 24
+mirror
+mirror
+mirror top decoration
+
 
 room: Upstairs attic # room 18
 ==========
