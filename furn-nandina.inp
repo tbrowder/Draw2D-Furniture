@@ -1,0 +1,279 @@
+# this is a formatted input file used to produce
+# scaled drawings for cutout
+
+title: Furniture for 209 Nandina Road
+date: 2022-01-22
+author: Tom Browder
+address: 114 Shoreline Dr
+list-file:     list
+drawings-file: drawings
+no-type: 0
+
+# for normal house plans at 1/4 inch per foot:
+scale: 0.25    114 Shoreline # inches per real foot, optional, default: 0.25" per foot
+
+# for Fairpointe condo (4.1875" x 7.25" = 30.359375" sq-in interior
+# representing 900 sq-ft): 0.18366447367111824
+#   (4.1875 * 7.25 / 900) ** 0.5 = scale = 0.18366447367111824
+scale: 0.18366447367111824    Fairpointe, Apt C
+
+# data are in inches: side x side OR diameter
+#   X e Y [ x H ] # ellipse a/b [height, optional]
+#   X d   [ x H ] # diameter    [height, optional]
+#   X r   [ x H ] # radius      [height, optional]
+#   X x Y [ x H ] # side x side [height, optional]
+
+# known codes (not case sensitive)
+   #has %.codes; # all known codes to sort furniture lists by
+                 #   code => list name to add for output
+                 #   not case sensitive
+code: a Apartment    #   e.g.: a  => Apartment
+code: m  Gulf Breeze #
+code: gw Goodwill    #
+code: s Sell         #
+code: t Trash/Give   #
+
+room: Master bedroom # room 1
+==============
+
+1.1 [ ] chest, Tom's chest of drawers	        20 x 42
+1.2 [ ] chest, Missy's chest of drawers	19 x 64
+1.3 [a] desk (by bed)			20 x 36
+1.4 [ ] chest (end of bed)		16 x 34
+1.5 [ ] bed, queen bed			65 x 86
+1.6 [ ] table, bedside table (1 of 2, with 12.6)      26 d x 28     # (diameter)
+1.7 [ ] chair, lounge chair			21 x 49
+1.8 [ ] mirror, over Missy' chest of drawers  32.5x44.5
+1.9 [ ] stool, step, for bed                  18x14x13
+1.10 [ ] chair, vanity (in dressing room)     21x18x27 
+1.11 [ ] chair, desk (with 1.3)               18x21x31.5
+
+room: Foyer # room 2
+=====
+
+2.1 [ ] chest of drawers		19 x 40
+2.2 [ ] chair			17 x 20
+2.3 [ ] chair			17 x 20
+2.4 [ ] rug				69 x 160
+2.5 [m] mirror, over chest      20.5x40
+2.6 [m] clock, grandfather, Tom's 16x11x69.5
+2.7 [ ] stand, umbrella, brass  9d x23
+
+room: Living room (not in new house) # room 3
+==============================
+
+3.1 [ ] chair			32 x 30
+3.2 [ ] chair			32 x 30
+3.3 [ ] chair			27 x 30
+3.4 [ ] secretary (desk open)	32   x 36 x 84 # 84 high, 32 deep open
+3.5 [ ] secretary (desk closed)     19.5 x 36 x 84 # high, 19.5 deep closed
+3.6 [ ] table, end
+3.7 [ ] table, end
+3.8 [ ] table, coffee
+3.9 [ ] stool, foot
+3.10 [ ] chest, small, decorative
+3.11 [ ] box, small, decorative
+
+
+room: Family room # room 4
+===========
+
+4.1 [ ] desk				        23 x 41
+4.2 [ ] chair,  desk chair			20 x 21
+4.3  [ ] chair, small wing, Grace Lee's chair	26 x 31
+4.4  [ ] chair, small wood, Windsor chair	23 x 25
+4.5  [ ] chair, large wing			30 x 32
+4.6  [ ] table, drop-leaf oak table (open)	42 x 51
+4.7  [ ] table, coffee table			29 x 37
+4.8  [ ] rocker, wooden, platform		22 x 30
+4.9  [ ] table, small drop-leaf table (closed)	18 x 35
+4.10  [ ] table, small drop-leaf table (open)    40 x 35
+4.11 [ ] table, pine table			31 x 60
+
+4.12 [ ] rug natural fiber, narrow black cloth tape border                120 x 168.625 # 10 ft x 14 5/8
+4.13 [ ] rug natural fiber, narrow black cloth tape border                 96 x  60     # 8 ft x 5 ft
+
+4.14 [ ] couch, 3-cshion upholstered, light tan 84x39.5x36
+4.15 [ ] chair, leather recliner, Tom's (upright) 33.5x41x42
+4.16 [ ] chest, small, Grace Lee's toy chest, made by her father 25x14x12
+4.21 [ ] chair, kitchen, woven-bottom (1 of 4) 20x19x41
+4.22 [ ] chair, kitchen, woven-bottom (2 of 4) 20x19x41
+4.23 [ ] chair, kitchen, woven-bottom (3 of 4) 20x19x41
+4.24 [ ] chair, kitchen, woven-bottom (4 of 4) 20x19x41
+
+4.25 [ ]  table, (4.6) drop-leaf oak table (closed) 42x26
+
+4.26 [ ] stool, bar (1 of 4) 18.5x12x26.5
+4.27 [ ] stool, bar (2 of 4) 18.5x12x26.5
+4.28 [ ] stool, bar (3 of 4) 18.5x12x26.5
+# fourth stool is in the art room
+
+room: Dining room # room 5
+===========
+
+5.1  [ ] table, dining table			74 x 48
+5.2  [ ] chair			18 x 20
+5.3  [ ] chair			18 x 20
+5.4  [ ] chair			18 x 20
+5.5  [ ] chair			18 x 20
+5.6  [ ] chair			18 x 20
+5.7  [ ] chair			18 x 20
+5.8  [ ] chair			18 x 20
+5.9  [ ] chair			18 x 20
+
+
+5.10 [ ]  banquet end	24 x 48
+5.11 [ ]  banquet end		24 x 48
+
+5.12 [ ]  buffet				24 x 60
+
+room: Bedroom 2 (Tommy's) # room 6
+======================
+
+6.1  [a] bed, twin bed w/ mattress			43 x 81 x 40
+6.2  [a] bed, twin bed w/ mattress			43 x 81 x 40
+6.3  [ ] table, bedside table			17 x 21 x 28.5
+6.4  [a] chest of drawers		21 x 40 x 47
+6.5  [ ] table, dressing table, w/mirror	18 x 46 x 64
+6.6  [s] chair, pink upholstered	27x30x33.5
+6.7  [ ] chair, cane chair			20 x 20x32.5
+6.8  [ ] chair, cane chair			20 x 20x32.5
+6.9  [ ] chest, (in closet) small bedside, cherry (1 of 2, with 7.7) 19x15.5x27
+6.10 [ ] mirror, wall 19x31
+6.11 [ ] stool, foot, plastic 12x15x10
+
+room: Bedroom 3 (Grace's) # room 7
+======================
+
+7.1  [s] bed, double bed			56 x 80 x 56.5
+7.2  [s] table, bedside table		16 x 19 x 27
+7.3  [ ] chest of drawers		19 x 43 x 43.5
+7.4  [s] chair, old chair			16 x 18 x 35.5
+7.5  [ ] chair, old chair			17 x 20 x 33.5
+7.6  [ ] table, bedside table (2 of 2, with 1.6)      25 d x 28     # (diameter)
+7.7  [ ] chest, (in closet) small bedside, cherry (2 of 2, with 6.9) 19x15.5x27
+
+7.8   [ ] basket, waste, wicker                11.5 d x 13
+7.9   [ ] basket, storage, wicker              21.5 d x 16
+7.10  [ ] hamper, wicker, with lid (in closet) 21x13x18
+7.11  [ ] rack, luggage, folding               22.5x13.5x20
+7.12  [ ] desk, atop a chest                   30.5x16x40
+7.13  [ ] fan, floor (in closet)               17 d x 35
+
+
+room: Landing # room 8
+=======
+
+8.1 [ ] chest of drawers		17 x 40 x 37
+8.2 [ ] chair (Tom's USAFA)		22 x 23 x 34.5
+8.3 [ ] clock, wall                     12.5 x 19
+
+room: Bonus room # room 9
+==========
+
+#??? 9.1 desk, old, larger		21 x 41
+9.1 [ ] couch, pull-out, small          58.5x36
+9.2 [ ] table, small 		18 x 31
+9.3 [s] chair, small antique child's rocking 	18 x 28
+9.4 [ ] bookcase, tall cherry (1 of 2, with 12.7) 43 x 10.5 x 50.5
+9.5  [ ] desk, antique, pine, child's 25.5x21
+9.6  [ ] chair, desk (with 9.5) 
+9.7  [ ] table, antique spool 32x18.5
+9.8  [ ] stool, wooden 12x12
+9.9  [ ] chest, rattan, with glass top 48x48
+9.10 [ ] chair, rocking, cane-bottom 18x28
+9.11 [ ] stool, foot, needlepoint 14.5x9
+9.12 [ ] chair, cane-bottom, antique    17x20
+9.13 [ ] basket, waste, decorative 
+
+room: Tom's study # room 10
+==========
+10.1 [ ] table, pine, glass-topped, 3 drawers 72 x 32 x 30
+10.2 [ ] bookcase, tall pine (1 of 2 with 13.1) 48 x 12 x 60
+10.3 [ ] table, small rattan, open 20.5 x 14 x 28
+10.4 [ ] cabinet, file, 2-drawer, horizontal, legal 30.5x18x27
+10.5 [ ] cabinet, file, 4-drawer, vertical, letter 22x15x52
+10.6 [ ] cabinet, file, 1-drawer, letter, w/rollers 15.5x14.5x21.5
+10.7 [ ] cabinet, office supplies  37.5x21x54
+10.8 [ ] bookcase, small 2-shelf (1 of 2 with 13.5) 28 x 12 x 30
+10.9 [ ] bookcase, small 2-shelf (2 of 2 with 13.4) 28 x 12 x 30
+
+
+room: Laundry  # room 11
+==========
+
+room: Art room # room 12
+==========
+
+12.1 [ ] stool, bar (4 of 4) 18.5x12x26.5
+12.2 [ ] chest, tall, with drawers
+12.3 [ ] table, fold-up
+12.4 [ ] chair, wooden, fold-up
+12.5 [ ] table, sewing machine
+12.6 [ ] sewing machine
+12.7 [ ] bookcase, tall cherry (1 of 2, with 9.4) 43 x 10.5 x 50.5
+
+room: Garage # room 13
+==========
+
+13.1 [ ] bookcase, tall pine (2 of 2 with 10.2) 48 x 12 x 60
+13.2 [ ] chair, rattan (1 of 2 with 13.3) 31x30x30
+13.3 [ ] chair, rattan (2 of 2 with 13.2) 31x30x30
+
+
+room: Front porch # room 14
+==========
+
+14.1. [ ] bench, slatted
+14.2  [ ] chair, rocking
+14.3  [ ] chair, rocking
+14.4  [ ] table, small
+14.5  [ ] planter, wooden, square
+
+room: Front yard # room 15
+==========
+
+15.1 [ ] swing
+15.2 [ ] chair
+15.3 [ ] chair
+table, small
+
+
+room: Back yard # room 16
+==========
+
+16.1 [ ] grill
+chair, wrought iron
+chair, wrought iron
+chair, wrought iron
+chair, wrought iron
+chair, wrought iron
+
+chair, bouncy, wrought iron
+table, circular, for umbrella, wrought iron
+umbrella
+table, small, wrought iron
+
+bench, wrought iron
+
+recliner, pool
+recliner, pool
+table, small, pool-side
+
+
+room: Upstairs bath # room 17
+==========
+
+17.1 [ ] stand, wicker 17 x 12 x 30
+17.2 [ ] caddy, small wicker 12 x 8 x 24
+mirror
+mirror
+mirror top decoration
+
+
+room: Upstairs attic # room 18
+==========
+
+room: Garage attic # room 19
+==========
+

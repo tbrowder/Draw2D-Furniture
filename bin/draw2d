@@ -55,11 +55,11 @@ if !@*ARGS {
 
     Produces (with appropriate option):
 
-      1. A pdf document listing rooms and furniture
+      1. A PDF document listing rooms and furniture
 
       2. Lists by ID and individual codes
 
-      3. An PDF file with furniture numbers and other data
+      3. A PDF file with furniture numbers and other data
          (which may overflow) for cutting out and placing on
          building plans. By default, items are scaled 1/4\"
          to the foot to match typical US house blueprints.

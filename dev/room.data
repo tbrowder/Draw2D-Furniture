@@ -1,0 +1,19 @@
+# 209 Nandina Road
+# scale 0.1837 in/ft
+
+# The scale is selected to match the furniture
+# list from Draw2D::Furniture
+
+# All dimensions are expresses as D x W in inches
+#   Depth: front of house to back 
+#   Width: side-to-side view of house from street
+
+# Name, Depth (in), Width (in)
+# (rooms need remeasuring)
+Dining room, 156, 144
+Living room, 156, 144    # bounded by foyer
+Kitchen/Great room, 244, 162
+Master bedroom, 135, 207
+Bedroom 1, 153, 146      # needs remeasuring
+Bedroom 2 (Study), 110, 108
+

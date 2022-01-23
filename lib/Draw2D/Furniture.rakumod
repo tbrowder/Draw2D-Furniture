@@ -16,7 +16,7 @@ sub create-master-file(Project $p) is export {
 
 #==============================================================
 #| Data from the input data file are used to create scaled
-#| drawings of the furniture items.
+#| drawings of the furniture (and possibly room-drawing) items.
 sub write-drawings(@rooms,
                    @ofils,
                    Project :project(:$p)!,
@@ -25,7 +25,7 @@ sub write-drawings(@rooms,
                    :$squeeze,
                   ) is export {
 
-    # create one drawngs set for each scale and site
+    # create one furniture drawings set for each scale and site
     # begin scale loop
     for $p.scales.kv -> $scale, $site {
         note "DEBUG: ready to draw, scale: $scale; site $site";
@@ -60,6 +60,7 @@ sub write-drawings(@rooms,
         # procs: box, circle, puttext, clip, fonts
         note "DEBUG: adding procset 'MyMisc'" if $debug;
         $ps.add_procset: "MyMisc", $procset-misc;
+
         # TODO add new fonts in their own "procset"
         note "DEBUG: adding procset 'MyFonts'" if $debug;
         $ps.add_procset: "MyFonts", $procset-fonts;
