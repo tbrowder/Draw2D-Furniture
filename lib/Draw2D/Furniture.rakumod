@@ -19,7 +19,7 @@ sub create-master-file(Project $p) is export {
 #| to create scaled drawings of the rooms.
 sub read-room-data($ifil, :$debug --> List) {
     my @arr;
-    for $f.IO.lines -> $line is copy {
+    for $ifil.IO.lines -> $line is copy {
         $line = strip-comment $line;
         next if $line !~~ /\S/;
         my $n = count-substrs $line, ',';
