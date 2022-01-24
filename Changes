@@ -24,6 +24,5 @@ Revision history for Draw2D-Furniture
     - Changed primary exec name to 'draw2d' (but retained the old name for 
       backward compatibility)
     - Changed default output file naming scheme to use a base name made from 
-      the project
-      title unless it is specified in the master file
+      the project title unless it is specified in the master file
 

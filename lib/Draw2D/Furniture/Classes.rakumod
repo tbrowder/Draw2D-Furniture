@@ -258,6 +258,8 @@ class Room is export {
     has $.number    is rw ;
     has $.title     is rw = "";
     has @.furniture is rw ;
+    has $.width     is rw = 0;
+    has $.length    is rw = 0;
 }
 
 class Furniture does Collections is export {

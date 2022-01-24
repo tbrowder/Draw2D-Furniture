@@ -1,9 +1,9 @@
 {
   "api": "2",
-  "auth": "github:tbrowder",
+  "auth": "zef:tbrowder",
   "author": "github:tbrowder",
   "authors": [
-    "Tom Browder <tom.browder@gmail.com>"
+    "Tom Browder <tbrowder@acm.org>"
   ],
   "build-depends": [
   ],
@@ -12,7 +12,7 @@
     "Inline::Perl5",
     "Text::Utils"
   ],
-  "description": "Provides custom, scaled furniture outlines for home and office planning",
+  "description": "Provides custom, scaled furniture and room outlines for home and office planning",
   "license": "Artistic-2.0",
   "name": "Draw2D::Furniture",
   "perl": "6.*",
@@ -38,5 +38,5 @@
   "test-depends": [
     "Test::META"
   ],
-  "version": "1.0.0"
+  "version": "2.0.0"
 }

@@ -3,7 +3,8 @@ LIBPATH  := lib
 
 furn := furniture.inp
 
-exe := ./bin/draw2d 
+exe  := ./bin/draw2d 
+exe2 := ./bin/draw-rooms 
 
 
 .PHONY: test bad good clean

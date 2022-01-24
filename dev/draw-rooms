@@ -1,0 +1,57 @@
+#!/usr/bin/env raku
+
+use Text::Utils :strip-comment, :normalize-string, :count-substrs;
+
+use lib <../lib>; # TODO: remove when moved to ../bin
+use Draw2D::Furniture;
+use Draw2D::Furniture::Procset-Fonts;
+use Draw2D::Furniture::Classes;
+
+my $debug = 0;
+my $ifil = "./room.data";
+my $ofil = "./room-drawings.pdf";
+my $scale = 0.1837; # in/ft
+
+if not @*ARGS {
+    say qq:to/HERE/;
+    Usage:  {$*PROGRAM.basename} go [ifil=I][ofil=O][scale=S] [debug]
+
+    Creates a set of scaled room diagrams at {$scale}-inch per foot
+    or at the user-selected decimal scale 'S'.
+
+    The input data are in file '$ifil' or in the user-selected file 'I'.
+
+    The drawings output to file '$ofil' orin the user-selected file 'O'.
+
+    HERE
+    exit;
+}
+
+for @*ARGS {
+    when /^s
+        } \S* '=' (\d? ['.' \d?]?) $/ {
+        $scale = +$0;
+        say "Setting scale=$scale";
+    }
+    when /^i \S* '=' (\S+) $/ {
+        $ifil = ~$0;
+        say "Setting ifil=$ifil";
+    }
+    when /^o \S* '=' (\S+) $/ {
+        $ofil = ~$0;
+        say "Setting ofil=$ofil";
+    }
+    when /d/ { $debug = 1 }
+    default {
+        die "FATAL: Unknown arg '$_'"
+    }
+}
+
+my @ofils;
+draw-rooms $ifil, $ofil, $scale, :@ofils, :$debug;
+
+=finish
+
+die "FATAL: Unable to read input file '$ifil'." if not $ifil.IO.r;
+my @rooms = read-file $ifil;
+my $ofil  = "room-diagrams";
