@@ -1,12 +1,14 @@
 Revision history for Draw2D-Furniture
 
 {{$NEXT}}
+    - Add a separate, simple room drawing capabilty with the new 'draw-rooms' 
+      program
     - Individual output file type selection (default is the master list)
     - Capitalize furniture type is default (may be turned off at command line)
     - Improved documentation
     - Added more tests
-    - Create an interim ASCII text file used to create the PostScipt file (helpful
-      for debugging nput format issues)
+    - Create an interim ASCII text file used to create the PostScipt file 
+      (helpful for debugging input format issues)
     - Add more header keys (multiple lines for address, notes, phone, 
       mobile, email
     - Provide capability for multiple outputs by character furniture codes
@@ -18,8 +20,10 @@ Revision history for Draw2D-Furniture
     - Made file reading and writing more robust
     - Provide description line continuation 
       and folding with one or more backslashes
-    - Converted to use App::Mi6
-    - Changed primary exec name to 'draw2d' (but retained the old name for backward compatibility)
-    - Changed default output file naming scheme to use a base name made from the project
-      title unless it is specified in the msster file
+    - Converted to use App::Mi6 and publish to Zef
+    - Changed primary exec name to 'draw2d' (but retained the old name for 
+      backward compatibility)
+    - Changed default output file naming scheme to use a base name made from 
+      the project
+      title unless it is specified in the master file
 
