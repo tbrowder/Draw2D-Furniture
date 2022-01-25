@@ -28,8 +28,7 @@ if not @*ARGS {
 }
 
 for @*ARGS {
-    when /^s
-        } \S* '=' (\d? ['.' \d?]?) $/ {
+    when /^s \S* '=' (\d? ['.' \d?]?) $/ {
         $scale = +$0;
         say "Setting scale=$scale";
     }

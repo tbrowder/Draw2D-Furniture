@@ -1,7 +1,7 @@
 unit module Draw2D::Furniture;
 
 use PostScript::File:from<Perl5>;
-use Text::Utils :strip-comment, :normalize-string, :wrap-paragraph;
+use Text::Utils :strip-comment, :normalize-string, :wrap-paragraph, :count-substrs;
 
 use Draw2D::Furniture::Classes;
 use Draw2D::Furniture::Procset-Misc;
@@ -51,13 +51,17 @@ sub draw-rooms($ifil,
                :$squeeze,
               ) is export {
 
+    # vars to handle:
+    my $site = "site TBA";
+
+
     my @rooms = read-room-data $ifil;
 
     # create the output files
-    my $psf = $p.filename: "draw", :$scale, :suffix("ps");
+    my $pdf = $ofil; # $p.filename: "draw", :$scale, :suffix("ps");
 
-    my $pdf = $psf;
-    $pdf ~~ s/'.ps'$/.pdf/;
+    my $psf = $pdf;
+    $psf ~~ s/'.pdf'$/.psf/;
 
     # start a PostScript doc, add options here
     #   enable clipping
