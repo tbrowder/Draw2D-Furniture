@@ -21,7 +21,7 @@ if not @*ARGS {
 
     The input data are in file '$ifil' or in the user-selected file 'I'.
 
-    The drawings output to file '$ofil' orin the user-selected file 'O'.
+    The drawings output to file '$ofil' or in the user-selected file 'O'.
 
     HERE
     exit;
@@ -41,6 +41,9 @@ for @*ARGS {
         say "Setting ofil=$ofil";
     }
     when /d/ { $debug = 1 }
+    when /^g/ { 
+        ; # ok 
+    }
     default {
         die "FATAL: Unknown arg '$_'"
     }
@@ -48,6 +51,8 @@ for @*ARGS {
 
 my @ofils;
 draw-rooms $ifil, $ofil, $scale, :@ofils, :$debug;
+
+say "Normal end.";
 
 =finish
 
