@@ -7,7 +7,7 @@ role Collections {
 
     has %!ids;   # unique furniture id numbers
     has %!codes; # all known codes to sort furniture lists by
-                 #   code => list name to add for output 
+                 #   code => list name to add for output
                  #   not case sensitive
                  #   e.g.: a  => Apartment
                  #         gb => Gulf Breeze
@@ -33,7 +33,7 @@ role Collections {
             $s = "?";
         }
 
-        $s 
+        $s
     }
 
     method id-exists($id, :$debug = 0 --> Bool) {
@@ -47,17 +47,17 @@ role Collections {
         #%(self.codes{$code}):exists
         %!codes{$code}:exists ?? True !! False
     }
-    
+
     method code-name($code --> Str) {
         %!codes{$code}
     }
- 
-    method codes2str(:$keys, 
+
+    method codes2str(:$keys,
                      :$no-commas,
                      :$no-comma,
-                     :$list, 
-                     :$sepchar = '=>', 
-                     :$debug = 0 
+                     :$list,
+                     :$sepchar = '=>',
+                     :$debug = 0
                      --> Str
                     )  {
         # my $codes = $f.codes2str: :keys; # output "a bb .."
@@ -122,7 +122,7 @@ role Collections {
                    ) {
         # used by the Project object to keep all codes used by furniture children
         # used by the Furniture object to keep all used by furniture children
-     
+
         # adds $code to the collection
         $code .= lc;
         my @c = $code.words;
@@ -148,7 +148,7 @@ role Collections {
             %!codes{$c} = 1;
         }
     }
-}
+} # role Collections
 
 class Project does Collections is export {
     # SET UPON CREATION WARN IF DIFFERENT
@@ -165,7 +165,7 @@ class Project does Collections is export {
     has $.in-per-ft is rw = 0.25; # scale
     has $.units     is rw = 'in-per-ft';
     has $.scale     is rw = 0.25; # in-per-ft
-    has %.scales    is rw; 
+    has %.scales    is rw;
 
     has @.author  is rw; # multi-valued (one per line)
     has @.address is rw; # multi-valued (one per line)
@@ -196,19 +196,19 @@ class Project does Collections is export {
                     # e.g., a "dot" file doesn't get a file extension (suffix)
                     :$suffix = "none", # where /ps|pdf|inp|dot|none/,
 
-                    Str :$list-subtype = "", # where /id|code/, 
+                    Str :$list-subtype = "", # where /id|code/,
 
                     :$code, # must be one of the known codes in the Project's collection
                     :$scale is copy,
                     :$debug = 0,
                     --> Str
                    ) {
-        my $basename = self.basename ?? self.basename 
+        my $basename = self.basename ?? self.basename
                                      !! $!title.lc.words.join("-");
         my $f = "";
         given $type {
             when /list/ { $f = $basename ~ "-" ~ self.list-name }
-            when /draw/ { 
+            when /draw/ {
                 $f = $basename ~ "-" ~ self.draw-name;
                 $scale = $scale ?? sprintf("%0.4f", $scale) !! 0.25;
                 $f ~= "-scale-$scale";
@@ -223,10 +223,10 @@ class Project does Collections is export {
         given $list-subtype {
             die "FATAL: Empty base file name value" if not $f;
             when /id/ { $f ~= "-ids"; }
-            when /code/ { 
-                die Q|FATAL: Code output file with no $code entry| if not $code; 
+            when /code/ {
+                die Q|FATAL: Code output file with no $code entry| if not $code;
                 die "FATAL: Code '$code' is not a valid Project code" if not self.code-exists($code);
-                $f ~= "-code-$code"; 
+                $f ~= "-code-$code";
             }
             default {
                 # ignore an empty string
@@ -238,8 +238,8 @@ class Project does Collections is export {
             when /ps/  { $f ~= ".ps"; }
             when /pdf/ { $f ~= ".pdf"; }
             when /inp/ { $f ~= ".inp"; }
-            when /dot|none/ { 
-                ; # no extension "; 
+            when /dot|none/ {
+                ; # no extension ";
             }
             default {
                 die "FATAL: Unknown output file type '$_'";
@@ -251,15 +251,80 @@ class Project does Collections is export {
 
 class Row is export {
     has $.max-height is rw = 0; # PS points
+    # contains either furniture OR rooms
     has @.furniture is rw;
+    has @.rooms     is rw
 }
+
+class RoomDrawing is export {
+    has $.title     is rw = "";
+
+    # for room drawing
+    has $.width     is rw = 0;
+    has $.length    is rw = 0;
+
+    # input scale is in page inches per real foot
+    has $.scale; # must be input when created
+    # internal bbox values in properly-scaled PS points
+    has $.w is rw;
+    has $.h is rw;
+    has $.sf is rw; # scale factor
+    has $.dims2 is rw; # width x length (feet)
+
+    method init(:$scale) {
+        # must have required inputs
+        note "WARNING: incomplete dimension inputs" if !($.width || $.length);
+        note "WARNING: incomplete id, codes, or description inputs" if !($.title);
+        if $scale {
+            $.sf = 72 / (12 / $scale);
+        }
+        else {
+            $.sf = 72 / (12 / $.scale);
+        }
+        # apply scale
+        $.h = $.width * $.sf;
+        $.w = $.length * $.sf;
+    }
+
+    # A method to draw itself in raw PS
+    # using a $ps instance of a Perl
+    # PostScript::File object
+    # given the ulx and uly corner of its
+    # bounding box in real page coords
+    # and orientation:
+    # adjust the scale to 1/4" per foot, then 72 pts per page inch
+
+    # a 1 foot desk = 12 inches
+    # 12 inches scales to 0.25 inches on paper: 1/48
+    # 1 inch = 72 points
+    # so what do we multiply model inches by to get it correct on paper?
+    # scale = 48/72
+    method ps-draw($ps, :$ulx, :$uly) {
+        # define the center of the bounding box
+        my $cx = $ulx + 0.5 * $.w;
+        my $cy = $uly - 0.5 * $.h;
+        my $d = 2;
+        # put number $d pt above center
+        # put dimen rep $d pt below center
+        my $s = qq:to/HERE/;
+        /Times-Bold 9 selectfont
+        $cx $cy $d add mt ({$.title}) 3 puttext
+        /Times-Roman 7 selectfont
+        $cx $cy $d sub mt ({$.dims2}) 7 puttext
+        HERE
+        with $.width {
+            $s ~= qq:to/HERE/;
+            $ulx $uly {$.w} {$.h} box
+            HERE
+        }
+        $ps.add_to_page: $s;
+    }
+
+} # class RoomDrawing
 
 class Room is export {
     has $.number    is rw ;
-    has $.title     is rw = "";
     has @.furniture is rw ;
-    has $.width     is rw = 0;
-    has $.length    is rw = 0;
 }
 
 class Furniture does Collections is export {
@@ -274,6 +339,7 @@ class Furniture does Collections is export {
     has $.radius    is rw = 0;
     has $.dims      is rw = ''; # for printing
     has $.dims2     is rw = ''; # for printing drawings
+
     # input scale is in page inches per real foot
     has $.scale; # must be input when created
     # internal bbox values in properly-scaled PS points
@@ -285,7 +351,7 @@ class Furniture does Collections is export {
     has $.desc  is rw;
 
     has $.room       is rw; # room number
-    has $.room-title is rw; 
+    has $.room-title is rw;
     has $.type       is rw = ''; # e.g., chair, chest, etc.
 
     method init(:$scale) {
@@ -325,7 +391,6 @@ class Furniture does Collections is export {
         #   my $res2 = $furn.set-codes: $codes, project($p);
     }
     =end comment
-
 
     # A method to draw itself in raw PS
     # using a $ps instance of a Perl

@@ -49,7 +49,7 @@ if !@*ARGS {
     The 'no-type' option turns off the all-caps TYPE of each object.
 
     The 'font=X' option selects one of the standard fonts provided
-    with PostScript or one of the other free fonts available 
+    with PostScript or one of the other free fonts available
     from various sources. Use the 'Fonts' option to
     show the list of usable fonts.
 
@@ -179,7 +179,7 @@ if $cli-scale.defined {
 
 my @ofils; # list of output files generated
 my @rooms; # list of room objects containing furniture objects
-@rooms = read-data-file $ifil, :$p, :$no-type, :$debug;
+@rooms = read-project-data-file $ifil, :$p, :$no-type, :$debug;
 exit if $show-codes;
 
 write-lists(@rooms, @ofils, :$p, :$list, :$ids, :$codes, :$no-type, :$debug);

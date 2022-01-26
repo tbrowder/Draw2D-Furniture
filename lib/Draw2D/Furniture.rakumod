@@ -5,7 +5,7 @@ use Text::Utils :strip-comment, :normalize-string, :wrap-paragraph, :count-subst
 
 use Draw2D::Furniture::Classes;
 use Draw2D::Furniture::Procset-Misc;
-use Draw2D::Furniture::Procset-Fonts;
+#use Draw2D::Furniture::Procset-Fonts;
 
 constant $SPACE  = Q| |; # space for text
 constant $BSLASH = '\\'; # backslash for text
@@ -17,7 +17,7 @@ sub create-master-file(Project $p) is export {
 #==============================================================
 #| Data from a separate room-dimensions input data file are used
 #| to create scaled drawings of the rooms.
-sub read-room-data($ifil, :$debug --> List) {
+sub read-room-data($ifil, :$scale!, :$debug --> List) {
     my @arr;
     for $ifil.IO.lines -> $line is copy {
         $line = strip-comment $line;
@@ -31,7 +31,11 @@ sub read-room-data($ifil, :$debug --> List) {
             @w[$i] = normalize-string $w;
         }
         note "       after normalize:  '{@w.raku}'" if $debug;
-        my $r = Room.new: :title(@w[0]), :width(@w[1]), :length(@w[2]);
+        my $r = RoomDrawing.new: :title(@w[0]), :width(@w[1]), :length(@w[2]), :$scale;
+        my $ww = in2ft $r.width;
+        my $ll = in2ft $r.length;
+        $r.dims2  = "{$ww}x{$ll}";
+
         @arr.push: $r;
     }
     if $debug {
@@ -45,8 +49,8 @@ sub read-room-data($ifil, :$debug --> List) {
 #| to create scaled drawings of the rooms.
 sub draw-rooms($ifil,
                $ofil,
-               $scale,
-               :@ofils,
+               :$scale!,
+               :@ofils!,
                :$debug = 0,
                :$squeeze,
               ) is export {
@@ -54,8 +58,7 @@ sub draw-rooms($ifil,
     # vars to handle:
     my $site = "site TBA";
 
-
-    my @rooms = read-room-data $ifil;
+    my @rooms = read-room-data $ifil, :$scale;
 
     # create the output files
     my $pdf = $ofil; # $p.filename: "draw", :$scale, :suffix("ps");
@@ -75,8 +78,8 @@ sub draw-rooms($ifil,
     :file_ext("");
     die "FATAL: no PS object" if not $ps;
 
-    # for debugging count furniture items
-    my $nfurn = 0;
+    # for debugging count room items
+    my $nrooms = 0;
 
     if $debug == 1 {
         my ($llx, $lly, $urx, $ury) = $ps.get_bounding_box;
@@ -88,14 +91,16 @@ sub draw-rooms($ifil,
     note "DEBUG: adding procset 'MyMisc'" if $debug;
     $ps.add_procset: "MyMisc", $procset-misc;
 
+    =begin comment
     # TODO add new fonts in their own "procset"
     note "DEBUG: adding procset 'MyFonts'" if $debug;
     $ps.add_procset: "MyFonts", $procset-fonts;
+    =end comment
 
     # page constants
     # page margins
     my $top-marg   =  0.4; # inches
-    # use top marg for title, page, scale info
+    # use top margin for title, page, scale info
 
     my $marg       =  0.4; # inches
     my $space      =  0.2 * 72; # vert and horiz space between figures
@@ -109,17 +114,15 @@ sub draw-rooms($ifil,
     # page variables
     my (Real $x, Real $y, UInt $npages) = 0, 0, 0;
 
-    =begin comment
     my @rows;
 
-
-    note "DEBUG: entering sub make-rows..." if $debug;
-    make-rows @rows, @rooms, $xright - $xleft, $space, :$scale;
+    note "DEBUG: entering sub make-room-rows..." if $debug;
+    make-room-rows @rows, @rooms, $xright - $xleft, $space, :$scale;
     my $nrows = @rows.elems;
     die "FATAL: no rows collected!" if !$nrows;
-    note "DEBUG: num furniture rows: {$nrows}" if 0 or $debug;
+    note "DEBUG: num room rows: {$nrows}" if 0 or $debug;
 
-    # step through all the furniture and number each as in the index
+    # step through all the rooms
     # keep track of:
     #   last baseline
     reset-page-vars $x, $y, :$npages, :$xleft, :$ytop;
@@ -149,31 +152,31 @@ sub draw-rooms($ifil,
 
     $ps.add_to_page: $npages, $pheader;
     my $i = 0;
-    for @rows -> Row $r {
+    for @rows -> Row $row {
         reset-row-var $x, :$xleft;
 
         ++$i;
         if $debug == 1 {
-            note "DEBUG: row $i max-height: {$r.max-height}";
-            note "              furn items: {$r.furniture.elems}";
+            note "DEBUG: row $i max-height: {$row.max-height}";
+            note "              room items: {$row.rooms.elems}";
             note " start x/y: $x $y";
         }
-        if !check-bottom($r, $y, $ybottom) {
+        if !check-bottom($row, $y, $ybottom) {
             # need a new page
             reset-page-vars $x, $y, :$npages, :$xleft, :$ytop;
             $ps.newpage;
             # then the page header
             $ps.add_to_page: $npages, $pheader;
         }
-        for $r.furniture -> $f {
-            ++$nfurn;
+        for $row.rooms -> $room {
+            ++$nrooms;
             # draw it at the current ulx, uly
-            $f.ps-draw: $ps, :ulx($x), :uly($y);
+            $room.ps-draw: $ps, :ulx($x), :uly($y);
             # increment x
-            $x += $f.w + $space
+            $x += $room.w + $space
         }
 
-        $y -= $r.max-height + $space;
+        $y -= $row.max-height + $space;
     }
 
     note "DEBUG: num pages: $npages" if $debug == 1;
@@ -194,8 +197,8 @@ sub draw-rooms($ifil,
     # produce the pdf
     ps-to-pdf @ofils, :$psf, :$pdf, :$debug;
 
-    note "DEBUG: saw $nfurn furniture objects" if 0 or $debug;
-    =end comment
+    note "DEBUG: saw $nrooms room objects" if 0 or $debug;
+    #=end comment
 
 } # sub draw-rooms
 
@@ -246,9 +249,11 @@ sub write-drawings(@rooms,
         note "DEBUG: adding procset 'MyMisc'" if $debug;
         $ps.add_procset: "MyMisc", $procset-misc;
 
+        =begin comment
         # TODO add new fonts in their own "procset"
         note "DEBUG: adding procset 'MyFonts'" if $debug;
         $ps.add_procset: "MyFonts", $procset-fonts;
+        =end comment
 
         # page constants
         # page margins
@@ -592,7 +597,7 @@ my regex number { :r
     ]
 }
 
-sub read-data-file($ifil,
+sub read-project-data-file($ifil,
                    Project :project(:$p)!,
                    :$no-type,
                    :$debug = 0,
@@ -1119,17 +1124,17 @@ sub read-data-file($ifil,
 
     @rooms
 
-} # end sub read-data-file
+} # end sub read-project-data-file
 
-#| Given an empty list of rows, a list of Room objects,
+#| Given an empty list of rows, a list of RoomDrawing objects,
 #| and the maximum width of the page to be
-#| written upon, create a list of Row objects containing Furniture
+#| written upon, create a list of Row objects containing RoomDrawing
 #| objects to be written as scaled drawings on the output PDF file.
 sub make-room-rows(@rows,   # should be empty
-                   @rooms,  # all rooms with their measurements, no furniture
+                   @rooms,  # all rooms with their measurements
                    $maxwid, # distance between left/right page margins
                    $space,
-                   :$scale, # for init, if used
+                   :$scale!, # for init
                    :$debug = 0) {
 
     @rows   = [];
@@ -1143,24 +1148,24 @@ sub make-room-rows(@rows,   # should be empty
         $x = 0;
     }
 
-    multi sub check-right(Room $r, $x --> Bool) {
-        # given a Room instance and its x start
+    multi sub check-right(RoomDrawing $room, $x --> Bool) {
+        # given a RoomDrawing instance and its x start
         # point, can it fit on the current row?
-        my $xspace = $x + $r.w;
+        my $xspace = $x + $room.w;
         return $xspace <= $maxwid;
     }
 
     reset-row-var;
 
-    for @rooms -> $r {
+    for @rooms -> $room {
         if $scale {
-            $r.init: :$scale;
+            $room.init: :$scale;
         }
-        my $title = $r.title;
+        my $title = $room.title;
         note "DEBUG: title: |$title|" if $debug == 1;
         next if $title ~~ /:i '<ff>'/;
-        $x += $space if $row.furniture.elems;
-        if !check-right($r, $x) {
+        $x += $space if $row.rooms.elems;
+        if !check-right($room, $x) {
             # need a new row
             $row = Row.new;
             @rows.push: $row;
@@ -1168,8 +1173,9 @@ sub make-room-rows(@rows,   # should be empty
         }
 
         # update row data
-        $x += $r.w;
-        $row.max-height = $r.h if $r.h > $row.max-height;
+        $x += $room.w;
+        $row.rooms.push: $room;
+        $row.max-height = $room.h if $room.h > $row.max-height;
     }
 
 } # sub make-room-rows
@@ -1182,7 +1188,7 @@ sub make-rows(@rows,   # should be empty
               @rooms,  # all rooms with their furniture
               $maxwid, # distance between left/right page margins
               $space,
-              :$scale, # for init, if used
+              :$scale!, # for init
               :$debug = 0) {
 
     @rows   = [];

@@ -1,8 +1,8 @@
 doc-title: Furniture List by Room
-Title: Furniture for BWB
+Title: Furniture for 209 Nandina Road
 Author: Tom Browder
-Date: 2020-01-28
-Address: 113 Canterbury Circle
+Date: 2022-01-22
+Address: 114 Shoreline Dr
 Code : Title
 ==== + =====;
 a    : Apartment
@@ -131,7 +131,7 @@ Room 9: Bonus room
     9.1 [?] COUCH - pull-out, small [36" x 58.5"]
     9.2 [?] TABLE - small [18" x 31"]
     9.3 [s] CHAIR - small antique child's rocking [18" x 28"]
-    9.4 [?] BOOKCASE - tall cherry (1 of 2, with 13.4) [10.5" x 43" x 50.5"]
+    9.4 [?] BOOKCASE - tall cherry (1 of 2, with 12.7) [10.5" x 43" x 50.5"]
     9.5 [?] DESK - antique, pine, child's [21" x 25.5"]
     9.6 [?] CHAIR - desk (with 9.5) [?]
     9.7 [?] TABLE - antique spool [18.5" x 32"]
@@ -160,31 +160,24 @@ Room 11: Laundry
 
 Room 12: Art room
     12.1 [?] STOOL - bar (4 of 4) [12" x 18.5" x 26.5"]
-  Total items in room: 1
+    12.2 [?] CHEST - tall, with drawers [?]
+    12.3 [?] TABLE - fold-up [?]
+    12.4 [?] CHAIR - wooden, fold-up [?]
+    12.5 [?] TABLE - sewing machine [?]
+    12.6 [?] SEWING - machine [?]
+    12.7 [?] BOOKCASE - tall cherry (1 of 2, with 9.4) [10.5" x 43" x 50.5"]
+  Total items in room: 7
 
 Room 13: Garage
     13.1 [?] BOOKCASE - tall pine (2 of 2 with 10.2) [12" x 48" x 60"]
     13.2 [?] CHAIR - rattan (1 of 2 with 13.3) [30" x 31" x 30"]
     13.3 [?] CHAIR - rattan (2 of 2 with 13.2) [30" x 31" x 30"]
-    13.4 [?] BOOKCASE - tall cherry (1 of 2, with 9.4) [10.5" x 43" x 50.5"]
-  Total items in room: 4
+  Total items in room: 3
 
-Room 14: Front porch
-  Total items in room: 0
-
-Room 15: Front yard
-  Total items in room: 0
-
-Room 16: Back yard
-  Total items in room: 0
-
-Room 17: Upstairs bath
+Room 14: Upstairs bath
     17.1 [?] STAND - wicker [12" x 17" x 30"]
     17.2 [?] CADDY - small wicker [8" x 12" x 24"]
   Total items in room: 2
 
-Room 18: Upstairs attic
-  Total items in room: 0
 
-
-Total number items: 121
+Total number items: 126

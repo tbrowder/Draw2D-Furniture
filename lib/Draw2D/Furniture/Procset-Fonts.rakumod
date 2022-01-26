@@ -14,6 +14,9 @@ constant %known-fonts is export = set <
     Helvetica-Oblique
     Helvetica-BoldOblique
     Symbol
+>;
+
+=begin comment
     XanhMono-Italic
     XanhMono-Regular
     LuxiMono-Bold
@@ -21,6 +24,7 @@ constant %known-fonts is export = set <
     LuxiMono-Oblique
     LuxiMono
 >;
+=end comment
 
 sub show-fonts is export {
     say "Known fonts:";
@@ -28,7 +32,7 @@ sub show-fonts is export {
 }
 
 #  procset 'MyFonts':
-constant $procset-fonts is export = q:to/HERE/;
+our $procset-fonts is export = q:to/HERE/;
 %%DocumentSuppliedResources:
 %%+ XanhMono-Italic
 %%+ XanhMono-Regular

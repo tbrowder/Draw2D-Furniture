@@ -41,8 +41,8 @@ for @*ARGS {
         say "Setting ofil=$ofil";
     }
     when /d/ { $debug = 1 }
-    when /^g/ { 
-        ; # ok 
+    when /^g/ {
+        ; # ok
     }
     default {
         die "FATAL: Unknown arg '$_'"
@@ -50,9 +50,15 @@ for @*ARGS {
 }
 
 my @ofils;
-draw-rooms $ifil, $ofil, $scale, :@ofils, :$debug;
+draw-rooms $ifil, $ofil, :$scale, :@ofils, :$debug;
 
 say "Normal end.";
+my $n = @ofils.elems;
+if $n {
+   my $s = $n > 1 ?? 's' !! '';
+   say "Created $n file$s:";
+   say "  $_" for @ofils.sort;
+}
 
 =finish
 
