@@ -38,7 +38,7 @@ sub read-room-data($ifil, :$debug --> List) {
         note "DEBUG: early exit";exit;
     }
     @arr
-}
+} # sub read-room-data
 
 #==============================================================
 #| Data from a separate room-dimensions input data file are used
@@ -109,8 +109,10 @@ sub draw-rooms($ifil,
     # page variables
     my (Real $x, Real $y, UInt $npages) = 0, 0, 0;
 
-    # collect furniture by page rows
+    =begin comment
     my @rows;
+
+
     note "DEBUG: entering sub make-rows..." if $debug;
     make-rows @rows, @rooms, $xright - $xleft, $space, :$scale;
     my $nrows = @rows.elems;
@@ -193,6 +195,7 @@ sub draw-rooms($ifil,
     ps-to-pdf @ofils, :$psf, :$pdf, :$debug;
 
     note "DEBUG: saw $nfurn furniture objects" if 0 or $debug;
+    =end comment
 
 } # sub draw-rooms
 
@@ -1118,6 +1121,59 @@ sub read-data-file($ifil,
 
 } # end sub read-data-file
 
+#| Given an empty list of rows, a list of Room objects,
+#| and the maximum width of the page to be
+#| written upon, create a list of Row objects containing Furniture
+#| objects to be written as scaled drawings on the output PDF file.
+sub make-room-rows(@rows,   # should be empty
+                   @rooms,  # all rooms with their measurements, no furniture
+                   $maxwid, # distance between left/right page margins
+                   $space,
+                   :$scale, # for init, if used
+                   :$debug = 0) {
+
+    @rows   = [];
+    my $row = Row.new;
+    @rows.push: $row;
+    # row var
+    my $x = 0; # begin at left margin
+
+    sub reset-row-var {
+        # resets to left of the page
+        $x = 0;
+    }
+
+    multi sub check-right(Room $r, $x --> Bool) {
+        # given a Room instance and its x start
+        # point, can it fit on the current row?
+        my $xspace = $x + $r.w;
+        return $xspace <= $maxwid;
+    }
+
+    reset-row-var;
+
+    for @rooms -> $r {
+        if $scale {
+            $r.init: :$scale;
+        }
+        my $title = $r.title;
+        note "DEBUG: title: |$title|" if $debug == 1;
+        next if $title ~~ /:i '<ff>'/;
+        $x += $space if $row.furniture.elems;
+        if !check-right($r, $x) {
+            # need a new row
+            $row = Row.new;
+            @rows.push: $row;
+            reset-row-var;
+        }
+
+        # update row data
+        $x += $r.w;
+        $row.max-height = $r.h if $r.h > $row.max-height;
+    }
+
+} # sub make-room-rows
+
 #| Given an empty list of rows, a list of Room objects with their
 #| Furniture object children, and the maximum width of the page to be
 #| written upon, create a list of Row objects containing Furniture
@@ -1140,7 +1196,7 @@ sub make-rows(@rows,   # should be empty
         $x = 0;
     }
 
-    sub check-right(Furniture $f, $x --> Bool) {
+    multi sub check-right(Furniture $f, $x --> Bool) {
         # given a furniture instance and its x start
         # point, can it fit on # the current row?
         my $xspace = $x + $f.w;
@@ -1148,6 +1204,7 @@ sub make-rows(@rows,   # should be empty
     }
 
     reset-row-var;
+
     for @rooms -> $r {
         for $r.furniture -> $f {
             if $scale {
