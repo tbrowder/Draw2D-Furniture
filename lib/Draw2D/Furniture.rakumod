@@ -64,7 +64,7 @@ sub draw-rooms($ifil,
     my $pdf = $ofil; # $p.filename: "draw", :$scale, :suffix("ps");
 
     my $psf = $pdf;
-    $psf ~~ s/'.pdf'$/.psf/;
+    $psf ~~ s/'.pdf'$/.ps/;
 
     # start a PostScript doc, add options here
     #   enable clipping
@@ -151,6 +151,7 @@ sub draw-rooms($ifil,
     HERE
 
     $ps.add_to_page: $npages, $pheader;
+
     my $i = 0;
     for @rows -> Row $row {
         reset-row-var $x, :$xleft;
@@ -310,23 +311,23 @@ sub write-drawings(@rooms,
 
         $ps.add_to_page: $npages, $pheader;
         my $i = 0;
-        for @rows -> Row $r {
+        for @rows -> Row $row {
             reset-row-var $x, :$xleft;
 
             ++$i;
             if $debug == 1 {
-                note "DEBUG: row $i max-height: {$r.max-height}";
-                note "              furn items: {$r.furniture.elems}";
+                note "DEBUG: row $i max-height: {$row.max-height}";
+                note "              furn items: {$row.furniture.elems}";
                 note " start x/y: $x $y";
             }
-            if !check-bottom($r, $y, $ybottom) {
+            if !check-bottom($row, $y, $ybottom) {
                 # need a new page
                 reset-page-vars $x, $y, :$npages, :$xleft, :$ytop;
                 $ps.newpage;
                 # then the page header
                 $ps.add_to_page: $npages, $pheader;
             }
-            for $r.furniture -> $f {
+            for $row.furniture -> $f {
                 ++$nfurn;
                 # draw it at the current ulx, uly
                 $f.ps-draw: $ps, :ulx($x), :uly($y);
@@ -334,7 +335,7 @@ sub write-drawings(@rooms,
                 $x += $f.w + $space
             }
 
-            $y -= $r.max-height + $space;
+            $y -= $row.max-height + $space;
         }
 
         note "DEBUG: num pages: $npages" if $debug == 1;
@@ -495,6 +496,11 @@ sub text-to-ps($txtfil, # the ASCII input text file
             }
         }
         else {
+            # what about unbalanced parens in shorter lines?
+            # this also fails in PostScript with unbalanced quote delimiters
+            # fix by escaping all parens on the line
+            $line ~~ s:g/'('/\\(/;
+            $line ~~ s:g/')'/\\)/;
             @lines.push: $line;
         }
 
@@ -696,6 +702,7 @@ sub read-project-data-file($ifil,
             $p.no-type = +$0;
             next LINE;
         }
+
         if $line ~~ /^ \s* date ':' \s* (.*) $/ {
             my $txt = normalize-string ~$0;
             die "FATAL: header info '$txt' not allowed after room info has begun" if $curr-room;
@@ -707,6 +714,7 @@ sub read-project-data-file($ifil,
             $p.date = $txt;
             next LINE;
         }
+
         if $line ~~ /^ \s* basename ':' \s* (.*) $/ {
             die "FATAL: header info '{~$0}' not allowed after room info has begun" if $curr-room;
             my $txt = normalize-string ~$0;
@@ -1279,7 +1287,10 @@ sub ps-to-pdf(@ofils,
     die "FATAL: Input file '$psf' not found" if !$psf.IO.f;
     my $cmd  = "ps2pdf";
     my $args = "$psf $pdf";
-    run $cmd, $args.words;
+    try run $cmd, $args.words;
+    if $! {
+        note "WARNING: ps2pdf failed: '{$!.Str}'";
+    }
     die "FATAL: Output file $pdf not found" if !$pdf.IO.f;
     @ofils.push: $pdf;
 
@@ -1369,8 +1380,14 @@ sub write-list-headers($fh,
     #== headers for ALL text files
     # title, etc.
     if $p.title { $fh.say: "Title: {$p.title}"; }
+    $fh.say: "Input file: {$p.input-file}";
+
     if $p.author { $fh.say: "Author: {$p.author}"; }
-    if $p.date { $fh.say: "Date: {$p.date}"; }
+    if $p.date { $fh.say: "Project Start Date: {$p.date}"; }
+    my $dt = DateTime.now;
+    my $ds = sprintf "%04d-%02d-%02dT%02d:%02d:%02d", $dt.year, $dt.month, $dt.day, $dt.hour, $dt.minute, $dt.second;
+    $fh.say: "Current Time: $ds";
+
     # multiply-valued keys
     if $p.address { $fh.say("Address: $_") for $p.address; }
     if $p.phone { $fh.say("Phone: $_") for $p.phone; }
