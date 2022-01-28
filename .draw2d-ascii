@@ -1,7 +1,9 @@
 doc-title: Furniture List by Room
 Title: Furniture for 209 Nandina Road
+Input file: furn-nandina.inp
 Author: Tom Browder
-Date: 2022-01-22
+Project Start Date: 2022-01-26
+Current Time: 2022-01-28T08:43:40
 Address: 114 Shoreline Dr
 Code : Title
 ==== + =====;
@@ -11,27 +13,23 @@ m    : Gulf Breeze
 s    : Sell
 t    : Trash/Give
 
-Room 1: Master bedroom
+Room 1: Master bedroom 100 x 100
     1.1 [?] CHEST - Tom's chest of drawers [20" x 42"]
-    1.2 [?] CHEST - Missy's chest of drawers [19" x 64"]
-    1.3 [a] DESK - (by bed) [20" x 36"]
+    1.3 [?] DESK - (by bed) [20" x 36"]
     1.4 [?] CHEST - (end of bed) [16" x 34"]
-    1.5 [?] BED - queen bed [65" x 86"]
     1.6 [?] TABLE - bedside table (1 of 2, with 12.6) [26" diameter x 28" height]
     1.7 [?] CHAIR - lounge chair [21" x 49"]
-    1.8 [?] MIRROR - over Missy' chest of drawers [32.5" x 44.5"]
-    1.9 [?] STOOL - step, for bed [14" x 18" x 13"]
     1.10 [?] CHAIR - vanity (in dressing room) [18" x 21" x 27"]
     1.11 [?] CHAIR - desk (with 1.3) [18" x 21" x 31.5"]
-  Total items in room: 11
+  Total items in room: 7
 
 Room 2: Foyer
     2.1 [?] CHEST - of drawers [19" x 40"]
-    2.2 [?] CHAIR -  [17" x 20"]
-    2.3 [?] CHAIR -  [17" x 20"]
+    2.2 [a] CHAIR -  [17" x 20"]
+    2.3 [a] CHAIR -  [17" x 20"]
     2.4 [?] RUG -  [69" x 160"]
-    2.5 [m] MIRROR - over chest [20.5" x 40"]
-    2.6 [m] CLOCK - grandfather, Tom's [11" x 16" x 69.5"]
+    2.5 [?] MIRROR - over chest [20.5" x 40"]
+    2.6 [?] CLOCK - grandfather, Tom's [11" x 16" x 69.5"]
     2.7 [?] STAND - umbrella, brass [9" diameter x 23" height]
   Total items in room: 7
 
@@ -41,40 +39,35 @@ Room 3: Living room (not in new house)
     3.3 [?] CHAIR -  [27" x 30"]
     3.4 [?] SECRETARY - (desk open) [32" x 36" x 84"]
     3.5 [?] SECRETARY - (desk closed) [19.5" x 36" x 84"]
-    3.6 [?] TABLE - end [?]
-    3.7 [?] TABLE - end [?]
+    3.7 [a] TABLE - end, dropleaf down) [18" x 27.5"]
     3.8 [?] TABLE - coffee [?]
     3.9 [?] STOOL - foot [?]
     3.10 [?] CHEST - small, decorative [?]
     3.11 [?] BOX - small, decorative [?]
-  Total items in room: 11
+  Total items in room: 10
 
 Room 4: Family room
     4.1 [?] DESK -  [23" x 41"]
     4.2 [?] CHAIR - desk chair [20" x 21"]
     4.3 [?] CHAIR - small wing, Grace Lee's chair [26" x 31"]
-    4.4 [?] CHAIR - small wood, Windsor chair [23" x 25"]
+    4.4 [a] CHAIR - small wood, Windsor chair [23" x 25"]
     4.5 [?] CHAIR - large wing [30" x 32"]
-    4.6 [?] TABLE - drop-leaf oak table (open) [42" x 51"]
+    4.6 [a] TABLE - drop-leaf oak table (open) [42" x 51"]
     4.7 [?] TABLE - coffee table [29" x 37"]
     4.8 [?] ROCKER - wooden, platform [22" x 30"]
     4.9 [?] TABLE - small drop-leaf table (closed) [18" x 35"]
     4.10 [?] TABLE - small drop-leaf table (open) [35" x 40"]
-    4.11 [?] TABLE - pine table [31" x 60"]
+    4.11 [a] TABLE - pine table [31" x 60"]
     4.12 [?] RUG - natural fiber, narrow black cloth tape border [120" x 168.625"]
-    4.13 [?] RUG - natural fiber, narrow black cloth tape border [60" x 96"]
-    4.14 [?] COUCH - 3-cshion upholstered, light tan [39.5" x 84" x 36"]
+    4.13 [a] RUG - natural fiber, narrow black cloth tape border [60" x 96"]
+    4.14 [a] COUCH - 3-cshion upholstered, light tan [39.5" x 84" x 36"]
     4.15 [?] CHAIR - leather recliner, Tom's (upright) [33.5" x 41" x 42"]
     4.16 [?] CHEST - small, Grace Lee's toy chest, made by her father [14" x 25" x 12"]
     4.21 [?] CHAIR - kitchen, woven-bottom (1 of 4) [19" x 20" x 41"]
     4.22 [?] CHAIR - kitchen, woven-bottom (2 of 4) [19" x 20" x 41"]
     4.23 [?] CHAIR - kitchen, woven-bottom (3 of 4) [19" x 20" x 41"]
     4.24 [?] CHAIR - kitchen, woven-bottom (4 of 4) [19" x 20" x 41"]
-    4.25 [?] TABLE - (4.6) drop-leaf oak table (closed) [26" x 42"]
-    4.26 [?] STOOL - bar (1 of 4) [12" x 18.5" x 26.5"]
-    4.27 [?] STOOL - bar (2 of 4) [12" x 18.5" x 26.5"]
-    4.28 [?] STOOL - bar (3 of 4) [12" x 18.5" x 26.5"]
-  Total items in room: 24
+  Total items in room: 20
 
 Room 5: Dining room
     5.1 [?] TABLE - dining table [48" x 74"]
@@ -94,32 +87,28 @@ Room 5: Dining room
 Room 6: Bedroom 2 (Tommy's)
     6.1 [a] BED - twin bed w/ mattress [43" x 81" x 40"]
     6.2 [a] BED - twin bed w/ mattress [43" x 81" x 40"]
-    6.3 [?] TABLE - bedside table [17" x 21" x 28.5"]
+    6.3 [a] TABLE - bedside table [17" x 21" x 28.5"]
     6.4 [a] CHEST - of drawers [21" x 40" x 47"]
     6.5 [?] TABLE - dressing table, w/mirror [18" x 46" x 64"]
-    6.6 [s] CHAIR - pink upholstered [27" x 30" x 33.5"]
-    6.7 [?] CHAIR - cane chair [20" x 20" x 32.5"]
     6.8 [?] CHAIR - cane chair [20" x 20" x 32.5"]
-    6.9 [?] CHEST - (in closet) small bedside, cherry (1 of 2, with 7.7) [15.5" x 19" x 27"]
+    6.9 [a] CHEST - (in closet) small bedside, cherry (1 of 2, with 7.7) [15.5" x 19" x 27"]
     6.10 [?] MIRROR - wall [19" x 31"]
     6.11 [?] STOOL - foot, plastic [12" x 15" x 10"]
-  Total items in room: 11
+  Total items in room: 9
 
 Room 7: Bedroom 3 (Grace's)
-    7.1 [s] BED - double bed [56" x 80" x 56.5"]
-    7.2 [s] TABLE - bedside table [16" x 19" x 27"]
-    7.3 [?] CHEST - of drawers [19" x 43" x 43.5"]
-    7.4 [s] CHAIR - old chair [16" x 18" x 35.5"]
+    7.2 [?] TABLE - bedside table [16" x 19" x 27"]
+    7.3 [a] CHEST - of drawers [19" x 43" x 43.5"]
+    7.4 [?] CHAIR - old chair [16" x 18" x 35.5"]
     7.5 [?] CHAIR - old chair [17" x 20" x 33.5"]
     7.6 [?] TABLE - bedside table (2 of 2, with 1.6) [25" diameter x 28" height]
-    7.7 [?] CHEST - (in closet) small bedside, cherry (2 of 2, with 6.9) [15.5" x 19" x 27"]
+    7.7 [a] CHEST - (in closet) small bedside, cherry (2 of 2, with 6.9) [15.5" x 19" x 27"]
     7.8 [?] BASKET - waste, wicker [11.5" diameter x 13" height]
     7.9 [?] BASKET - storage, wicker [21.5" diameter x 16" height]
     7.10 [?] HAMPER - wicker, with lid (in closet) [13" x 21" x 18"]
     7.11 [?] RACK - luggage, folding [13.5" x 22.5" x 20"]
-    7.12 [?] DESK - atop a chest [16" x 30.5" x 40"]
-    7.13 [?] FAN - floor (in closet) [17" diameter x 35" height]
-  Total items in room: 13
+    7.13 [a] FAN - floor (in closet) [17" diameter x 35" height]
+  Total items in room: 11
 
 Room 8: Landing
     8.1 [?] CHEST - of drawers [17" x 40" x 37"]
@@ -128,56 +117,50 @@ Room 8: Landing
   Total items in room: 3
 
 Room 9: Bonus room
-    9.1 [?] COUCH - pull-out, small [36" x 58.5"]
-    9.2 [?] TABLE - small [18" x 31"]
-    9.3 [s] CHAIR - small antique child's rocking [18" x 28"]
     9.4 [?] BOOKCASE - tall cherry (1 of 2, with 12.7) [10.5" x 43" x 50.5"]
-    9.5 [?] DESK - antique, pine, child's [21" x 25.5"]
     9.6 [?] CHAIR - desk (with 9.5) [?]
-    9.7 [?] TABLE - antique spool [18.5" x 32"]
-    9.8 [?] STOOL - wooden [12" x 12"]
     9.9 [?] CHEST - rattan, with glass top [48" x 48"]
     9.10 [?] CHAIR - rocking, cane-bottom [18" x 28"]
     9.11 [?] STOOL - foot, needlepoint [9" x 14.5"]
     9.12 [?] CHAIR - cane-bottom, antique [17" x 20"]
     9.13 [?] BASKET - waste, decorative [?]
-  Total items in room: 13
+  Total items in room: 7
 
 Room 10: Tom's study
-    10.1 [?] TABLE - pine, glass-topped, 3 drawers [32" x 72" x 30"]
-    10.2 [?] BOOKCASE - tall pine (1 of 2 with 13.1) [12" x 48" x 60"]
+    10.2 [a] BOOKCASE - tall pine (1 of 2 with 13.1) [12" x 48" x 60"]
     10.3 [?] TABLE - small rattan, open [14" x 20.5" x 28"]
     10.4 [?] CABINET - file, 2-drawer, horizontal, legal [18" x 30.5" x 27"]
     10.5 [?] CABINET - file, 4-drawer, vertical, letter [15" x 22" x 52"]
     10.6 [?] CABINET - file, 1-drawer, letter, w/rollers [14.5" x 15.5" x 21.5"]
     10.7 [?] CABINET - office supplies [21" x 37.5" x 54"]
-    10.8 [?] BOOKCASE - small 2-shelf (1 of 2 with 13.5) [12" x 28" x 30"]
-    10.9 [?] BOOKCASE - small 2-shelf (2 of 2 with 13.4) [12" x 28" x 30"]
-  Total items in room: 9
+    10.8 [a] BOOKCASE - small 2-shelf (1 of 2 with 13.5) [12" x 28" x 30"]
+    10.9 [a] BOOKCASE - small 2-shelf (2 of 2 with 13.4) [12" x 28" x 30"]
+  Total items in room: 8
 
-Room 11: Laundry
-  Total items in room: 0
-
-Room 12: Art room
-    12.1 [?] STOOL - bar (4 of 4) [12" x 18.5" x 26.5"]
-    12.2 [?] CHEST - tall, with drawers [?]
+Room 11: Art room
+    12.2 [a] CHEST - tall, with drawers [?]
     12.3 [?] TABLE - fold-up [?]
     12.4 [?] CHAIR - wooden, fold-up [?]
-    12.5 [?] TABLE - sewing machine [?]
-    12.6 [?] SEWING - machine [?]
+    12.5 [a] TABLE - sewing machine [?]
+    12.6 [a] SEWING - machine [?]
     12.7 [?] BOOKCASE - tall cherry (1 of 2, with 9.4) [10.5" x 43" x 50.5"]
-  Total items in room: 7
+  Total items in room: 6
 
-Room 13: Garage
-    13.1 [?] BOOKCASE - tall pine (2 of 2 with 10.2) [12" x 48" x 60"]
+Room 12: Garage
+    13.1 [a] BOOKCASE - tall pine (2 of 2 with 10.2) [12" x 48" x 60"]
     13.2 [?] CHAIR - rattan (1 of 2 with 13.3) [30" x 31" x 30"]
     13.3 [?] CHAIR - rattan (2 of 2 with 13.2) [30" x 31" x 30"]
   Total items in room: 3
 
+Room 13: Front porch
+    14.2 [a] CHAIR - rocking [28" x 28"]
+    14.3 [a] CHAIR - rocking [28" x 28"]
+    14.4 [a] TABLE - small [11" x 14"]
+  Total items in room: 3
+
 Room 14: Upstairs bath
-    17.1 [?] STAND - wicker [12" x 17" x 30"]
-    17.2 [?] CADDY - small wicker [8" x 12" x 24"]
-  Total items in room: 2
+    17.2 [a] CADDY - small wicker [8" x 12" x 24"]
+  Total items in room: 1
 
 
-Total number items: 126
+Total number items: 107

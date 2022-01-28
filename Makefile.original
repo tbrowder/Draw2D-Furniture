@@ -1,18 +1,15 @@
 RAKU     := raku
 LIBPATH  := lib
 
-furn := furn-nandina.inp
+furn := furniture.inp
 
-exe := ./bin/draw2d
-exe2 := ./bin/draw-rooms
+exe  := ./bin/draw2d 
+exe2 := ./bin/draw-rooms 
 
 
 .PHONY: test bad good clean
 
-#default: simple
-#default: draw
-#default: both
-default: all
+default: simple
 
 simple:
 	$(RAKU) -I$(LIBPATH) $(exe) $(furn)
@@ -25,3 +22,4 @@ both:
 
 all:
 	$(RAKU) -I$(LIBPATH) $(exe) $(furn) all
+

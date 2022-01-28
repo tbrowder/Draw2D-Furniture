@@ -115,7 +115,7 @@ if !$ifil.IO.f {
     }
 
     my $title    = prompt "Project name or title: ";
-    my $basename = prompt "A unique'basename' (with no spaces) for the input/output files: ";
+    my $basename = prompt "A unique 'basename' (with no spaces) for the input/output files: ";
     my $creator  = prompt "Created by: ";
     my $date     = now.DateTime.Str;
     my $p = Project.new: :$title, :$basename, :$creator, :$date;
@@ -148,6 +148,7 @@ if !$ifil.IO.f {
         }
         # put the lines into the project instance
     }
+
     if 1 {
         note "DEBUG address lines:";
         .note for @addr;
@@ -172,14 +173,21 @@ if not ($list or $draw or $ids or $codes) {
     $list = 1;
 }
 
-my $p = Project.new;
+my $p = Project.new: :input-file($ifil);
 if $cli-scale.defined {
     $p.scale = $cli-scale;
 }
 
 my @ofils; # list of output files generated
 my @rooms; # list of room objects containing furniture objects
+my @room-drawings; # list of room drawing objects 
 @rooms = read-project-data-file $ifil, :$p, :$no-type, :$debug;
+if 0 {
+    note @rooms.raku;
+    note "DEBUG: early exit";
+    exit;
+}
+
 exit if $show-codes;
 
 write-lists(@rooms, @ofils, :$p, :$list, :$ids, :$codes, :$no-type, :$debug);

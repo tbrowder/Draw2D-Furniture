@@ -18,7 +18,7 @@ sub create-master-file(Project $p) is export {
 #| Data from a separate room-dimensions input data file are used
 #| to create scaled drawings of the rooms.
 sub read-room-data($ifil, :$scale!, :$debug --> List) {
-    my @arr;
+    my RoomDrawing @rooms;
     for $ifil.IO.lines -> $line is copy {
         $line = strip-comment $line;
         next if $line !~~ /\S/;
@@ -36,12 +36,12 @@ sub read-room-data($ifil, :$scale!, :$debug --> List) {
         my $ll = in2ft $r.length;
         $r.dims2  = "{$ww}x{$ll}";
 
-        @arr.push: $r;
+        @rooms.push: $r;
     }
     if $debug {
         note "DEBUG: early exit";exit;
     }
-    @arr
+    @rooms
 } # sub read-room-data
 
 #==============================================================
@@ -60,7 +60,7 @@ sub draw-rooms($ifil,
 
     my @rooms = read-room-data $ifil, :$scale;
 
-    # create the output files
+    # create the output file names
     my $pdf = $ofil; # $p.filename: "draw", :$scale, :suffix("ps");
 
     my $psf = $pdf;
@@ -169,7 +169,7 @@ sub draw-rooms($ifil,
             # then the page header
             $ps.add_to_page: $npages, $pheader;
         }
-        for $row.rooms -> $room {
+        for $row.rooms -> RoomDrawing $room {
             ++$nrooms;
             # draw it at the current ulx, uly
             $room.ps-draw: $ps, :ulx($x), :uly($y);
@@ -327,7 +327,7 @@ sub write-drawings(@rooms,
                 # then the page header
                 $ps.add_to_page: $npages, $pheader;
             }
-            for $row.furniture -> $f {
+            for $row.furniture -> Furniture $f {
                 ++$nfurn;
                 # draw it at the current ulx, uly
                 $f.ps-draw: $ps, :ulx($x), :uly($y);
@@ -448,12 +448,12 @@ sub text-to-ps($txtfil, # the ASCII input text file
     #   wrap the text to proper width (check Text::Utils)
     #   use a PS proc to write?
 
-    LINE: for $txtfil.IO.lines -> $line is copy {
-        my $ff = $line ~~ /:i '<ff>' / ?? 1 !! 0;
+    LINE: for $txtfil.IO.lines -> $tline is copy {
+        my $ff = $tline ~~ /:i '<ff>' / ?? 1 !! 0;
         note "DEBUG: ff = $ff" if $debug == 1;
 
         # some analysis here:
-        #   if $line contains '<ff>' make a new page
+        #   if $tline contains '<ff>' make a new page
         # otherwise, we need to translate leading space
         #   chars to an x indent space
         reset-row-var $x, :$xleft;
@@ -466,31 +466,33 @@ sub text-to-ps($txtfil, # the ASCII input text file
         }
         next LINE if $ff;
 
-        my @lines;
-        my $line-len = $line.chars * $fsize;
+        # wrapped lines, may bejust one if no wrapping
+        my @wlines;
+
+        my $line-len = $tline.chars * $fsize;
         if $line-len > $max-line-len {
             # wrap the lines with the initial spaces as indent
             my $para-indent = 0;
-            if $line ~~ /^ (\s+) (.*) $/ {
+            if $tline ~~ /^ (\s+) (.*) $/ {
                 my $spaces = ~$0;
                 $para-indent = $spaces.chars;
             }
             # do the wrap
             # this fails in PostScript with unbalanced quote delimiters
             # fix by escaping after the fold by traversing the folded lines
-            my @flines = wrap-paragraph $line,
+            my @flines = wrap-paragraph $tline,
             :max-line-length($max-line-chars),
             :$para-indent,
             :line-indent(4);
-            for @flines -> $line is copy {
-                $line ~~ s:g/'('/\\(/;
-                $line ~~ s:g/')'/\\)/;
-                @lines.push: $line;
+            for @flines -> $fline is copy {
+                $fline ~~ s:g/'('/\\(/;
+                $fline ~~ s:g/')'/\\)/;
+                @wlines.push: $fline;
             }
 
             if $debug and $debug == 4 {
                 note "DEBUG: wrapped para: ======";
-                .say for @lines;
+                .say for @wlines;
                 note "DEBUG: end wrapped para: ======";
                 #note "DEBUG: early exit"; exit
             }
@@ -499,12 +501,13 @@ sub text-to-ps($txtfil, # the ASCII input text file
             # what about unbalanced parens in shorter lines?
             # this also fails in PostScript with unbalanced quote delimiters
             # fix by escaping all parens on the line
-            $line ~~ s:g/'('/\\(/;
-            $line ~~ s:g/')'/\\)/;
-            @lines.push: $line;
+            $tline ~~ s:g/'('/\\(/;
+            $tline ~~ s:g/')'/\\)/;
+            @wlines.push: $tline;
         }
 
-        LINES: for @lines -> $fline is copy {
+        # handle the processed line or lines
+        LINES: for @wlines -> $wline is copy {
             reset-row-var $x, :$xleft;
             my $res = check-bottom($y, $lspace, $ybottom);
             if !$res {
@@ -515,13 +518,20 @@ sub text-to-ps($txtfil, # the ASCII input text file
             }
 
             # write the line or skip a line space for a blank line
-            if $fline !~~ /\S/ {
+            if $wline !~~ /\S/ {
                 ; # no entry but vspace
                 $y -= $lspace;
             }
-            elsif $fline ~~ /^ \h* 'doc-title:' (.*) $/ {
+            elsif $wline ~~ /^ \h* 'doc-title:' (.*) $/ {
                 # this should be the first line of text
                 my $text = normalize-string ~$0;
+
+                =begin comment
+                # fix unbalenced parens problem
+                $text ~~ s:g/'('/\\(/;
+                $text ~~ s:g/')'/\\)/;
+                =end comment
+
                 # use Times bold, 12 point
                 $ps.add_to_page: qq:to/HERE/;
                 gsave
@@ -531,15 +541,22 @@ sub text-to-ps($txtfil, # the ASCII input text file
                 HERE
                 $y -= 12 * 1.2;
             }
-            elsif $fline ~~ /^ (\s+) (.*) $/ {
+            elsif $wline ~~ /^ (\s+) (.*) $/ {
                 my $spaces = ~$0;
                 my $text   = ~$1;
+
+                =begin comment
+                # fix unbalenced parens problem
+                $text ~~ s:g/'('/\\(/;
+                $text ~~ s:g/')'/\\)/;
+                =end comment
+
                 my $xx = $spaces.chars * $fsize;
                 $ps.add_to_page: "{$x + $xx} $y mt ($text) 9 puttext\n";
                 $y -= $lspace;
             }
             else {
-                $ps.add_to_page: "$x $y mt ($line) 9 puttext\n";
+                $ps.add_to_page: "$x $y mt ($wline) 9 puttext\n";
                 $y -= $lspace;
             }
             #$y -= $lspace;
@@ -609,8 +626,9 @@ sub read-project-data-file($ifil,
                    :$debug = 0,
                    --> List
                   ) is export {
-    my @headers;
+    #my Room @rooms;
     my @rooms;
+    my RoomDrawing @room-drawings;
 
     my $curr-room = 0;
     my $rnum = 0;
@@ -621,7 +639,6 @@ sub read-project-data-file($ifil,
 
     # fold (concatenate) lines with backslashes before processing
     my @flines;
-
     for $ifil.IO.lines -> $line is copy {
         ++$i;
         # lines with an ending slash are combined with following lines
@@ -670,12 +687,47 @@ sub read-project-data-file($ifil,
         next LINE if $line ~~ /^ \s* '='+ \s* $/;
         say "DEBUG2 line: '$line'" if $debug == 1;
 
+        =begin comment
+        # TODO handle width x length measurements on room: line
+        #   use same double-parsing technique as for furniture lines
+        # RECTANGLE
+        if $line ~~ / # first collect dimensional and object type at the end of the string
+                      [
+                         || \h+ (<number>) \h* 'x' \h* (<number>) \h* 'x' \h* (<number>)
+                         || \h+ (<number>) \h* 'x' \h* (<number>)
+                      ]
+                      \h*
+                    $/ {
+        }
+        =end comment
+
         if $line ~~ /^ \h* room ':' \h* (.*) \h* $/ {
             # a new room
             ++$rnum;
-            my $title = normalize-string ~$0;
+
+            my $room-dimens;
+            my $width;
+            my $length;
+            my $data = ~$0;
+            # collect dimensional and object type at the end of the string
+            if $data ~~ / \h* (<number>) \h* 'x' \h* (<number>) \h* $/ {
+                $width  = +$0;
+                $length = +$1;
+                $room-dimens = "$width x $length";
+                note "DEBUG: room $rnum has dimens: '$room-dimens'":
+            }
+
+            # TODO strip out any room dimen info
+            #my $title = normalize-string ~$0;
+            my $title = normalize-string $data;
+
             $curr-room = Room.new: :number($rnum), :$title;
             @rooms.push: $curr-room;
+
+            with $room-dimens {
+                my $rd = RoomDrawing.new: :$title, :$width, :$length;
+                @room-drawings.push: $rd;
+            }
 
             # reset furniture numbering
             $fnum = 0;
@@ -1124,7 +1176,6 @@ sub read-project-data-file($ifil,
         # INIT FURNITURE - CRITICAL
         $furn.init; # CRITICAL!!
 
-
         #   BUT this code remains:
         # handle the furniture
         $curr-room.furniture.push: $furn;
@@ -1165,7 +1216,7 @@ sub make-room-rows(@rows,   # should be empty
 
     reset-row-var;
 
-    for @rooms -> $room {
+    for @rooms -> RoomDrawing $room {
         if $scale {
             $room.init: :$scale;
         }
@@ -1183,7 +1234,7 @@ sub make-room-rows(@rows,   # should be empty
         # update row data
         $x += $room.w;
         $row.rooms.push: $room;
-        $row.max-height = $room.h if $room.h > $row.max-height;
+        $row.max-height = $room.l if $room.l > $row.max-height;
     }
 
 } # sub make-room-rows
@@ -1287,6 +1338,7 @@ sub ps-to-pdf(@ofils,
     die "FATAL: Input file '$psf' not found" if !$psf.IO.f;
     my $cmd  = "ps2pdf";
     my $args = "$psf $pdf";
+    note "DEBUG: running command; 'psf2pdf {$args}'" if 1;
     try run $cmd, $args.words;
     if $! {
         note "WARNING: ps2pdf failed: '{$!.Str}'";
@@ -1430,7 +1482,7 @@ sub write-list-rooms(@rooms, :@ofils, :project(:$p), :$debug = 0) {
     ROOM: for @rooms -> $r {
         my $ritems = 0;
         $fh.say: "Room {$r.number}: {$r.title}";
-        for $r.furniture -> $f {
+        for $r.furniture -> Furniture $f {
             my $t = $f.title;
             if $t ~~ /:i '<ff>'/ {
                 # NOTE: this is the ONLY list where we show the
@@ -1477,8 +1529,8 @@ sub write-list-codes(@rooms, :@ofils, :project(:$p), :$debug = 0) {
     }
 
     my @codes = $codes.lc.words;
-    for @codes -> $c {
-        # create the raw ASCII text file
+    CODE: for @codes -> $c {
+        # create the raw ASCII text file but ONLY if there are items with that code
         my $txtfil = $p.filename: "text", :list-subtype("code"), :code($c);
         my $fh = open $txtfil, :w;
 
@@ -1526,6 +1578,12 @@ sub write-list-codes(@rooms, :@ofils, :project(:$p), :$debug = 0) {
         }
         $fh.say: "\nTotal number items: $nitems";
         $fh.close;
+
+        if not $nitems {
+            unlink $txtfil;
+            next CODE;
+        }
+
         @ofils.push: $txtfil;
         # we now have a text file to convert to ps
 

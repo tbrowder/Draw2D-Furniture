@@ -5,14 +5,14 @@
 # list from Draw2D::Furniture
 
 # All dimensions are expresses as W x L in inches
-#   Width:  front of house to back
-#   Length: side-to-side view of house from street
+#   Width:  front of house to back (x dimension)
+#   Length: side-to-side view of house from street (y dimension)
 
 # Title, Width (in), Length (in)
 # (rooms need remeasuring)
 Dining room, 156, 144
 Living room, 156, 144    # bounded by foyer
-Kitchen/Great room, 244, 162
+Kitchen/Great room, 162, 244
 Master bedroom, 135, 207
 Bedroom 1, 153, 146      # needs remeasuring
 Bedroom 2 (Study), 110, 108

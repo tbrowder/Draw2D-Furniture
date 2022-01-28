@@ -45,7 +45,7 @@ room: Master bedroom # room 1
 1.7 [ ] chair, lounge chair			21 x 49
 1.8 [ ] mirror, over Missy' chest of drawers  32.5x44.5
 1.9 [ ] stool, step, for bed                  18x14x13
-1.10 [ ] chair, vanity (in dressing room)     21x18x27 
+1.10 [ ] chair, vanity (in dressing room)     21x18x27
 1.11 [ ] chair, desk (with 1.3)               18x21x31.5
 
 room: Foyer # room 2
@@ -177,14 +177,14 @@ room: Bonus room # room 9
 9.3 [s] chair, small antique child's rocking 	18 x 28
 9.4 [ ] bookcase, tall cherry (1 of 2, with 12.7) 43 x 10.5 x 50.5
 9.5  [ ] desk, antique, pine, child's 25.5x21
-9.6  [ ] chair, desk (with 9.5) 
+9.6  [ ] chair, desk (with 9.5)
 9.7  [ ] table, antique spool 32x18.5
 9.8  [ ] stool, wooden 12x12
 9.9  [ ] chest, rattan, with glass top 48x48
 9.10 [ ] chair, rocking, cane-bottom 18x28
 9.11 [ ] stool, foot, needlepoint 14.5x9
 9.12 [ ] chair, cane-bottom, antique    17x20
-9.13 [ ] basket, waste, decorative 
+9.13 [ ] basket, waste, decorative
 
 room: Tom's study # room 10
 ==========
@@ -224,10 +224,11 @@ room: Garage # room 13
 room: Front porch # room 14
 ==========
 
-14.1. [ ] bench, slatted
+14.1  [ ] bench, slatted
 14.2  [ ] chair, rocking
 14.3  [ ] chair, rocking
 14.4  [ ] table, small
+
 14.5  [ ] planter, wooden, square
 
 room: Front yard # room 15
@@ -236,44 +237,4 @@ room: Front yard # room 15
 15.1 [ ] swing
 15.2 [ ] chair
 15.3 [ ] chair
-table, small
-
-
-room: Back yard # room 16
-==========
-
-16.1 [ ] grill
-chair, wrought iron
-chair, wrought iron
-chair, wrought iron
-chair, wrought iron
-chair, wrought iron
-
-chair, bouncy, wrought iron
-table, circular, for umbrella, wrought iron
-umbrella
-table, small, wrought iron
-
-bench, wrought iron
-
-recliner, pool
-recliner, pool
-table, small, pool-side
-
-
-room: Upstairs bath # room 17
-==========
-
-17.1 [ ] stand, wicker 17 x 12 x 30
-17.2 [ ] caddy, small wicker 12 x 8 x 24
-mirror
-mirror
-mirror top decoration
-
-
-room: Upstairs attic # room 18
-==========
-
-room: Garage attic # room 19
-==========
-
+15.4 [ ] table, small

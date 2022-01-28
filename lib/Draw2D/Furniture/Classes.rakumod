@@ -2,6 +2,8 @@ unit module Draw2D::Furniture::Classes;
 
 class Project {...}
 class Furniture {...}
+class Room {...}
+class RoomDrawing {...}
 
 role Collections {
 
@@ -152,9 +154,10 @@ role Collections {
 
 class Project does Collections is export {
     # SET UPON CREATION WARN IF DIFFERENT
-    has $.title    is rw = ""; # normally set upon creation, may have spaces
-    has $.date     is rw = ""; # normally set upon creation
-    has $.basename is rw = ""; # normally set upon creation # cannot have spaces
+    has $.title      is rw = ""; # normally set upon creation, may have spaces
+    has $.date       is rw = ""; # normally set upon creation
+    has $.basename   is rw = ""; # normally set upon creation # cannot have spaces
+    has $.input-file is required is rw = "";
 
     # following attribute values cannot have spaces
     has $.list-name is rw = "furniture-list";     # was $ofilL
@@ -252,8 +255,8 @@ class Project does Collections is export {
 class Row is export {
     has $.max-height is rw = 0; # PS points
     # contains either furniture OR rooms
-    has @.furniture is rw;
-    has @.rooms     is rw
+    has Furniture   @.furniture is rw;
+    has RoomDrawing @.rooms     is rw
 }
 
 class RoomDrawing is export {
@@ -267,7 +270,7 @@ class RoomDrawing is export {
     has $.scale; # must be input when created
     # internal bbox values in properly-scaled PS points
     has $.w is rw;
-    has $.h is rw;
+    has $.l is rw; # length
     has $.sf is rw; # scale factor
     has $.dims2 is rw; # width x length (feet)
 
@@ -282,8 +285,8 @@ class RoomDrawing is export {
             $.sf = 72 / (12 / $.scale);
         }
         # apply scale
-        $.h = $.width * $.sf;
-        $.w = $.length * $.sf;
+        $.w = $.width * $.sf;
+        $.l = $.length * $.sf;
     }
 
     # A method to draw itself in raw PS
@@ -302,7 +305,7 @@ class RoomDrawing is export {
     method ps-draw($ps, :$ulx, :$uly) {
         # define the center of the bounding box
         my $cx = $ulx + 0.5 * $.w;
-        my $cy = $uly - 0.5 * $.h;
+        my $cy = $uly - 0.5 * $.l;
         my $d = 2;
         # put number $d pt above center
         # put dimen rep $d pt below center
@@ -312,9 +315,11 @@ class RoomDrawing is export {
         /Times-Roman 7 selectfont
         $cx $cy $d sub mt ({$.dims2}) 7 puttext
         HERE
+
+        note "DEBUG: room '$.title' ps-draw: width $.w, length $.l" if 1;
         with $.width {
             $s ~= qq:to/HERE/;
-            $ulx $uly {$.w} {$.h} box
+            $ulx $uly {$.w} {$.l} box
             HERE
         }
         $ps.add_to_page: $s;
@@ -324,6 +329,7 @@ class RoomDrawing is export {
 
 class Room is export {
     has $.number    is rw ;
+    has $.title     is rw = "";
     has @.furniture is rw ;
 }
 
@@ -414,7 +420,7 @@ class Furniture does Collections is export {
         # put dimen rep $d pt below center
         my $s = qq:to/HERE/;
         /Times-Bold 9 selectfont
-        $cx $cy $d add mt ({$.id}) 3 puttext % this the furniture unique ID
+        $cx $cy $d add mt ({$.id}) 3 puttext % this is the furniture unique ID
         /Times-Roman 7 selectfont
         $cx $cy $d sub mt ({$.dims2}) 7 puttext
         HERE
@@ -441,4 +447,5 @@ class Furniture does Collections is export {
         }
         $ps.add_to_page: $s;
     }
-}
+
+} # class Furniture

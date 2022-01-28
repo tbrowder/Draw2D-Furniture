@@ -59,9 +59,3 @@ if $n {
    say "Created $n file$s:";
    say "  $_" for @ofils.sort;
 }
-
-=finish
-
-die "FATAL: Unable to read input file '$ifil'." if not $ifil.IO.r;
-my @rooms = read-file $ifil;
-my $ofil  = "room-diagrams";
