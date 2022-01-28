@@ -1,0 +1,27 @@
+Plan to create a more general 2D drawing
+option with an ASCI input file:
+
+in-units: in cm m f mm
+out-units
+scale: x per 
+
+# define points by number or name
+point: 1 x y
+point: a x y
+
+# adverbs for shapes
+lw N # line width in PS points
+d N  # diameter
+
+# shapes
+poly: # 2 or more points with closure from last to first to last
+line: # 2 named points 
+linea: # 1 named point plus: ang X len Y (in either order)
+
+
+rect: 1 2 3 4 # either direction
+tri: 1 2 3    # either direction
+ell: a b # create options for entering x and y bounds, orientation angle, etc.
+circ: 
+
+
