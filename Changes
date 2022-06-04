@@ -25,4 +25,5 @@ Revision history for Draw2D-Furniture
       backward compatibility)
     - Changed default output file naming scheme to use a base name made from 
       the project title unless it is specified in the master file
+    - Remove requirement for the Test::META module
 

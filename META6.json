@@ -36,7 +36,6 @@
     "PostScript"
   ],
   "test-depends": [
-    "Test::META"
   ],
   "version": "2.0.0"
 }

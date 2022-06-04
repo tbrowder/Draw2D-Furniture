@@ -5,10 +5,11 @@ use Draw2D::Furniture::Classes;
 
 my ($p, $c, $f);
 my $basename = "test";
+my $input-file = "data/furniture-input.txt";
 
 # test all options
 
-$p = Draw2D::Furniture::Classes::Project.new: :$basename;
+$p = Draw2D::Furniture::Classes::Project.new: :$basename, :$input-file;
 $p.set-code: 'a', :title("Alpha");
 
 $c = $p.codes2str: :keys;
